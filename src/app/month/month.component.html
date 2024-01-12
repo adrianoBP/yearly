@@ -1,0 +1,15 @@
+<div class="container">
+  <header> {{month.name}} </header>
+  <div id="days-header">
+    <div *ngFor="let weekdayName of weekDays">
+      {{weekdayName[0]}}
+    </div>
+  </div>
+  <div id="month-days">
+    <div class="filler"
+         *ngFor="let filler of fillerDays"></div>
+    <div *ngFor="let day of month.days">
+      {{day.number}}
+    </div>
+  </div>
+</div>
