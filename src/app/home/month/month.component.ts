@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Day, WeekDay, Month } from '../interfaces/month.interface';
+import { Day, WeekDay, Month } from '../../interfaces/month.interface';
 
 @Component({
   selector: 'app-month',
