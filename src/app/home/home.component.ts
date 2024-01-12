@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Day, Month, WeekDay } from '../interfaces/month.interface';
 import { CommonModule } from '@angular/common';
 import { MonthComponent } from './month/month.component';
-declare const testG: any;
+import { GoogleService } from '../services/google.service';
 
 @Component({
   selector: 'app-home',
@@ -14,7 +14,7 @@ declare const testG: any;
 export class HomeComponent {
   months: Month[] = [];
 
-  constructor() {
+  constructor(public googleService: GoogleService) {
     const date = new Date(`${new Date().getFullYear()}-01-01`);
 
     while (date.getFullYear() === new Date().getFullYear()) {

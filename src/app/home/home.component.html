@@ -1,3 +1,14 @@
+<!-- TODO: Move nav to its own component -->
+<nav>
+  <div class="left">
+    <h3>Yearly</h3>
+    <p>{{googleService.socialUser?.firstName}}'s calendar</p>
+  </div>
+  <div class="right">
+    <button (click)="googleService.logOut()">SignOut</button>
+  </div>
+</nav>
+
 <div id="calendar">
   <app-month *ngFor="let month of months"
              [month]="month"></app-month>

@@ -11,3 +11,29 @@
   grid-gap: 2rem;
   flex: 1;
 }
+
+nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+nav>div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+nav button {
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  border: none;
+}
+
+nav button:hover {
+  cursor: pointer;
+  background-color: #f5f5f5;
+}

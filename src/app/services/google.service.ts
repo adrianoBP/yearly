@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class GoogleService {
-  socialUser!: SocialUser;
+  socialUser?: SocialUser;
   isLoggedIn?: boolean;
 
   constructor(
@@ -31,7 +31,9 @@ export class GoogleService {
   loginWithGoogle(): void {
     this.socialAuthService.signIn(GoogleLoginProvider.PROVIDER_ID);
   }
+
   logOut(): void {
     this.socialAuthService.signOut();
+    this.router.navigate(['/login']);
   }
 }
