@@ -1,0 +1,7 @@
+<div class="container">
+  <div class="selection"
+       *ngFor="let eventDay of events"
+       [ngClass]="{'start': eventDay.isFirstDay, 'end': eventDay.isLastDay}"
+       [ngStyle]="{'background-color': eventDay.colour}"></div>
+  <p>{{day.number}}</p>
+</div>

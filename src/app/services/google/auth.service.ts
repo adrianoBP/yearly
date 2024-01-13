@@ -13,6 +13,15 @@ export class GoogleAuthService {
 
   public accessToken = '';
 
+  // constructor(private router: Router) {
+  //   this.isLoggedIn = true;
+  // }
+  // getAccessToken(): void {}
+  // loginWithGoogle(): void {}
+  // logOut(): void {
+  //   this.router.navigate(['/login']);
+  // }
+
   constructor(
     private router: Router,
     private socialAuthService: SocialAuthService
@@ -26,10 +35,6 @@ export class GoogleAuthService {
         this.getAccessToken(() => this.router.navigate(['/']));
       }
     });
-  }
-
-  get isAuthorised() {
-    return true;
   }
 
   getAccessToken(onTokenRetrieved?: () => void): void {

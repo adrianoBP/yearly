@@ -1,15 +1,15 @@
-<div class="container">
+<div class="calendar-container">
   <header> {{month.name}} </header>
-  <div id="days-header">
+  <div id="weekdays">
     <div *ngFor="let weekdayName of weekDays">
       {{weekdayName[0]}}
     </div>
   </div>
-  <div id="month-days">
+  <div id="days-container">
     <div class="filler"
          *ngFor="let filler of fillerDays"></div>
-    <div *ngFor="let day of month.days">
-      {{day.number}}
-    </div>
+    <app-day *ngFor="let day of month.days"
+             [day]="day"
+             [events]="events[day.number]"></app-day>
   </div>
 </div>
