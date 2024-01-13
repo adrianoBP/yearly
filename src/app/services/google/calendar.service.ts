@@ -1,38 +1,26 @@
 import { Injectable } from '@angular/core';
-import {
-  SocialAuthService,
-  GoogleLoginProvider,
-  SocialUser,
-} from '@abacritt/angularx-social-login';
+import { SocialUser } from '@abacritt/angularx-social-login';
 import { HttpClient } from '@angular/common/http';
+import { GoogleAuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class GoogleCalendarService {
   socialUser?: SocialUser;
   isLoggedIn?: boolean;
 
-  private accessToken = '';
-
   constructor(
-    private socialAuthService: SocialAuthService,
+    private googleAuthService: GoogleAuthService,
     private httpClient: HttpClient
   ) {}
 
-  getAccessToken(onTokenRetrieved?: () => void): void {
-    this.socialAuthService
-      .getAccessToken(GoogleLoginProvider.PROVIDER_ID)
-      .then((accessToken) => {
-        this.accessToken = accessToken;
-        if (onTokenRetrieved) onTokenRetrieved();
-      });
-  }
-
   getGoogleCalendarData(): void {
-    if (!this.accessToken) return;
+    if (!this.googleAuthService.accessToken) return;
 
     this.httpClient
       .get('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-        headers: { Authorization: `Bearer ${this.accessToken}` },
+        headers: {
+          Authorization: `Bearer ${this.googleAuthService.accessToken}`,
+        },
       })
       .subscribe((events) => {
         console.log('events', events);

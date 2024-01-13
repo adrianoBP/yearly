@@ -3,36 +3,42 @@ import {
   SocialAuthService,
   GoogleLoginProvider,
   SocialUser,
-  GoogleInitOptions,
 } from '@abacritt/angularx-social-login';
 import { Router } from '@angular/router';
-import { GoogleCalendarService } from './calendar.service';
 
 @Injectable({ providedIn: 'root' })
 export class GoogleAuthService {
   socialUser?: SocialUser;
   isLoggedIn?: boolean;
 
+  public accessToken = '';
+
   constructor(
     private router: Router,
-    private socialAuthService: SocialAuthService,
-    private googleCalendarService: GoogleCalendarService
+    private socialAuthService: SocialAuthService
   ) {
     this.socialAuthService.authState.subscribe((user) => {
       this.socialUser = user;
       this.isLoggedIn = user != null;
-      console.log(this.socialUser);
 
       if (this.isLoggedIn) {
-        this.googleCalendarService.getAccessToken(() =>
-          this.router.navigate(['/'])
-        );
+        console.log(this.socialUser);
+        this.getAccessToken(() => this.router.navigate(['/']));
       }
     });
   }
 
   get isAuthorised() {
     return true;
+  }
+
+  getAccessToken(onTokenRetrieved?: () => void): void {
+    this.socialAuthService
+      .getAccessToken(GoogleLoginProvider.PROVIDER_ID)
+      .then((accessToken) => {
+        this.accessToken = accessToken;
+        if (onTokenRetrieved) onTokenRetrieved();
+      });
   }
 
   loginWithGoogle(): void {
