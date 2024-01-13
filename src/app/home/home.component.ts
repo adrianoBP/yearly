@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { Day, Month, WeekDay } from '../interfaces/month.interface';
 import { CommonModule } from '@angular/common';
 import { MonthComponent } from './month/month.component';
-import { GoogleService } from '../services/google.service';
+import { GoogleAuthService } from '../services/google/auth.service';
+import { GoogleCalendarService } from '../services/google/calendar.service';
 
 @Component({
   selector: 'app-home',
@@ -14,7 +15,10 @@ import { GoogleService } from '../services/google.service';
 export class HomeComponent {
   months: Month[] = [];
 
-  constructor(public googleService: GoogleService) {
+  constructor(
+    public googleAuthService: GoogleAuthService,
+    private googleCalendarService: GoogleCalendarService
+  ) {
     const date = new Date(`${new Date().getFullYear()}-01-01`);
 
     while (date.getFullYear() === new Date().getFullYear()) {
@@ -37,5 +41,9 @@ export class HomeComponent {
 
   getMonth(date: Date) {
     return date.toLocaleString('default', { month: 'long' });
+  }
+
+  test() {
+    this.googleCalendarService.getGoogleCalendarData();
   }
 }

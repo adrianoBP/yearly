@@ -7,10 +7,10 @@ import {
 import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { inject } from '@angular/core';
-import { GoogleService } from './services/google.service';
+import { GoogleAuthService } from './services/google/auth.service';
 
 const canActivateHome: CanActivateFn = (route: ActivatedRouteSnapshot) => {
-  const loggedIn = inject(GoogleService).isLoggedIn;
+  const loggedIn = inject(GoogleAuthService).isLoggedIn;
   if (!loggedIn) inject(Router).navigate(['/login']);
   return true;
 };

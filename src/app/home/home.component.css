@@ -8,8 +8,9 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  grid-gap: 2rem;
+  grid-gap: 1rem 2rem;
   flex: 1;
+  margin-bottom: 1rem;
 }
 
 nav {
@@ -36,4 +37,10 @@ nav button {
 nav button:hover {
   cursor: pointer;
   background-color: #f5f5f5;
+}
+
+app-month {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

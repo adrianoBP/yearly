@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { GoogleService } from '../services/google.service';
+import { GoogleAuthService } from '../services/google/auth.service';
 import { GoogleSigninButtonModule } from '@abacritt/angularx-social-login';
 
 @Component({
@@ -10,7 +10,7 @@ import { GoogleSigninButtonModule } from '@abacritt/angularx-social-login';
   styleUrl: './login.component.css',
 })
 export class LoginComponent {
-  constructor(private googleService: GoogleService) {}
+  constructor(private googleService: GoogleAuthService) {}
 
   login() {
     this.googleService.loginWithGoogle();

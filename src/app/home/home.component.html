@@ -2,10 +2,11 @@
 <nav>
   <div class="left">
     <h3>Yearly</h3>
-    <p>{{googleService.socialUser?.firstName}}'s calendar</p>
+    <p>{{googleAuthService.socialUser?.firstName}}'s calendar</p>
   </div>
   <div class="right">
-    <button (click)="googleService.logOut()">SignOut</button>
+    <button (click)="test()">Test</button>
+    <button (click)="googleAuthService.logOut()">SignOut</button>
   </div>
 </nav>
 

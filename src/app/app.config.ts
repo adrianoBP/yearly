@@ -1,15 +1,23 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import {
+  GoogleInitOptions,
   GoogleLoginProvider,
   SocialAuthServiceConfig,
 } from '@abacritt/angularx-social-login';
+import { HttpClientModule } from '@angular/common/http';
+
+const googleLoginOptions: GoogleInitOptions = {
+  oneTapEnabled: true,
+  scopes: 'https://www.googleapis.com/auth/calendar.readonly',
+};
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
+    importProvidersFrom(HttpClientModule),
     {
       provide: 'SocialAuthServiceConfig',
       useValue: {
@@ -18,7 +26,8 @@ export const appConfig: ApplicationConfig = {
           {
             id: GoogleLoginProvider.PROVIDER_ID,
             provider: new GoogleLoginProvider(
-              '1065910070716-egakej28k19t24psupvnb4a8jpce0e5o.apps.googleusercontent.com'
+              '1065910070716-egakej28k19t24psupvnb4a8jpce0e5o.apps.googleusercontent.com',
+              googleLoginOptions
             ),
           },
         ],

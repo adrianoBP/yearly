@@ -1,26 +1,33 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
   SocialAuthService,
   GoogleLoginProvider,
   SocialUser,
+  GoogleInitOptions,
 } from '@abacritt/angularx-social-login';
 import { Router } from '@angular/router';
+import { GoogleCalendarService } from './calendar.service';
 
 @Injectable({ providedIn: 'root' })
-export class GoogleService {
+export class GoogleAuthService {
   socialUser?: SocialUser;
   isLoggedIn?: boolean;
 
   constructor(
     private router: Router,
-    private socialAuthService: SocialAuthService
+    private socialAuthService: SocialAuthService,
+    private googleCalendarService: GoogleCalendarService
   ) {
     this.socialAuthService.authState.subscribe((user) => {
       this.socialUser = user;
       this.isLoggedIn = user != null;
       console.log(this.socialUser);
 
-      if (this.isLoggedIn) this.router.navigate(['/']);
+      if (this.isLoggedIn) {
+        this.googleCalendarService.getAccessToken(() =>
+          this.router.navigate(['/'])
+        );
+      }
     });
   }
 
