@@ -21,15 +21,20 @@ import { faBan } from '@fortawesome/free-solid-svg-icons';
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
+  // FontAwesome icons
+  banIcon = faBan;
+
+  year: number = new Date().getFullYear();
   months: Month[] = [];
-  months$ = new BehaviorSubject<Month[]>([]);
 
   colors: { [key: string]: GoogleCalendarColor } = {};
   events: Event[] = [];
 
-  selectedColorId: string | undefined;
+  eventStart: Date | undefined;
+  eventEnd: Date | undefined;
+  newEvents: Event[] = [];
 
-  banIcon = faBan;
+  selectedColorId: string | undefined;
 
   constructor(
     public googleAuthService: GoogleAuthService,
@@ -39,9 +44,9 @@ export class HomeComponent {
   ngOnInit(): void {
     Promise.all([this.loadEvents(), this.loadColors()]);
 
-    const date = new Date(`${new Date().getFullYear()}-01-01`);
+    const date = new Date(`${this.year}-01-01`);
 
-    while (date.getFullYear() === new Date().getFullYear()) {
+    while (date.getFullYear() === this.year) {
       const monthName = this.getMonthName(date);
       const monthNumber = date.getMonth();
 
@@ -58,8 +63,6 @@ export class HomeComponent {
       } while (monthName === this.getMonthName(date));
       this.months.push({ name: monthName, number: monthNumber, days } as Month);
     }
-
-    this.months$.next(this.months);
   }
 
   getMonthName(date: Date) {
@@ -78,7 +81,7 @@ export class HomeComponent {
   }
 
   async loadEvents() {
-    // return; // TODO: remove once complete
+    return; // TODO: remove once complete
 
     const start = new Date(`${new Date().getFullYear()}-01-01T00:00:00Z`);
     const end = new Date(`${new Date().getFullYear()}-12-31T23:59:59Z`);
@@ -99,30 +102,33 @@ export class HomeComponent {
   }
 
   async loadColors() {
-    // this.colors = {
-    //   '1': { background: '#a4bdfc', foreground: '#1d1d1d' },
-    //   '2': { background: '#7ae7bf', foreground: '#1d1d1d' },
-    //   '3': { background: '#dbadff', foreground: '#1d1d1d' },
-    //   '4': { background: '#ff887c', foreground: '#1d1d1d' },
-    //   '5': { background: '#fbd75b', foreground: '#1d1d1d' },
-    //   '6': { background: '#ffb878', foreground: '#1d1d1d' },
-    //   '7': { background: '#46d6db', foreground: '#1d1d1d' },
-    //   '8': { background: '#e1e1e1', foreground: '#1d1d1d' },
-    //   '9': { background: '#5484ed', foreground: '#1d1d1d' },
-    //   '10': { background: '#51b749', foreground: '#1d1d1d' },
-    //   '11': { background: '#dc2127', foreground: '#1d1d1d' },
-    // };
-    // return; // TODO: remove once complete
+    this.colors = {
+      '1': { background: '#a4bdfc', foreground: '#1d1d1d' },
+      '2': { background: '#7ae7bf', foreground: '#1d1d1d' },
+      '3': { background: '#dbadff', foreground: '#1d1d1d' },
+      '4': { background: '#ff887c', foreground: '#1d1d1d' },
+      '5': { background: '#fbd75b', foreground: '#1d1d1d' },
+      '6': { background: '#ffb878', foreground: '#1d1d1d' },
+      '7': { background: '#46d6db', foreground: '#1d1d1d' },
+      '8': { background: '#e1e1e1', foreground: '#1d1d1d' },
+      '9': { background: '#5484ed', foreground: '#1d1d1d' },
+      '10': { background: '#51b749', foreground: '#1d1d1d' },
+      '11': { background: '#dc2127', foreground: '#1d1d1d' },
+    };
+    this.selectedColorId = '1';
+    return; // TODO: remove once complete
 
     this.colors = await this.googleCalendarService.getColors();
   }
 
   getMonthEvents(month: Month) {
-    return this.events.filter(
-      (event) =>
-        month.number >= event.start.getMonth() &&
-        month.number <= event.end.getMonth()
-    );
+    return this.events
+      .concat(this.newEvents)
+      .filter(
+        (event) =>
+          month.number >= event.start.getMonth() &&
+          month.number <= event.end.getMonth()
+      );
   }
 
   selectColor(colorId: string) {
@@ -131,6 +137,42 @@ export class HomeComponent {
 
   get canCreateNewEvent() {
     return this.selectedColorId != null;
+  }
+
+  onDayClickEvent(date: Date) {
+    console.log('calendar', date);
+
+    if (this.eventStart == null) {
+      this.eventStart = date;
+      return;
+    }
+
+    if (this.eventEnd == null) {
+      this.eventEnd = date;
+      this.requestEventDetails();
+    }
+  }
+
+  requestEventDetails() {
+    console.log('requestEventDetails');
+
+    // Invert dates if the start date is after the end date
+    if (moment(this.eventStart).isAfter(moment(this.eventEnd))) {
+      const temp = this.eventStart;
+      this.eventStart = this.eventEnd;
+      this.eventEnd = temp;
+    }
+
+    this.newEvents.push({
+      title: 'Test',
+      description: '🗃️',
+      start: this.eventStart,
+      end: this.eventEnd,
+      colour: this.colors[this.selectedColorId!].background,
+    } as Event);
+
+    this.eventStart = undefined;
+    this.eventEnd = undefined;
   }
 
   async test() {}

@@ -11,6 +11,7 @@
     <app-day *ngFor="let day of month.days"
              [day]="day"
              [events]="eventsByDay[day.number]"
-             [canCreateNewEvent]="canCreateNewEvent"></app-day>
+             [canCreateNewEvent]="canCreateNewEvent"
+             (onDayClick)="onDayClickEvent($event)"></app-day>
   </div>
 </div>

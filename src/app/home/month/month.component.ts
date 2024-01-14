@@ -1,4 +1,10 @@
-import { Component, Input, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Day, WeekDay, Month } from '../../interfaces/month.interface';
 import { DayComponent } from './day/day.component';
@@ -16,6 +22,8 @@ export class MonthComponent {
   @Input() month!: Month;
   @Input() events!: Event[];
   @Input() canCreateNewEvent!: boolean;
+  @Input() year!: number;
+  @Output() onDayClick = new EventEmitter<Date>();
 
   weekDays: WeekDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -52,5 +60,12 @@ export class MonthComponent {
   get fillerDays() {
     const firstDayOfMonth = this.month.days[0].weekDay;
     return new Array(this.weekDays.indexOf(firstDayOfMonth));
+  }
+
+  onDayClickEvent(day: Day) {
+    const date = new Date(
+      `${this.year}-${this.month.number + 1}-${day.number}`
+    );
+    this.onDayClick.emit(date);
   }
 }

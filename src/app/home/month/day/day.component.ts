@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Day } from '../../../interfaces/month.interface';
 import { EventDay } from '../../../interfaces/event.interface';
 import { CommonModule } from '@angular/common';
@@ -14,4 +14,10 @@ export class DayComponent {
   @Input() day!: Day;
   @Input() events: EventDay[] | undefined;
   @Input() canCreateNewEvent!: boolean;
+  @Output() onDayClick = new EventEmitter<Day>();
+
+  onClick(): void {
+    if (!this.canCreateNewEvent) return;
+    this.onDayClick.emit(this.day);
+  }
 }

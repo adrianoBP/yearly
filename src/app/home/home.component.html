@@ -26,6 +26,8 @@
 <div id="calendar">
   <app-month *ngFor="let month of months"
              [month]="month"
+             [year]="year"
              [events]="getMonthEvents(month)"
-             [canCreateNewEvent]="canCreateNewEvent"></app-month>
+             [canCreateNewEvent]="canCreateNewEvent"
+             (onDayClick)="onDayClickEvent($event)"></app-month>
 </div>
