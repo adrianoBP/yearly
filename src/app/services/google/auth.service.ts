@@ -5,18 +5,27 @@ import {
   SocialUser,
 } from '@abacritt/angularx-social-login';
 import { Router } from '@angular/router';
+import { HTTPRequestType, HttpService } from '../http.service';
 
 @Injectable({ providedIn: 'root' })
 export class GoogleAuthService {
   socialUser?: SocialUser;
   isLoggedIn?: boolean;
 
-  public accessToken = '';
+  private ACCESS_TOKEN_KEY = 'googleAccessToken';
+  private accessToken = '';
 
   // constructor(private router: Router) {
   //   this.isLoggedIn = true;
+  //   this.getAccessToken();
   // }
-  // getAccessToken(): void {}
+  // getAccessToken(onTokenRetrieved?: () => void): void {
+  //   if (localStorage.getItem(this.ACCESS_TOKEN_KEY) != null) {
+  //     this.accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY) as string;
+  //     if (onTokenRetrieved) onTokenRetrieved();
+  //     return;
+  //   }
+  // }
   // loginWithGoogle(): void {}
   // logOut(): void {
   //   this.router.navigate(['/login']);
@@ -24,25 +33,25 @@ export class GoogleAuthService {
 
   constructor(
     private router: Router,
+    private httpService: HttpService,
     private socialAuthService: SocialAuthService
   ) {
     this.socialAuthService.authState.subscribe((user) => {
       this.socialUser = user;
       this.isLoggedIn = user != null;
 
+      this.accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY) as string;
+
       if (this.isLoggedIn) {
         console.log(this.socialUser);
-        this.getAccessToken(() => this.router.navigate(['/']));
+        this.getAccessToken(false, () => this.router.navigate(['/']));
       }
     });
   }
 
-  private ACCESS_TOKEN_KEY = 'googleAccessToken';
-
-  getAccessToken(onTokenRetrieved?: () => void): void {
-    if (localStorage.getItem(this.ACCESS_TOKEN_KEY) != null) {
-      this.accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY) as string;
-      if (onTokenRetrieved) onTokenRetrieved();
+  getAccessToken(forceReload?: boolean, onTokenRetrieved?: () => void): void {
+    if (this.accessToken != '' && !forceReload && onTokenRetrieved) {
+      onTokenRetrieved();
       return;
     }
 
@@ -56,6 +65,25 @@ export class GoogleAuthService {
       });
   }
 
+  getAccessTokenAsync(forceReload?: boolean): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.accessToken != '' && !forceReload) {
+        resolve();
+        return;
+      }
+
+      this.socialAuthService
+        .getAccessToken(GoogleLoginProvider.PROVIDER_ID)
+        .then((accessToken) => {
+          this.accessToken = accessToken;
+          console.log(this.accessToken);
+          localStorage.setItem(this.ACCESS_TOKEN_KEY, this.accessToken);
+          resolve();
+        })
+        .catch((err) => reject(err));
+    });
+  }
+
   loginWithGoogle(): void {
     this.socialAuthService.signIn(GoogleLoginProvider.PROVIDER_ID);
   }
@@ -63,5 +91,47 @@ export class GoogleAuthService {
   logOut(): void {
     this.socialAuthService.signOut();
     this.router.navigate(['/login']);
+  }
+
+  async makeRequest<T>(
+    url: string,
+    method: HTTPRequestType,
+    reAuthorise: boolean = true
+  ): Promise<T> {
+    switch (method) {
+      case 'get':
+        return await this.authWrapper<Promise<T>>(
+          async (): Promise<T> =>
+            await this.httpService.get<T>(url, {
+              Authorization: `Bearer ${this.accessToken}`,
+            }),
+          reAuthorise
+        );
+      case 'post':
+        return await this.httpService.post<T>(url, {
+          Authorization: `Bearer ${this.accessToken}`,
+        });
+      default:
+        throw 'Invalid HTTP request type';
+    }
+  }
+
+  /**
+   * If the API request returns 'Unauthorized', gets a new access token and tries again.
+   */
+  private async authWrapper<T>(
+    callback: () => T,
+    reAuthorise: boolean = true
+  ): Promise<T> {
+    try {
+      return await callback();
+    } catch (error) {
+      console.log(error);
+      if (error === 'Unauthorized' && reAuthorise) {
+        await this.getAccessTokenAsync(true);
+        return await callback();
+      }
+      throw error;
+    }
   }
 }

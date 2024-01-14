@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SocialUser } from '@abacritt/angularx-social-login';
 import { GoogleAuthService } from './auth.service';
-import { HttpService } from '../http.service';
 import moment from 'moment';
 
 export interface GoogleCalendarEvent {
@@ -30,17 +29,33 @@ interface GoogleCalendarEventListResponse {
   nextPageToken?: string;
 }
 
+interface GoogleCalendarColorsResponse {
+  event: { [key: string]: GoogleCalendarColor };
+}
+
+export interface GoogleCalendarColor {
+  background: string;
+  foreground: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class GoogleCalendarService {
   socialUser?: SocialUser;
   isLoggedIn?: boolean;
 
-  constructor(
-    private googleAuthService: GoogleAuthService,
-    private httpService: HttpService
-  ) {}
+  constructor(private googleAuthService: GoogleAuthService) {}
 
   private baseUrl = 'https://www.googleapis.com/calendar/v3';
+
+  async getColors(): Promise<{ [key: string]: GoogleCalendarColor }> {
+    const url = `${this.baseUrl}/colors`;
+    const response =
+      await this.googleAuthService.makeRequest<GoogleCalendarColorsResponse>(
+        url,
+        'get'
+      );
+    return response.event;
+  }
 
   async getEvents(start: Date, end: Date): Promise<GoogleCalendarEvent[]> {
     const queryParameters: { [key: string]: string } = {
@@ -64,10 +79,10 @@ export class GoogleCalendarService {
 
       const url = `${this.baseUrl}/calendars/primary/events?${query}`;
       const response =
-        await this.httpService.get<GoogleCalendarEventListResponse>(url, {
-          Authorization: `Bearer ${this.googleAuthService.accessToken}`,
-        });
-
+        await this.googleAuthService.makeRequest<GoogleCalendarEventListResponse>(
+          url,
+          'get'
+        );
       results.push(...response.items);
     } while (pageToken !== '');
 

@@ -44,3 +44,16 @@ app-month {
   justify-content: center;
   align-items: center;
 }
+
+nav>div.center {
+  gap: .3rem;
+}
+
+.color {
+  height: 1.5rem;
+  aspect-ratio: 3 / 2;
+  background-color: var(--color);
+  border: 1px solid color-mix(in srgb, var(--color) 50%, black);
+  border-radius: .7rem;
+  opacity: 50%;
+}

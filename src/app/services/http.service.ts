@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, lastValueFrom } from 'rxjs';
 
+export type HTTPRequestType = 'get' | 'post';
+
 @Injectable({ providedIn: 'root' })
 export class HttpService {
   constructor(private httpClient: HttpClient) {}
