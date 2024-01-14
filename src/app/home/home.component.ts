@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Day, Month, WeekDay } from '../interfaces/month.interface';
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValue } from '@angular/common';
 import { MonthComponent } from './month/month.component';
 import { GoogleAuthService } from '../services/google/auth.service';
 import {
@@ -9,7 +9,6 @@ import {
 } from '../services/google/calendar.service';
 import { Event } from '../interfaces/event.interface';
 import moment from 'moment';
-import { BehaviorSubject } from 'rxjs';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faBan } from '@fortawesome/free-solid-svg-icons';
 
@@ -25,7 +24,8 @@ export class HomeComponent {
   banIcon = faBan;
 
   year: number = new Date().getFullYear();
-  months: Month[] = [];
+  // months: Month[] = [];
+  months: { [key: string]: Month } = {};
 
   colors: { [key: string]: GoogleCalendarColor } = {};
   events: Event[] = [];
@@ -39,11 +39,7 @@ export class HomeComponent {
   constructor(
     public googleAuthService: GoogleAuthService,
     private googleCalendarService: GoogleCalendarService
-  ) {}
-
-  ngOnInit(): void {
-    Promise.all([this.loadEvents(), this.loadColors()]);
-
+  ) {
     const date = new Date(`${this.year}-01-01`);
 
     while (date.getFullYear() === this.year) {
@@ -61,8 +57,17 @@ export class HomeComponent {
         });
         date.setDate(date.getDate() + 1);
       } while (monthName === this.getMonthName(date));
-      this.months.push({ name: monthName, number: monthNumber, days } as Month);
+
+      this.months[monthName] = {
+        name: monthName,
+        number: monthNumber,
+        days,
+      } as Month;
     }
+  }
+
+  ngOnInit(): void {
+    Promise.all([this.loadEvents(), this.loadColors()]);
   }
 
   getMonthName(date: Date) {
@@ -70,17 +75,40 @@ export class HomeComponent {
   }
 
   addMonthsEvents() {
-    for (let month of this.months) {
-      month.events = this.events.filter(
+    for (let month in this.months) {
+      this.months[month].events = this.events.filter(
         (event) =>
-          month.number >= event.start.getMonth() &&
-          month.number <= event.end.getMonth()
+          this.months[month].number >= event.start.getMonth() &&
+          this.months[month].number <= event.end.getMonth()
       );
     }
-    console.log(this.events);
   }
 
   async loadEvents() {
+    this.events = [
+      {
+        title: 'Test',
+        description: '🗃️',
+        start: new Date('2024-01-01T00:00:00Z'),
+        end: new Date('2024-12-31T23:59:59Z'),
+        colour: '#ff0000',
+      } as Event,
+      {
+        title: 'Test',
+        description: '🗃️',
+        start: new Date('2024-01-02T00:00:00Z'),
+        end: new Date('2024-12-30T23:59:59Z'),
+        colour: '#00ff00',
+      } as Event,
+      {
+        title: 'Test',
+        description: '🗃️',
+        start: new Date('2024-01-03T00:00:00Z'),
+        end: new Date('2024-12-29T23:59:59Z'),
+        colour: '#00ff00',
+      } as Event,
+    ];
+    this.addMonthsEvents();
     return; // TODO: remove once complete
 
     const start = new Date(`${new Date().getFullYear()}-01-01T00:00:00Z`);
@@ -121,14 +149,14 @@ export class HomeComponent {
     this.colors = await this.googleCalendarService.getColors();
   }
 
-  getMonthEvents(month: Month) {
-    return this.events
-      .concat(this.newEvents)
-      .filter(
+  getMonthEvents({ events, number }: Month) {
+    return [
+      ...(events ?? []),
+      ...this.newEvents.filter(
         (event) =>
-          month.number >= event.start.getMonth() &&
-          month.number <= event.end.getMonth()
-      );
+          number >= event.start.getMonth() && number <= event.end.getMonth()
+      ),
+    ];
   }
 
   selectColor(colorId: string) {
@@ -174,6 +202,13 @@ export class HomeComponent {
     this.eventStart = undefined;
     this.eventEnd = undefined;
   }
+
+  monthsOrder = (
+    a: KeyValue<string, Month>,
+    b: KeyValue<string, Month>
+  ): number => {
+    return a.value.number - b.value.number;
+  };
 
   async test() {}
 }

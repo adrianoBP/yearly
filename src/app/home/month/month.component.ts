@@ -30,14 +30,21 @@ export class MonthComponent {
   // events dictionary
   eventsByDay: { [key: number]: EventDay[] } = {};
 
-  ngOnChanges(): void {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (
+      changes['events'] &&
+      JSON.stringify(changes['events'].currentValue) ===
+        JSON.stringify(changes['events'].previousValue)
+    )
+      return;
+
     this.eventsByDay = {} as { [key: number]: EventDay[] };
+
     for (let event of this.events) {
-      for (
-        let day = moment(event.start);
-        day.isSameOrBefore(event.end);
-        day.add(1, 'day')
-      ) {
+      const eventDaysCount = moment(event.end).diff(event.start, 'days') + 1;
+
+      for (let i = 0; i < eventDaysCount; i++) {
+        const day = moment(event.start).add(i, 'day');
         // if the day is not in the month, skip it
         if (this.month.name !== day.format('MMMM')) continue;
 

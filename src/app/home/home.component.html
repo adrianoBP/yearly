@@ -24,10 +24,10 @@
 </nav>
 
 <div id="calendar">
-  <app-month *ngFor="let month of months"
-             [month]="month"
+  <app-month *ngFor="let month of months | keyvalue: monthsOrder"
+             [month]="month.value"
              [year]="year"
-             [events]="getMonthEvents(month)"
+             [events]="getMonthEvents(month.value)"
              [canCreateNewEvent]="canCreateNewEvent"
              (onDayClick)="onDayClickEvent($event)"></app-month>
 </div>
