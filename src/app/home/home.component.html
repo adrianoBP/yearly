@@ -8,7 +8,13 @@
   <div class="center">
     <div class="color"
          *ngFor="let color of colors | keyvalue"
-         [ngStyle]="{ '--color': color.value.background}"></div>
+         [ngStyle]="{ '--color': color.value.background}"
+         [ngClass]="{ 'selected': color.key === selectedColorId }"
+         (click)="selectColor(color.key)"></div>
+    <div class="color icon"
+         [ngStyle]="{ '--color': 'white', color: 'red'}"
+         (click)="selectedColorId = undefined"><fa-icon [icon]="banIcon"
+               [size]="'sm'"></fa-icon></div>
   </div>
 
   <div class="right">
@@ -20,5 +26,6 @@
 <div id="calendar">
   <app-month *ngFor="let month of months"
              [month]="month"
-             [events]="getMonthEvents(month)"></app-month>
+             [events]="getMonthEvents(month)"
+             [canCreateNewEvent]="canCreateNewEvent"></app-month>
 </div>

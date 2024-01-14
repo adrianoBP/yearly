@@ -55,5 +55,26 @@ nav>div.center {
   background-color: var(--color);
   border: 1px solid color-mix(in srgb, var(--color) 50%, black);
   border-radius: .7rem;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.color:not(.icon) {
   opacity: 50%;
+}
+
+.color:hover {
+  cursor: pointer;
+  opacity: 20%;
+}
+
+.color.icon:hover {
+  opacity: 70%;
+}
+
+
+.color.selected {
+  opacity: 100%;
 }

@@ -15,6 +15,7 @@ import { Event, EventDay } from '../../interfaces/event.interface';
 export class MonthComponent {
   @Input() month!: Month;
   @Input() events!: Event[];
+  @Input() canCreateNewEvent!: boolean;
 
   weekDays: WeekDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 

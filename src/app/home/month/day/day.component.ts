@@ -13,4 +13,5 @@ import { CommonModule } from '@angular/common';
 export class DayComponent {
   @Input() day!: Day;
   @Input() events: EventDay[] | undefined;
+  @Input() canCreateNewEvent!: boolean;
 }

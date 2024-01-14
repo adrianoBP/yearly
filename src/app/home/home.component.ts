@@ -8,13 +8,15 @@ import {
   GoogleCalendarService,
 } from '../services/google/calendar.service';
 import { Event } from '../interfaces/event.interface';
-import moment, { Moment } from 'moment';
+import moment from 'moment';
 import { BehaviorSubject } from 'rxjs';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faBan } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, MonthComponent],
+  imports: [CommonModule, MonthComponent, FontAwesomeModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
@@ -24,6 +26,10 @@ export class HomeComponent {
 
   colors: { [key: string]: GoogleCalendarColor } = {};
   events: Event[] = [];
+
+  selectedColorId: string | undefined;
+
+  banIcon = faBan;
 
   constructor(
     public googleAuthService: GoogleAuthService,
@@ -72,6 +78,8 @@ export class HomeComponent {
   }
 
   async loadEvents() {
+    // return; // TODO: remove once complete
+
     const start = new Date(`${new Date().getFullYear()}-01-01T00:00:00Z`);
     const end = new Date(`${new Date().getFullYear()}-12-31T23:59:59Z`);
 
@@ -91,10 +99,23 @@ export class HomeComponent {
   }
 
   async loadColors() {
+    // this.colors = {
+    //   '1': { background: '#a4bdfc', foreground: '#1d1d1d' },
+    //   '2': { background: '#7ae7bf', foreground: '#1d1d1d' },
+    //   '3': { background: '#dbadff', foreground: '#1d1d1d' },
+    //   '4': { background: '#ff887c', foreground: '#1d1d1d' },
+    //   '5': { background: '#fbd75b', foreground: '#1d1d1d' },
+    //   '6': { background: '#ffb878', foreground: '#1d1d1d' },
+    //   '7': { background: '#46d6db', foreground: '#1d1d1d' },
+    //   '8': { background: '#e1e1e1', foreground: '#1d1d1d' },
+    //   '9': { background: '#5484ed', foreground: '#1d1d1d' },
+    //   '10': { background: '#51b749', foreground: '#1d1d1d' },
+    //   '11': { background: '#dc2127', foreground: '#1d1d1d' },
+    // };
+    // return; // TODO: remove once complete
+
     this.colors = await this.googleCalendarService.getColors();
   }
-
-  async test() {}
 
   getMonthEvents(month: Month) {
     return this.events.filter(
@@ -103,4 +124,14 @@ export class HomeComponent {
         month.number <= event.end.getMonth()
     );
   }
+
+  selectColor(colorId: string) {
+    this.selectedColorId = colorId;
+  }
+
+  get canCreateNewEvent() {
+    return this.selectedColorId != null;
+  }
+
+  async test() {}
 }

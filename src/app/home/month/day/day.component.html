@@ -3,5 +3,5 @@
        *ngFor="let eventDay of events"
        [ngClass]="{'start': eventDay.isFirstDay, 'end': eventDay.isLastDay}"
        [ngStyle]="{'background-color': eventDay.colour}"></div>
-  <p>{{day.number}}</p>
+  <p [ngClass]="{'selectable': canCreateNewEvent}">{{day.number}}</p>
 </div>

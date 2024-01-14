@@ -15,7 +15,7 @@ export class GoogleAuthService {
   private ACCESS_TOKEN_KEY = 'googleAccessToken';
   private accessToken = '';
 
-  // constructor(private router: Router) {
+  // constructor(private router: Router, private httpService: HttpService) {
   //   this.isLoggedIn = true;
   //   this.getAccessToken();
   // }
@@ -25,6 +25,11 @@ export class GoogleAuthService {
   //     if (onTokenRetrieved) onTokenRetrieved();
   //     return;
   //   }
+  // }
+  // getAccessTokenAsync(params: any): Promise<void> {
+  //   return new Promise((resolve, reject) => {
+  //     resolve();
+  //   });
   // }
   // loginWithGoogle(): void {}
   // logOut(): void {
