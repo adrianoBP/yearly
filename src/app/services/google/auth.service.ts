@@ -37,11 +37,21 @@ export class GoogleAuthService {
     });
   }
 
+  private ACCESS_TOKEN_KEY = 'googleAccessToken';
+
   getAccessToken(onTokenRetrieved?: () => void): void {
+    if (localStorage.getItem(this.ACCESS_TOKEN_KEY) != null) {
+      this.accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY) as string;
+      if (onTokenRetrieved) onTokenRetrieved();
+      return;
+    }
+
     this.socialAuthService
       .getAccessToken(GoogleLoginProvider.PROVIDER_ID)
       .then((accessToken) => {
         this.accessToken = accessToken;
+        console.log(this.accessToken);
+        localStorage.setItem(this.ACCESS_TOKEN_KEY, this.accessToken);
         if (onTokenRetrieved) onTokenRetrieved();
       });
   }

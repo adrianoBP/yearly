@@ -10,6 +10,6 @@
          *ngFor="let filler of fillerDays"></div>
     <app-day *ngFor="let day of month.days"
              [day]="day"
-             [events]="events[day.number]"></app-day>
+             [events]="eventsByDay[day.number]"></app-day>
   </div>
 </div>

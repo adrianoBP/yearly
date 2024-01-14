@@ -1,7 +1,34 @@
 import { Injectable } from '@angular/core';
 import { SocialUser } from '@abacritt/angularx-social-login';
-import { HttpClient } from '@angular/common/http';
 import { GoogleAuthService } from './auth.service';
+import { HttpService } from '../http.service';
+import moment from 'moment';
+
+export interface GoogleCalendarEvent {
+  id: string;
+  htmlLink?: string;
+  summary: string;
+  description?: string;
+  colorId?: string;
+  creator: GoogleCalendarEventPerson;
+  organizer: GoogleCalendarEventPerson;
+  start: GoogleCalendarEventDate;
+  end: GoogleCalendarEventDate;
+}
+
+export interface GoogleCalendarEventPerson {
+  email: string;
+  self: boolean;
+}
+
+export interface GoogleCalendarEventDate {
+  date: string;
+}
+
+interface GoogleCalendarEventListResponse {
+  items: GoogleCalendarEvent[];
+  nextPageToken?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class GoogleCalendarService {
@@ -10,20 +37,40 @@ export class GoogleCalendarService {
 
   constructor(
     private googleAuthService: GoogleAuthService,
-    private httpClient: HttpClient
+    private httpService: HttpService
   ) {}
 
-  getGoogleCalendarData(): void {
-    if (!this.googleAuthService.accessToken) return;
+  private baseUrl = 'https://www.googleapis.com/calendar/v3';
 
-    this.httpClient
-      .get('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-        headers: {
+  async getEvents(start: Date, end: Date): Promise<GoogleCalendarEvent[]> {
+    const queryParameters: { [key: string]: string } = {
+      q: '🗃️',
+      timeMin: moment(start).toISOString(),
+      timeMax: moment(end).toISOString(),
+      orderBy: 'startTime',
+      singleEvents: 'true',
+      pageToken: '',
+    };
+
+    const results: GoogleCalendarEvent[] = [];
+
+    let pageToken = '';
+    do {
+      const query = Object.keys(queryParameters)
+        .map((paramKey) => {
+          return `${paramKey}=${queryParameters[paramKey]}`;
+        })
+        .join('&');
+
+      const url = `${this.baseUrl}/calendars/primary/events?${query}`;
+      const response =
+        await this.httpService.get<GoogleCalendarEventListResponse>(url, {
           Authorization: `Bearer ${this.googleAuthService.accessToken}`,
-        },
-      })
-      .subscribe((events) => {
-        console.log('events', events);
-      });
+        });
+
+      results.push(...response.items);
+    } while (pageToken !== '');
+
+    return results;
   }
 }

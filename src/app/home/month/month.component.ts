@@ -1,9 +1,9 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Day, WeekDay, Month } from '../../interfaces/month.interface';
 import { DayComponent } from './day/day.component';
 import moment from 'moment';
-import { EventDay } from '../../interfaces/event.interface';
+import { Event, EventDay } from '../../interfaces/event.interface';
 
 @Component({
   selector: 'app-month',
@@ -14,17 +14,16 @@ import { EventDay } from '../../interfaces/event.interface';
 })
 export class MonthComponent {
   @Input() month!: Month;
+  @Input() events!: Event[];
 
   weekDays: WeekDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // events dictionary
-  events: { [key: number]: EventDay[] } = {};
+  eventsByDay: { [key: number]: EventDay[] } = {};
 
-  constructor() {}
-
-  ngOnInit(): void {
-    if (this.month.events == null) return;
-    for (let event of this.month.events) {
+  ngOnChanges(): void {
+    this.eventsByDay = {} as { [key: number]: EventDay[] };
+    for (let event of this.events) {
       for (
         let day = moment(event.start);
         day.isSameOrBefore(event.end);
@@ -36,10 +35,11 @@ export class MonthComponent {
         const dayNumber = day.date();
 
         // if the day is not in the dictionary, add it
-        if (this.events[dayNumber] == null) this.events[dayNumber] = [];
+        if (this.eventsByDay[dayNumber] == null)
+          this.eventsByDay[dayNumber] = [];
 
         // add the event to the dictionary
-        this.events[dayNumber].push({
+        this.eventsByDay[dayNumber].push({
           isFirstDay: day.isSame(event.start, 'day'),
           isLastDay: day.isSame(event.end, 'day'),
           colour: event.colour,

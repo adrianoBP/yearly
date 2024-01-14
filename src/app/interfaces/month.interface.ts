@@ -2,6 +2,7 @@ import { Event } from './event.interface';
 
 export interface Month {
   name: string;
+  number: number;
   days: Day[];
   events?: Event[];
 }
