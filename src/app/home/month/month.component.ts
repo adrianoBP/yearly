@@ -23,12 +23,16 @@ export class MonthComponent {
   @Input() events!: Event[];
   @Input() canCreateNewEvent!: boolean;
   @Input() year!: number;
-  @Output() onDayClick = new EventEmitter<Date>();
+  @Output() onDayClick = new EventEmitter<{
+    date: Date;
+    events: Event[];
+    mouseEvent: MouseEvent;
+  }>();
 
   weekDays: WeekDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // events dictionary
-  eventsByDay: { [key: number]: EventDay[] } = {};
+  eventsByDay: { [key: number]: Event[] } = {};
 
   ngOnChanges(changes: SimpleChanges): void {
     if (
@@ -38,7 +42,7 @@ export class MonthComponent {
     )
       return;
 
-    this.eventsByDay = {} as { [key: number]: EventDay[] };
+    this.eventsByDay = {} as { [key: number]: Event[] };
 
     for (let event of this.events) {
       const eventDaysCount = moment(event.end).diff(event.start, 'days') + 1;
@@ -55,11 +59,7 @@ export class MonthComponent {
           this.eventsByDay[dayNumber] = [];
 
         // add the event to the dictionary
-        this.eventsByDay[dayNumber].push({
-          isFirstDay: day.isSame(event.start, 'day'),
-          isLastDay: day.isSame(event.end, 'day'),
-          colour: event.colour,
-        });
+        this.eventsByDay[dayNumber].push(event);
       }
     }
   }
@@ -69,10 +69,29 @@ export class MonthComponent {
     return new Array(this.weekDays.indexOf(firstDayOfMonth));
   }
 
-  onDayClickEvent(day: Day) {
+  getDayEvents(day: Day): EventDay[] {
+    if (this.eventsByDay[day.number] == null) return [];
+
+    const momentDay = moment(
+      new Date(`${this.year}-${this.month.number + 1}-${day.number}`)
+    );
+    return this.eventsByDay[day.number].map((event) => {
+      return {
+        isFirstDay: momentDay.isSame(event.start, 'day'),
+        isLastDay: momentDay.isSame(event.end, 'day'),
+        colour: event.colour,
+      } as EventDay;
+    });
+  }
+
+  onDayClickEvent({ day, mouseEvent }: { day: Day; mouseEvent: MouseEvent }) {
     const date = new Date(
       `${this.year}-${this.month.number + 1}-${day.number}`
     );
-    this.onDayClick.emit(date);
+    this.onDayClick.emit({
+      date,
+      events: this.eventsByDay[day.number],
+      mouseEvent,
+    });
   }
 }

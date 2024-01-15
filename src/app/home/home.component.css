@@ -74,7 +74,11 @@ nav>div.center {
   opacity: 70%;
 }
 
-
 .color.selected {
   opacity: 100%;
+}
+
+app-edit-event {
+  position: absolute;
+  z-index: 2;
 }

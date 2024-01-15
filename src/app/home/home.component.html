@@ -18,6 +18,9 @@
   </div>
 
   <div class="right">
+    <button (click)="pushChanges()"
+            *ngIf="newEvents.length > 0"><fa-icon [icon]="floppyDiskIcon"
+               [size]="'lg'"></fa-icon></button>
     <button (click)="test()">Test</button>
     <button (click)="googleAuthService.logOut()">SignOut</button>
   </div>
@@ -31,3 +34,10 @@
              [canCreateNewEvent]="canCreateNewEvent"
              (onDayClick)="onDayClickEvent($event)"></app-month>
 </div>
+
+<app-edit-event [(visible)]="showEditWindow"
+                (onClose)="onEditEventComplete($event)"
+                [event]="newEvent"
+                [x]="mousePosition?.x"
+                [y]="mousePosition?.y"
+                [ngStyle]="{'z-index': (showEditWindow ? '2' : '-1')}"></app-edit-event>

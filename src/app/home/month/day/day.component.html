@@ -1,8 +1,8 @@
 <div class="container">
-  <div class="selection"
-       *ngFor="let eventDay of events"
-       [ngClass]="{'start': eventDay.isFirstDay, 'end': eventDay.isLastDay}"
-       [ngStyle]="{'background-color': eventDay.colour}"></div>
-  <p [ngClass]="{'selectable': canCreateNewEvent}"
-     (click)="onClick()">{{day.number}}</p>
+     <div class="selection"
+          *ngFor="let eventDay of events"
+          [ngClass]="{'start': eventDay.isFirstDay, 'end': eventDay.isLastDay}"
+          [ngStyle]="{'background-color': eventDay.colour}"></div>
+     <p [ngClass]="{'selectable': canCreateNewEvent}"
+        (click)="onClick($event)">{{day.number}}</p>
 </div>

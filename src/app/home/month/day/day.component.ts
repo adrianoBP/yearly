@@ -12,12 +12,14 @@ import { CommonModule } from '@angular/common';
 })
 export class DayComponent {
   @Input() day!: Day;
-  @Input() events: EventDay[] | undefined;
+  @Input() events: EventDay[] = [];
   @Input() canCreateNewEvent!: boolean;
-  @Output() onDayClick = new EventEmitter<Day>();
+  @Output() onDayClick = new EventEmitter<{
+    day: Day;
+    mouseEvent: MouseEvent;
+  }>();
 
-  onClick(): void {
-    if (!this.canCreateNewEvent) return;
-    this.onDayClick.emit(this.day);
+  onClick(mouseEvent: MouseEvent): void {
+    this.onDayClick.emit({ day: this.day, mouseEvent });
   }
 }

@@ -10,18 +10,25 @@ import {
 import { Event } from '../interfaces/event.interface';
 import moment from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faBan } from '@fortawesome/free-solid-svg-icons';
+import { faBan, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { EditEventsComponent } from '../edit-event/edit-event.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, MonthComponent, FontAwesomeModule],
+  imports: [
+    CommonModule,
+    FontAwesomeModule,
+    MonthComponent,
+    EditEventsComponent,
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
   // FontAwesome icons
   banIcon = faBan;
+  floppyDiskIcon = faFloppyDisk;
 
   year: number = new Date().getFullYear();
   // months: Month[] = [];
@@ -85,26 +92,42 @@ export class HomeComponent {
   }
 
   async loadEvents() {
+    // this.events = [
+    //   {
+    //     title: 'Test',
+    //     description: '🗃️',
+    //     start: new Date('2024-01-01T00:00:00Z'),
+    //     end: new Date('2024-12-31T23:59:59Z'),
+    //     colour: '#ff0000',
+    //   } as Event,
+    //   {
+    //     title: 'Test',
+    //     description: '🗃️',
+    //     start: new Date('2024-01-02T00:00:00Z'),
+    //     end: new Date('2024-12-30T23:59:59Z'),
+    //     colour: '#00ff00',
+    //   } as Event,
+    //   {
+    //     title: 'Test',
+    //     description: '🗃️',
+    //     start: new Date('2024-01-03T00:00:00Z'),
+    //     end: new Date('2024-12-29T23:59:59Z'),
+    //     colour: '#00ff00',
+    //   } as Event,
+    // ];
     this.events = [
       {
         title: 'Test',
         description: '🗃️',
-        start: new Date('2024-01-01T00:00:00Z'),
-        end: new Date('2024-12-31T23:59:59Z'),
+        start: new Date('2024-02-01T00:00:00Z'),
+        end: new Date('2024-02-20T23:59:59Z'),
         colour: '#ff0000',
       } as Event,
       {
         title: 'Test',
         description: '🗃️',
-        start: new Date('2024-01-02T00:00:00Z'),
-        end: new Date('2024-12-30T23:59:59Z'),
-        colour: '#00ff00',
-      } as Event,
-      {
-        title: 'Test',
-        description: '🗃️',
-        start: new Date('2024-01-03T00:00:00Z'),
-        end: new Date('2024-12-29T23:59:59Z'),
+        start: new Date('2024-02-18T00:00:00Z'),
+        end: new Date('2024-02-18T23:59:59Z'),
         colour: '#00ff00',
       } as Event,
     ];
@@ -167,23 +190,49 @@ export class HomeComponent {
     return this.selectedColorId != null;
   }
 
-  onDayClickEvent(date: Date) {
-    console.log('calendar', date);
+  onDayClickEvent({
+    date,
+    events,
+    mouseEvent,
+  }: {
+    date: Date;
+    events: Event[];
+    mouseEvent: MouseEvent;
+  }) {
+    if (this.selectedColorId == null) this.showEventsList(events, mouseEvent);
+    else this.tryCreateEvent(date, mouseEvent);
+  }
 
+  tryCreateEvent(date: Date, mouseEvent: MouseEvent) {
     if (this.eventStart == null) {
       this.eventStart = date;
       return;
     }
 
-    if (this.eventEnd == null) {
-      this.eventEnd = date;
-      this.requestEventDetails();
-    }
+    if (this.eventEnd == null) this.eventEnd = date;
+
+    this.requestNewEventDetails(mouseEvent);
   }
 
-  requestEventDetails() {
-    console.log('requestEventDetails');
+  showEventsListWindow: boolean = false;
+  showEventsList(events: Event[], mouseEvent: MouseEvent) {
+    console.log('showEventsList', events, mouseEvent);
+    this.showEventsListWindow = true;
+  }
 
+  // TODO: Move to service
+  showEditWindow: boolean = false;
+  newEvent: Event = {} as Event;
+  mousePosition: MouseEvent | undefined;
+  showEditEvent(event: Event, mouseEvent: MouseEvent) {
+    console.log('showEventDetails', event, mouseEvent);
+    this.newEvent = event;
+    this.newEvents.push(event);
+    this.showEditWindow = true;
+    this.mousePosition = mouseEvent;
+  }
+
+  requestNewEventDetails(mouseEvent: MouseEvent) {
     // Invert dates if the start date is after the end date
     if (moment(this.eventStart).isAfter(moment(this.eventEnd))) {
       const temp = this.eventStart;
@@ -191,16 +240,32 @@ export class HomeComponent {
       this.eventEnd = temp;
     }
 
-    this.newEvents.push({
-      title: 'Test',
-      description: '🗃️',
+    const newEvent = {
+      title: '',
+      description: '',
       start: this.eventStart,
       end: this.eventEnd,
       colour: this.colors[this.selectedColorId!].background,
-    } as Event);
+    } as Event;
 
+    this.showEditEvent(newEvent, mouseEvent);
+  }
+
+  onEditEventComplete({ event, cancel }: { event?: Event; cancel?: boolean }) {
     this.eventStart = undefined;
     this.eventEnd = undefined;
+    this.newEvents.pop();
+
+    if (cancel || event == null) return;
+
+    // Add character to end of description for search purposes
+    console.log('event', event);
+
+    event!.description += '\n~🗃️~';
+    // replace last event
+    this.newEvents.push(event!);
+
+    console.log(this.newEvents);
   }
 
   monthsOrder = (
@@ -209,6 +274,10 @@ export class HomeComponent {
   ): number => {
     return a.value.number - b.value.number;
   };
+
+  pushChanges() {
+    console.log('pushChanges', 'newEvents', this.newEvents);
+  }
 
   async test() {}
 }
