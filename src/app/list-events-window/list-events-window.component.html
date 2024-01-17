@@ -7,7 +7,8 @@
        class="event-details">
     <p>{{event.title}} {{formatDate(event.start)}} - {{formatDate(event.end)}}</p>
     <button (click)="deleteEvent(event)"><fa-icon [icon]="timesIcon"
-               [size]="'lg'"></fa-icon></button>
+               [size]="'lg'"
+               style="color: #b80000;"></fa-icon></button>
   </div>
 
   <div>

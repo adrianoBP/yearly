@@ -53,6 +53,10 @@ button:hover {
 
 .event-details {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
+}
+
+.event-details>p {
+  margin: 0 1rem
 }
