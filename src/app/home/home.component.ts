@@ -6,6 +6,7 @@ import { GoogleAuthService } from '../services/google/auth.service';
 import {
   GoogleCalendarColor,
   GoogleCalendarService,
+  GoogleCalendarEvent,
 } from '../services/google/calendar.service';
 import { Event } from '../interfaces/event.interface';
 import moment from 'moment';
@@ -77,7 +78,12 @@ export class HomeComponent {
   }
 
   ngOnInit(): void {
-    Promise.all([this.loadEvents(), this.loadColors()]);
+    this.fetchGoogleDetails();
+  }
+
+  async fetchGoogleDetails() {
+    await this.loadColors(); // We need to wait for the colors to load before we can load the events
+    this.loadEvents();
   }
 
   getMonthName(date: Date) {
@@ -95,6 +101,9 @@ export class HomeComponent {
   }
 
   async loadEvents() {
+    this.newEvents = [];
+    this.eventsToDelete = [];
+
     // this.events = [
     //   {
     //     title: 'Test',
@@ -119,26 +128,26 @@ export class HomeComponent {
     //   } as Event,
     // ];
 
-    this.events = [
-      {
-        title: 'Test',
-        id: '1',
-        description: '🗃️',
-        start: new Date('2024-02-01T00:00:00Z'),
-        end: new Date('2024-02-20T23:59:59Z'),
-        colour: '#ff0000',
-      } as Event,
-      {
-        title: 'Test',
-        id: '2',
-        description: '🗃️',
-        start: new Date('2024-02-18T00:00:00Z'),
-        end: new Date('2024-02-18T23:59:59Z'),
-        colour: '#00ff00',
-      } as Event,
-    ];
-    this.loadMonthsEvents();
-    return; // TODO: remove once complete
+    // this.events = [
+    //   {
+    //     title: 'Test',
+    //     id: '1',
+    //     description: '🗃️',
+    //     start: new Date('2024-02-01T00:00:00Z'),
+    //     end: new Date('2024-02-20T23:59:59Z'),
+    //     colour: '#ff0000',
+    //   } as Event,
+    //   {
+    //     title: 'Test',
+    //     id: '2',
+    //     description: '🗃️',
+    //     start: new Date('2024-02-18T00:00:00Z'),
+    //     end: new Date('2024-02-18T23:59:59Z'),
+    //     colour: '#00ff00',
+    //   } as Event,
+    // ];
+    // this.loadMonthsEvents();
+    // return; // TODO: remove once complete
 
     const start = new Date(`${new Date().getFullYear()}-01-01T00:00:00Z`);
     const end = new Date(`${new Date().getFullYear()}-12-31T23:59:59Z`);
@@ -152,7 +161,7 @@ export class HomeComponent {
         description: event.description,
         start: new Date(event.start.date),
         end: moment(event.end.date).add(-1, 'day').toDate(), // Remove 1 day as Google Calendar API returns the next day at midnight
-        colour: '#ff0000',
+        colour: this.colors[event.colorId ?? '1'].background,
       } as Event;
     });
     this.events = [...this.events];
@@ -160,21 +169,21 @@ export class HomeComponent {
   }
 
   async loadColors() {
-    this.colors = {
-      '1': { background: '#a4bdfc', foreground: '#1d1d1d' },
-      '2': { background: '#7ae7bf', foreground: '#1d1d1d' },
-      '3': { background: '#dbadff', foreground: '#1d1d1d' },
-      '4': { background: '#ff887c', foreground: '#1d1d1d' },
-      '5': { background: '#fbd75b', foreground: '#1d1d1d' },
-      '6': { background: '#ffb878', foreground: '#1d1d1d' },
-      '7': { background: '#46d6db', foreground: '#1d1d1d' },
-      '8': { background: '#e1e1e1', foreground: '#1d1d1d' },
-      '9': { background: '#5484ed', foreground: '#1d1d1d' },
-      '10': { background: '#51b749', foreground: '#1d1d1d' },
-      '11': { background: '#dc2127', foreground: '#1d1d1d' },
-    };
-    this.selectedColorId = '1';
-    return; // TODO: remove once complete
+    // this.colors = {
+    //   '1': { background: '#a4bdfc', foreground: '#1d1d1d' },
+    //   '2': { background: '#7ae7bf', foreground: '#1d1d1d' },
+    //   '3': { background: '#dbadff', foreground: '#1d1d1d' },
+    //   '4': { background: '#ff887c', foreground: '#1d1d1d' },
+    //   '5': { background: '#fbd75b', foreground: '#1d1d1d' },
+    //   '6': { background: '#ffb878', foreground: '#1d1d1d' },
+    //   '7': { background: '#46d6db', foreground: '#1d1d1d' },
+    //   '8': { background: '#e1e1e1', foreground: '#1d1d1d' },
+    //   '9': { background: '#5484ed', foreground: '#1d1d1d' },
+    //   '10': { background: '#51b749', foreground: '#1d1d1d' },
+    //   '11': { background: '#dc2127', foreground: '#1d1d1d' },
+    // };
+    // this.selectedColorId = '1';
+    // return; // TODO: remove once complete
 
     this.colors = await this.googleCalendarService.getColors();
   }
@@ -225,7 +234,6 @@ export class HomeComponent {
   isEventsListWindowOpen: boolean = false;
   eventsListInfo: Event[] = [];
   showEventsList(events: Event[], mouseEvent: MouseEvent) {
-    console.log('showEventDetails', events, mouseEvent);
     if (events.length == 0) return;
     this.eventsListInfo = events;
     this.isEventsListWindowOpen = true;
@@ -237,7 +245,6 @@ export class HomeComponent {
   newEvent: Event = {} as Event;
   mousePosition: MouseEvent | undefined;
   showEditEvent(event: Event, mouseEvent: MouseEvent) {
-    console.log('showEventDetails', event, mouseEvent);
     this.newEvent = event;
     this.newEvents.push(event);
     this.isEditEventWindowOpen = true;
@@ -259,6 +266,7 @@ export class HomeComponent {
       start: this.eventStart,
       end: this.eventEnd,
       colour: this.colors[this.selectedColorId!].background,
+      colorId: this.selectedColorId,
     } as Event;
 
     this.showEditEvent(newEvent, mouseEvent);
@@ -271,14 +279,9 @@ export class HomeComponent {
 
     if (cancel || event == null) return;
 
-    // Add character to end of description for search purposes
-    console.log('event', event);
-
     event!.description += '\n~🗃️~';
     // replace last event
     this.newEvents.push(event!);
-
-    console.log(this.newEvents);
   }
 
   eventsToDelete: Event[] = [];
@@ -303,8 +306,6 @@ export class HomeComponent {
       (event) => !deletedIds?.includes(event.id)
     );
 
-    console.log('onListEventsComplete', deletedIds, this.events);
-
     this.loadMonthsEvents();
   }
 
@@ -315,9 +316,27 @@ export class HomeComponent {
     return a.value.number - b.value.number;
   };
 
-  pushChanges() {
-    console.log('pushChanges', 'newEvents', this.newEvents);
-    console.log('pushChanges', 'eventsToDelete', this.eventsToDelete);
+  async pushChanges() {
+    const gEvents: GoogleCalendarEvent[] = this.newEvents.map((event) => {
+      return {
+        summary: event.title,
+        description: event.description,
+        start: {
+          date: moment(event.start).format('YYYY-MM-DD'),
+        },
+        end: {
+          date: moment(event.end).add(1, 'day').format('YYYY-MM-DD'),
+        },
+        colorId: event.colorId,
+      } as GoogleCalendarEvent;
+    });
+    await this.googleCalendarService.createEvents(gEvents);
+
+    await this.googleCalendarService.deleteEvents(
+      this.eventsToDelete.map((event) => event.id)
+    );
+
+    await this.loadEvents();
   }
 
   async test() {}

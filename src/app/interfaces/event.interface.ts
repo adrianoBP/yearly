@@ -5,6 +5,7 @@ export interface Event {
   start: Date;
   end: Date;
   colour: string;
+  colorId: string;
 }
 
 export interface EventDay {

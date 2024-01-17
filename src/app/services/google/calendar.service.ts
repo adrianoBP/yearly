@@ -88,4 +88,42 @@ export class GoogleCalendarService {
 
     return results;
   }
+
+  async createEvent(event: GoogleCalendarEvent): Promise<GoogleCalendarEvent> {
+    const url = `${this.baseUrl}/calendars/primary/events`;
+    const response =
+      await this.googleAuthService.makeRequest<GoogleCalendarEvent>(
+        url,
+        'post',
+        {
+          summary: event.summary,
+          description: event.description,
+          start: {
+            date: event.start.date,
+          },
+          end: {
+            date: event.end.date,
+          },
+          colorId: event.colorId,
+        }
+      );
+    return response;
+  }
+
+  async createEvents(events: GoogleCalendarEvent[]): Promise<void> {
+    for (const event of events) {
+      await this.createEvent(event);
+    }
+  }
+
+  async deleteEvent(eventId: string): Promise<void> {
+    const url = `${this.baseUrl}/calendars/primary/events/${eventId}`;
+    await this.googleAuthService.makeRequest<void>(url, 'delete');
+  }
+
+  async deleteEvents(eventIds: string[]): Promise<void> {
+    for (const eventId of eventIds) {
+      await this.deleteEvent(eventId);
+    }
+  }
 }

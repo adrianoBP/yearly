@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, lastValueFrom } from 'rxjs';
 
-export type HTTPRequestType = 'get' | 'post';
+export type HTTPRequestType = 'get' | 'post' | 'delete';
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
@@ -38,17 +38,20 @@ export class HttpService {
   ): Promise<T> {
     if (tokenValidation != null && !tokenValidation()) throw 'Invalid token';
 
-    // Convert JSON to form data
-    headers['Content-Type'] = 'application/x-www-form-urlencoded';
-    const formBody = [];
-    for (const property in body) {
-      const encodedKey = encodeURIComponent(property);
-      const encodedValue = encodeURIComponent(body[property]);
-      formBody.push(encodedKey + '=' + encodedValue);
-    }
-    body = formBody.join('&');
+    // Convert JSON header
+    headers['Content-Type'] = 'application/json';
 
     const request = this.httpClient.post(url, body, { headers });
     return (await this.webRequest(request)) as T;
+  }
+
+  async delete<T>(
+    url: string,
+    headers: any = null,
+    tokenValidation?: () => boolean
+  ): Promise<T> {
+    if (tokenValidation != null && !tokenValidation()) throw 'Invalid token';
+    const request = this.httpClient.delete(url, { headers });
+    return await this.webRequest(request);
   }
 }
