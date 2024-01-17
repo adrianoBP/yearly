@@ -45,7 +45,9 @@ export class MonthComponent {
     this.eventsByDay = {} as { [key: number]: Event[] };
 
     for (let event of this.events) {
-      const eventDaysCount = moment(event.end).diff(event.start, 'days') + 1;
+      const eventDaysCount = Math.round(
+        moment(event.end).add(1, 'days').diff(event.start, 'days', true)
+      );
 
       for (let i = 0; i < eventDaysCount; i++) {
         const day = moment(event.start).add(i, 'day');
