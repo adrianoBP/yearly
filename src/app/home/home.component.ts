@@ -13,6 +13,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faBan, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { EditEventsComponent } from '../edit-event/edit-event.component';
 import { ListEventsWindowComponent } from '../list-events-window/list-events-window.component';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-home',
@@ -83,7 +84,7 @@ export class HomeComponent {
     return date.toLocaleString('default', { month: 'long' });
   }
 
-  addMonthsEvents() {
+  loadMonthsEvents() {
     for (let month in this.months) {
       this.months[month].events = this.events.filter(
         (event) =>
@@ -117,9 +118,11 @@ export class HomeComponent {
     //     colour: '#00ff00',
     //   } as Event,
     // ];
+
     this.events = [
       {
         title: 'Test',
+        id: '1',
         description: '🗃️',
         start: new Date('2024-02-01T00:00:00Z'),
         end: new Date('2024-02-20T23:59:59Z'),
@@ -127,13 +130,14 @@ export class HomeComponent {
       } as Event,
       {
         title: 'Test',
+        id: '2',
         description: '🗃️',
         start: new Date('2024-02-18T00:00:00Z'),
         end: new Date('2024-02-18T23:59:59Z'),
         colour: '#00ff00',
       } as Event,
     ];
-    this.addMonthsEvents();
+    this.loadMonthsEvents();
     return; // TODO: remove once complete
 
     const start = new Date(`${new Date().getFullYear()}-01-01T00:00:00Z`);
@@ -143,6 +147,7 @@ export class HomeComponent {
     this.events = [];
     this.events = result.map((event) => {
       return {
+        id: event.id,
         title: event.summary,
         description: event.description,
         start: new Date(event.start.date),
@@ -151,7 +156,7 @@ export class HomeComponent {
       } as Event;
     });
     this.events = [...this.events];
-    this.addMonthsEvents();
+    this.loadMonthsEvents();
   }
 
   async loadColors() {
@@ -216,6 +221,7 @@ export class HomeComponent {
     this.requestNewEventDetails(mouseEvent);
   }
 
+  // TODO: Move to service
   isEventsListWindowOpen: boolean = false;
   eventsListInfo: Event[] = [];
   showEventsList(events: Event[], mouseEvent: MouseEvent) {
@@ -247,6 +253,7 @@ export class HomeComponent {
     }
 
     const newEvent = {
+      id: uuidv4(),
       title: '',
       description: '',
       start: this.eventStart,
@@ -276,22 +283,29 @@ export class HomeComponent {
 
   eventsToDelete: Event[] = [];
   onListEventsComplete({
-    deletedEvents,
+    deletedIds,
     cancel,
   }: {
-    deletedEvents: Event[];
+    deletedIds: string[];
     cancel?: boolean;
   }) {
-    if (cancel || deletedEvents.length == 0) return;
+    if (cancel || deletedIds.length == 0) return;
+
+    this.eventsToDelete = [
+      ...this.eventsToDelete,
+      ...this.events.filter((event) => deletedIds.includes(event.id)),
+    ];
 
     this.events = this.events.filter(
-      (event) => !deletedEvents?.includes(event)
+      (event) => !deletedIds?.includes(event.id)
     );
     this.newEvents = this.newEvents.filter(
-      (event) => !deletedEvents?.includes(event)
+      (event) => !deletedIds?.includes(event.id)
     );
 
-    this.eventsToDelete = [...deletedEvents!];
+    console.log('onListEventsComplete', deletedIds, this.events);
+
+    this.loadMonthsEvents();
   }
 
   monthsOrder = (
@@ -303,6 +317,7 @@ export class HomeComponent {
 
   pushChanges() {
     console.log('pushChanges', 'newEvents', this.newEvents);
+    console.log('pushChanges', 'eventsToDelete', this.eventsToDelete);
   }
 
   async test() {}

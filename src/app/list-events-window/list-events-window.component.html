@@ -3,8 +3,11 @@
      [ngStyle]="{'margin-left': locationX + 'px', 'margin-top': locationY + 'px'}"
      [ngClass]="{'hidden': !visible}">
 
-  <div *ngFor="let event of events">
+  <div *ngFor="let event of events"
+       class="event-details">
     <p>{{event.title}} {{formatDate(event.start)}} - {{formatDate(event.end)}}</p>
+    <button (click)="deleteEvent(event)"><fa-icon [icon]="timesIcon"
+               [size]="'lg'"></fa-icon></button>
   </div>
 
   <div>

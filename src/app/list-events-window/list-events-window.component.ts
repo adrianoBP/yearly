@@ -10,11 +10,13 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Event } from '../interfaces/event.interface';
 import moment from 'moment';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'app-list-events-window',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FontAwesomeModule],
   templateUrl: './list-events-window.component.html',
   styleUrl: './list-events-window.component.css',
 })
@@ -26,8 +28,10 @@ export class ListEventsWindowComponent {
   @Input() x: number | undefined;
   @Input() y: number | undefined;
 
+  timesIcon = faTimes;
+
   @Output() onClose = new EventEmitter<{
-    deletedEvents: Event[];
+    deletedIds: string[];
     cancel?: boolean;
   }>();
 
@@ -61,16 +65,22 @@ export class ListEventsWindowComponent {
     }
   }
 
+  deletedIds: string[] = [];
+  deleteEvent(event: Event): void {
+    this.deletedIds.push(event.id);
+    this.events = this.events.filter((e) => e.id !== event.id);
+  }
+
   cancel(): void {
     this.visible = false;
     this.visibleChange.emit(this.visible);
-    // this.onClose.emit({ cancel: true });
+    this.onClose.emit({ deletedIds: [], cancel: true });
   }
 
   ok(): void {
     this.visible = false;
     this.visibleChange.emit(this.visible);
-    // this.onClose.emit({ events: this.events });
+    this.onClose.emit({ deletedIds: this.deletedIds });
   }
 
   formatDate(date: Date): string {
