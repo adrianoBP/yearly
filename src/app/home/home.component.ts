@@ -12,6 +12,7 @@ import moment from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faBan, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { EditEventsComponent } from '../edit-event/edit-event.component';
+import { ListEventsWindowComponent } from '../list-events-window/list-events-window.component';
 
 @Component({
   selector: 'app-home',
@@ -21,6 +22,7 @@ import { EditEventsComponent } from '../edit-event/edit-event.component';
     FontAwesomeModule,
     MonthComponent,
     EditEventsComponent,
+    ListEventsWindowComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
@@ -214,21 +216,25 @@ export class HomeComponent {
     this.requestNewEventDetails(mouseEvent);
   }
 
-  showEventsListWindow: boolean = false;
+  isEventsListWindowOpen: boolean = false;
+  eventsListInfo: Event[] = [];
   showEventsList(events: Event[], mouseEvent: MouseEvent) {
-    console.log('showEventsList', events, mouseEvent);
-    this.showEventsListWindow = true;
+    console.log('showEventDetails', events, mouseEvent);
+    if (events.length == 0) return;
+    this.eventsListInfo = events;
+    this.isEventsListWindowOpen = true;
+    this.mousePosition = mouseEvent;
   }
 
   // TODO: Move to service
-  showEditWindow: boolean = false;
+  isEditEventWindowOpen: boolean = false;
   newEvent: Event = {} as Event;
   mousePosition: MouseEvent | undefined;
   showEditEvent(event: Event, mouseEvent: MouseEvent) {
     console.log('showEventDetails', event, mouseEvent);
     this.newEvent = event;
     this.newEvents.push(event);
-    this.showEditWindow = true;
+    this.isEditEventWindowOpen = true;
     this.mousePosition = mouseEvent;
   }
 
@@ -266,6 +272,26 @@ export class HomeComponent {
     this.newEvents.push(event!);
 
     console.log(this.newEvents);
+  }
+
+  eventsToDelete: Event[] = [];
+  onListEventsComplete({
+    deletedEvents,
+    cancel,
+  }: {
+    deletedEvents: Event[];
+    cancel?: boolean;
+  }) {
+    if (cancel || deletedEvents.length == 0) return;
+
+    this.events = this.events.filter(
+      (event) => !deletedEvents?.includes(event)
+    );
+    this.newEvents = this.newEvents.filter(
+      (event) => !deletedEvents?.includes(event)
+    );
+
+    this.eventsToDelete = [...deletedEvents!];
   }
 
   monthsOrder = (

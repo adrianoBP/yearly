@@ -34,7 +34,7 @@ nav button {
   border: none;
 }
 
-nav button:hover {
+nav button:not(:disabled):hover {
   cursor: pointer;
   background-color: #f5f5f5;
 }
@@ -79,6 +79,11 @@ nav>div.center {
 }
 
 app-edit-event {
+  position: absolute;
+  z-index: 2;
+}
+
+app-list-events-window {
   position: absolute;
   z-index: 2;
 }
