@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "yearly-2024": {
+      "hosting": {
+        "yearly": [
+          "yearly-adrianobp"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "yearly-2024"
+  }
+}

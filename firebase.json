@@ -1,0 +1,9 @@
+{
+  "hosting": [
+    {
+      "target": "yearly",
+      "source": ".",
+      "frameworksBackend": {}
+    }
+  ]
+}
