@@ -47,6 +47,8 @@ export class ListEventsWindowComponent {
   calculateWindowPosition(): void {
     if (this.x == null || this.y == null) return;
 
+    this.deletedIds = [];
+
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
     const containerWidth = this.containerRef.nativeElement.offsetWidth;
@@ -68,7 +70,6 @@ export class ListEventsWindowComponent {
   deletedIds: string[] = [];
   deleteEvent(event: Event): void {
     this.deletedIds.push(event.id);
-    this.events = this.events.filter((e) => e.id !== event.id);
   }
 
   cancel(): void {
@@ -85,5 +86,16 @@ export class ListEventsWindowComponent {
 
   formatDate(date: Date): string {
     return moment(date).format('DD/MM/YYYY');
+  }
+
+  get availableEvents(): Event[] {
+    return this.events.filter((e) => !this.deletedIds.includes(e.id));
+  }
+
+  isOneDayEvent(event: Event): boolean {
+    return (
+      moment(event.start).format('DD/MM/YYYY') ===
+      moment(event.end).format('DD/MM/YYYY')
+    );
   }
 }

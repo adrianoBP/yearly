@@ -57,6 +57,12 @@ button:hover {
   align-items: center;
 }
 
-.event-details>p {
+.event-details>div>p:first-child {
   margin: 0 1rem
+}
+
+.event-details>div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

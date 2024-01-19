@@ -3,9 +3,13 @@
      [ngStyle]="{'margin-left': locationX + 'px', 'margin-top': locationY + 'px'}"
      [ngClass]="{'hidden': !visible}">
 
-  <div *ngFor="let event of events"
+  <div *ngFor="let event of availableEvents"
        class="event-details">
-    <p>{{event.title}} {{formatDate(event.start)}} - {{formatDate(event.end)}}</p>
+    <div>
+      <p>{{event.title}}</p>
+      <p>{{formatDate(event.start)}}</p>
+      <p *ngIf="!isOneDayEvent(event)"> - {{formatDate(event.end)}}</p>
+    </div>
     <button (click)="deleteEvent(event)"><fa-icon [icon]="timesIcon"
                [size]="'lg'"
                style="color: #b80000;"></fa-icon></button>

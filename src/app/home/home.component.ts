@@ -338,6 +338,4 @@ export class HomeComponent {
 
     await this.loadEvents();
   }
-
-  async test() {}
 }
