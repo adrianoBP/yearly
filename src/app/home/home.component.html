@@ -19,6 +19,9 @@
   </div>
 
   <div class="right">
+    <button (click)="share()"
+            [disabled]="events.length == 0"><fa-icon [icon]="downloadIcon"
+               [size]="'lg'"></fa-icon></button>
     <button (click)="pushChanges()"
             [disabled]="(newEvents.length == 0 && eventsToDelete.length == 0)|| isEditEventWindowOpen"><fa-icon
                [icon]="floppyDiskIcon"

@@ -11,10 +11,15 @@ import {
 import { Event } from '../interfaces/event.interface';
 import moment from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faBan, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBan,
+  faFloppyDisk,
+  faDownload,
+} from '@fortawesome/free-solid-svg-icons';
 import { EditEventsComponent } from '../edit-event/edit-event.component';
 import { ListEventsWindowComponent } from '../list-events-window/list-events-window.component';
 import { v4 as uuidv4 } from 'uuid';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-home',
@@ -33,6 +38,7 @@ export class HomeComponent {
   // FontAwesome icons
   banIcon = faBan;
   floppyDiskIcon = faFloppyDisk;
+  downloadIcon = faDownload;
 
   year: number = new Date().getFullYear();
   // months: Month[] = [];
@@ -105,51 +111,6 @@ export class HomeComponent {
     this.newEvents = [];
     this.eventsToDelete = [];
 
-    // this.events = [
-    //   {
-    //     title: 'Test',
-    //     description: '🗃️',
-    //     start: new Date('2024-01-01T00:00:00Z'),
-    //     end: new Date('2024-12-31T23:59:59Z'),
-    //     colour: '#ff0000',
-    //   } as Event,
-    //   {
-    //     title: 'Test',
-    //     description: '🗃️',
-    //     start: new Date('2024-01-02T00:00:00Z'),
-    //     end: new Date('2024-12-30T23:59:59Z'),
-    //     colour: '#00ff00',
-    //   } as Event,
-    //   {
-    //     title: 'Test',
-    //     description: '🗃️',
-    //     start: new Date('2024-01-03T00:00:00Z'),
-    //     end: new Date('2024-12-29T23:59:59Z'),
-    //     colour: '#00ff00',
-    //   } as Event,
-    // ];
-
-    // this.events = [
-    //   {
-    //     title: 'Test',
-    //     id: '1',
-    //     description: '🗃️',
-    //     start: new Date('2024-02-01T00:00:00Z'),
-    //     end: new Date('2024-02-20T23:59:59Z'),
-    //     colour: '#ff0000',
-    //   } as Event,
-    //   {
-    //     title: 'Test',
-    //     id: '2',
-    //     description: '🗃️',
-    //     start: new Date('2024-02-18T00:00:00Z'),
-    //     end: new Date('2024-02-18T23:59:59Z'),
-    //     colour: '#00ff00',
-    //   } as Event,
-    // ];
-    // this.loadMonthsEvents();
-    // return; // TODO: remove once complete
-
     const start = new Date(`${new Date().getFullYear()}-01-01T00:00:00Z`);
     const end = new Date(`${new Date().getFullYear()}-12-31T23:59:59Z`);
 
@@ -170,22 +131,6 @@ export class HomeComponent {
   }
 
   async loadColors() {
-    // this.colors = {
-    //   '1': { background: '#a4bdfc', foreground: '#1d1d1d' },
-    //   '2': { background: '#7ae7bf', foreground: '#1d1d1d' },
-    //   '3': { background: '#dbadff', foreground: '#1d1d1d' },
-    //   '4': { background: '#ff887c', foreground: '#1d1d1d' },
-    //   '5': { background: '#fbd75b', foreground: '#1d1d1d' },
-    //   '6': { background: '#ffb878', foreground: '#1d1d1d' },
-    //   '7': { background: '#46d6db', foreground: '#1d1d1d' },
-    //   '8': { background: '#e1e1e1', foreground: '#1d1d1d' },
-    //   '9': { background: '#5484ed', foreground: '#1d1d1d' },
-    //   '10': { background: '#51b749', foreground: '#1d1d1d' },
-    //   '11': { background: '#dc2127', foreground: '#1d1d1d' },
-    // };
-    // this.selectedColorId = '1';
-    // return; // TODO: remove once complete
-
     this.colors = await this.googleCalendarService.getColors();
   }
 
@@ -348,5 +293,17 @@ export class HomeComponent {
     const percentage =
       (today.diff(start, 'days') / end.diff(start, 'days')) * 100;
     return Math.round(percentage * 10) / 10;
+  }
+
+  share() {
+    html2canvas(document.querySelector('#calendar')!).then(function (canvas) {
+      // download
+      const img = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'calendar.png';
+      link.href = img;
+      link.click();
+      link.remove();
+    });
   }
 }
