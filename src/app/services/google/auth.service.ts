@@ -96,6 +96,7 @@ export class GoogleAuthService {
   logOut(): void {
     this.socialAuthService.signOut();
     this.router.navigate(['/login']);
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
   }
 
   async makeRequest<T>(

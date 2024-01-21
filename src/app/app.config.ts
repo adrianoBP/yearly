@@ -11,7 +11,8 @@ import { HttpClientModule } from '@angular/common/http';
 
 const googleLoginOptions: GoogleInitOptions = {
   oneTapEnabled: true,
-  scopes: 'https://www.googleapis.com/auth/calendar.readonly',
+  scopes:
+    'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
 };
 
 export const appConfig: ApplicationConfig = {
