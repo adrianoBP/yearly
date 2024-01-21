@@ -65,6 +65,7 @@ export class HomeComponent {
           weekDay: date.toLocaleString('default', {
             weekday: 'short',
           }) as WeekDay,
+          date: new Date(date),
         });
         date.setDate(date.getDate() + 1);
       } while (monthName === this.getMonthName(date));
@@ -234,7 +235,7 @@ export class HomeComponent {
   isEventsListWindowOpen: boolean = false;
   eventsListInfo: Event[] = [];
   showEventsList(events: Event[], mouseEvent: MouseEvent) {
-    if (events.length == 0) return;
+    if (events == null || events.length == 0) return;
     this.eventsListInfo = events;
     this.isEventsListWindowOpen = true;
     this.mousePosition = mouseEvent;

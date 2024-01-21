@@ -44,3 +44,13 @@
 .container .selection.start.end {
   border-radius: 2rem;
 }
+
+.isToday {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.isPast {
+  color: #a8a8a8;
+  font-weight: lighter;
+}

@@ -4,5 +4,6 @@
           [ngClass]="{'start': eventDay.isFirstDay, 'end': eventDay.isLastDay}"
           [ngStyle]="{'background-color': eventDay.colour}"></div>
      <p [ngClass]="{'selectable': canCreateNewEvent}"
-        (click)="onClick($event)">{{day.number}}</p>
+        (click)="onClick($event)"
+        [ngClass]="{'isToday': isToday, 'isPast': isPast}">{{day.number}}</p>
 </div>
