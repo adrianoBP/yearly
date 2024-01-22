@@ -286,13 +286,10 @@ export class HomeComponent {
   }
 
   get todaysPercentage(): number {
-    const today = moment();
-    const start = moment(`${this.year}-01-01T00:00:00Z`);
-    const end = moment(`${this.year}-12-31T23:59:59Z`);
-
-    const percentage =
-      (today.diff(start, 'days') / end.diff(start, 'days')) * 100;
-    return Math.round(percentage * 10) / 10;
+    const todayDay = moment().dayOfYear();
+    const yearDays = moment().isLeapYear() ? 366 : 365;
+    const percentage = (todayDay / yearDays) * 100;
+    return percentage;
   }
 
   share() {
