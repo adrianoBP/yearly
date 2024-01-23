@@ -31,4 +31,8 @@ export class DayComponent {
   get isPast(): boolean {
     return moment().isAfter(this.day.date, 'day');
   }
+
+  get sortedEvents(): EventDay[] {
+    return this.events.sort((a, b) => b.duration - a.duration);
+  }
 }

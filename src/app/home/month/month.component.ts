@@ -82,6 +82,7 @@ export class MonthComponent {
         isFirstDay: momentDay.isSame(event.start, 'day'),
         isLastDay: momentDay.isSame(event.end, 'day'),
         colour: event.colour,
+        duration: moment(event.end).diff(event.start, 'days') + 1,
       } as EventDay;
     });
   }

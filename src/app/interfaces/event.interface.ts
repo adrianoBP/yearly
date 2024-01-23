@@ -12,4 +12,5 @@ export interface EventDay {
   isFirstDay: boolean;
   isLastDay: boolean;
   colour: string;
+  duration: number;
 }
