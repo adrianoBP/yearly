@@ -99,11 +99,16 @@ export class HomeComponent {
 
   loadMonthsEvents() {
     for (let month in this.months) {
-      this.months[month].events = this.events.filter(
-        (event) =>
-          this.months[month].number >= event.start.getMonth() &&
-          this.months[month].number <= event.end.getMonth()
-      );
+      this.months[month].events = this.events.filter((event) => {
+        return (
+          moment(`${this.year}-${this.months[month].number + 1}-01`).isBetween(
+            event.start,
+            event.end
+          ) ||
+          (this.months[month].number >= event.start.getMonth() &&
+            this.months[month].number <= event.end.getMonth())
+        );
+      });
     }
   }
 
