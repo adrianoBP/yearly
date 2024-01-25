@@ -20,16 +20,21 @@ export class DayComponent {
     mouseEvent: MouseEvent;
   }>();
 
+  today;
+  constructor() {
+    this.today = moment();
+  }
+
   onClick(mouseEvent: MouseEvent): void {
     this.onDayClick.emit({ day: this.day, mouseEvent });
   }
 
   get isToday(): boolean {
-    return moment().isSame(this.day.date, 'day');
+    return this.today.isSame(this.day.date, 'day');
   }
 
   get isPast(): boolean {
-    return moment().isAfter(this.day.date, 'day');
+    return this.today.isAfter(this.day.date, 'day');
   }
 
   get sortedEvents(): EventDay[] {
