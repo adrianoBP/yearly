@@ -7,8 +7,7 @@
        class="event-details">
     <div>
       <p>{{event.title}}</p>
-      <p>{{formatDate(event.start)}}</p>
-      <p *ngIf="!isOneDayEvent(event)"> - {{formatDate(event.end)}}</p>
+      <p>{{formatDate(event.start)}}{{!isOneDayEvent(event) ? (' - ' + formatDate(event.end)) : ''}}</p>
     </div>
     <button (click)="deleteEvent(event)"><fa-icon [icon]="timesIcon"
                [size]="'lg'"
