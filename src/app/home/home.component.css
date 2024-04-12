@@ -1,13 +1,40 @@
+* {
+  --rows: 3;
+  --columns: 4;
+  --colors-gap: .3rem;
+  --nav-direction: row;
+}
+
 :host {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
+/* Mobile */
+@media (max-width: 768px) {
+  * {
+    --rows: 12;
+    --columns: 1;
+    --nav-direction: column;
+    --colors-gap: .9rem;
+  }
+
+  #colors {
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+  }
+
+  app-list-events-window,
+  app-edit-event {
+    width: 100%;
+  }
+}
+
 #calendar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--columns), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
   grid-gap: 1rem 2rem;
   flex: 1;
   margin: 0 1rem 1rem 1rem;
@@ -15,10 +42,11 @@
 
 nav {
   display: flex;
-  flex-direction: row;
+  flex-direction: var(--nav-direction);
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
+  gap: 1rem;
 }
 
 nav>div {
@@ -47,6 +75,13 @@ app-month {
 
 nav>div.center {
   gap: .3rem;
+}
+
+#colors {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--colors-gap);
 }
 
 .color {

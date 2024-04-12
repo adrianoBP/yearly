@@ -7,15 +7,17 @@
   </div>
 
   <div class="center">
-    <div class="color"
-         *ngFor="let color of colors | keyvalue"
-         [ngStyle]="{ '--color': color.value.background}"
-         [ngClass]="{ 'selected': color.key === selectedColorId }"
-         (click)="selectColor(color.key)"></div>
-    <div class="color icon"
-         [ngStyle]="{ '--color': 'white', color: 'red'}"
-         (click)="selectedColorId = undefined"><fa-icon [icon]="banIcon"
-               [size]="'sm'"></fa-icon></div>
+    <div id="colors">
+      <div class="color"
+           *ngFor="let color of colors | keyvalue"
+           [ngStyle]="{ '--color': color.value.background}"
+           [ngClass]="{ 'selected': color.key === selectedColorId }"
+           (click)="selectColor(color.key)"></div>
+      <div class="color icon"
+           [ngStyle]="{ '--color': 'white', color: 'red'}"
+           (click)="selectedColorId = undefined"><fa-icon [icon]="banIcon"
+                 [size]="'sm'"></fa-icon></div>
+    </div>
   </div>
 
   <div class="right">
@@ -42,14 +44,14 @@
 <app-edit-event [(visible)]="isEditEventWindowOpen"
                 (onClose)="onEditEventComplete($event)"
                 [event]="newEvent"
-                [x]="mousePosition?.x"
-                [y]="mousePosition?.y"
+                [x]="mousePosition?.pageX"
+                [y]="mousePosition?.pageY"
                 [ngStyle]="{'z-index': (isEditEventWindowOpen ? '2' : '-1')}"></app-edit-event>
 
 <app-list-events-window [(visible)]="isEventsListWindowOpen"
                         (onClose)="onListEventsComplete($event)"
                         [events]="eventsListInfo"
-                        [x]="mousePosition?.x"
-                        [y]="mousePosition?.y"
+                        [x]="mousePosition?.pageX"
+                        [y]="mousePosition?.pageY"
                         [ngStyle]="{'z-index': (isEventsListWindowOpen ? '2' : '-1')}">
 </app-list-events-window>

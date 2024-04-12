@@ -1,6 +1,19 @@
+* {
+  --min-width: 30rem;
+  --min-height: 10rem;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  * {
+    --min-width: 80%;
+    --min-height: 10rem;
+  }
+}
+
 .container {
-  min-height: 10rem;
-  min-width: 30rem;
+  min-height: var(--min-height);
+  min-width: var(--min-width);
   background-color: white;
 
   border-radius: 1rem;

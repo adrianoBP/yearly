@@ -32,11 +32,11 @@ export class EditEventsComponent {
   locationX = 0;
   locationY = 0;
   ngOnChanges(): void {
-    this.calculateWindowPosition();
+    this.calculateWindowPosition(window.innerWidth < 768);
   }
 
   positionPadding = 20;
-  calculateWindowPosition(): void {
+  calculateWindowPosition(isMobile: boolean): void {
     if (this.x == null || this.y == null) return;
 
     const windowWidth = window.innerWidth;
@@ -55,6 +55,8 @@ export class EditEventsComponent {
     } else {
       this.locationY = this.y! + this.positionPadding;
     }
+
+    if (isMobile) this.locationX = 0;
   }
 
   cancel(): void {
