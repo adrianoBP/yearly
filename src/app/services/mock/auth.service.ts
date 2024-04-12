@@ -6,12 +6,26 @@ export class MockAuthService {
   socialUser?: SocialUser;
   isLoggedIn?: boolean = true;
 
-  constructor() {}
+  constructor() {
+    this.socialUser = {
+      id: '123',
+      name: 'Mock User',
+      email: '',
+      photoUrl: '',
+      firstName: 'Mock',
+      lastName: 'User',
+      authToken: '123',
+      idToken: '123',
+      provider: 'mockingService',
+      authorizationCode: '123',
+      response: {},
+    };
+  }
 
   getAccessToken(forceReload?: boolean, onTokenRetrieved?: () => void): void {}
 
   getAccessTokenAsync(forceReload?: boolean): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       resolve();
     });
   }
