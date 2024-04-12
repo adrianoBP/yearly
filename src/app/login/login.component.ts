@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { GoogleAuthService } from '../services/google/auth.service';
 import { GoogleSigninButtonModule } from '@abacritt/angularx-social-login';
+import { MockAuthService } from '../services/mock/auth.service';
+import { mockData } from '../app.config';
 
 @Component({
   selector: 'app-login',
@@ -10,9 +12,15 @@ import { GoogleSigninButtonModule } from '@abacritt/angularx-social-login';
   styleUrl: './login.component.css',
 })
 export class LoginComponent {
-  constructor(private googleService: GoogleAuthService) {}
+  authService: GoogleAuthService | MockAuthService;
+
+  constructor(private injector: Injector) {
+    this.authService = mockData
+      ? this.injector.get(MockAuthService)
+      : this.injector.get(GoogleAuthService);
+  }
 
   login() {
-    this.googleService.loginWithGoogle();
+    this.authService.loginWithGoogle();
   }
 }

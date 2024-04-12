@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { Day, Month, WeekDay } from '../interfaces/month.interface';
 import { CommonModule, KeyValue } from '@angular/common';
 import { MonthComponent } from './month/month.component';
@@ -20,6 +20,9 @@ import { EditEventsComponent } from '../edit-event/edit-event.component';
 import { ListEventsWindowComponent } from '../list-events-window/list-events-window.component';
 import { v4 as uuidv4 } from 'uuid';
 import html2canvas from 'html2canvas';
+import { MockCalendarService } from '../services/mock/calendar.service';
+import { MockAuthService } from '../services/mock/auth.service';
+import { mockData } from '../app.config';
 
 @Component({
   selector: 'app-home',
@@ -53,10 +56,17 @@ export class HomeComponent {
 
   selectedColorId: string | undefined;
 
-  constructor(
-    public googleAuthService: GoogleAuthService,
-    private googleCalendarService: GoogleCalendarService
-  ) {
+  authService: GoogleAuthService | MockAuthService;
+  calendarService: GoogleCalendarService | MockCalendarService;
+
+  constructor(private injector: Injector) {
+    this.authService = mockData
+      ? this.injector.get(MockAuthService)
+      : this.injector.get(GoogleAuthService);
+    this.calendarService = mockData
+      ? this.injector.get(MockCalendarService)
+      : this.injector.get(GoogleCalendarService);
+
     const date = new Date(`${this.year}-01-01`);
 
     while (date.getFullYear() === this.year) {
@@ -119,7 +129,7 @@ export class HomeComponent {
     const start = new Date(`${new Date().getFullYear()}-01-01T00:00:00Z`);
     const end = new Date(`${new Date().getFullYear()}-12-31T23:59:59Z`);
 
-    const result = await this.googleCalendarService.getEvents(start, end);
+    const result = await this.calendarService.getEvents(start, end);
     this.events = [];
     this.events = result.map((event) => {
       return {
@@ -136,7 +146,7 @@ export class HomeComponent {
   }
 
   async loadColors() {
-    this.colors = await this.googleCalendarService.getColors();
+    this.colors = await this.calendarService.getColors();
   }
 
   getMonthEvents({ events, number }: Month) {
@@ -281,9 +291,9 @@ export class HomeComponent {
         colorId: event.colorId,
       } as GoogleCalendarEvent;
     });
-    await this.googleCalendarService.createEvents(gEvents);
+    await this.calendarService.createEvents(gEvents);
 
-    await this.googleCalendarService.deleteEvents(
+    await this.calendarService.deleteEvents(
       this.eventsToDelete.map((event) => event.id)
     );
 

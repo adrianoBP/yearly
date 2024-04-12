@@ -8,9 +8,13 @@ import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { inject } from '@angular/core';
 import { GoogleAuthService } from './services/google/auth.service';
+import { MockAuthService } from './services/mock/auth.service';
+import { mockData } from './app.config';
 
 const canActivateHome: CanActivateFn = (route: ActivatedRouteSnapshot) => {
-  const loggedIn = inject(GoogleAuthService).isLoggedIn;
+  const loggedIn = inject(
+    mockData ? MockAuthService : GoogleAuthService
+  ).isLoggedIn;
   if (!loggedIn) inject(Router).navigate(['/login']);
   return true;
 };

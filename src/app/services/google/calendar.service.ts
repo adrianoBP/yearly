@@ -24,12 +24,12 @@ export interface GoogleCalendarEventDate {
   date: string;
 }
 
-interface GoogleCalendarEventListResponse {
+export interface GoogleCalendarEventListResponse {
   items: GoogleCalendarEvent[];
   nextPageToken?: string;
 }
 
-interface GoogleCalendarColorsResponse {
+export interface GoogleCalendarColorsResponse {
   event: { [key: string]: GoogleCalendarColor };
 }
 

@@ -2,7 +2,7 @@
 <nav>
   <div class="left">
     <h3>Yearly</h3>
-    <p>{{googleAuthService.socialUser?.firstName}}'s calendar</p>
+    <p>{{authService.socialUser?.firstName}}'s calendar</p>
     <p>{{todaysPercentage.toFixed(2)}}%</p>
   </div>
 
@@ -26,7 +26,7 @@
             [disabled]="(newEvents.length == 0 && eventsToDelete.length == 0)|| isEditEventWindowOpen"><fa-icon
                [icon]="floppyDiskIcon"
                [size]="'lg'"></fa-icon></button>
-    <button (click)="googleAuthService.logOut()">SignOut</button>
+    <button (click)="authService.logOut()">SignOut</button>
   </div>
 </nav>
 
