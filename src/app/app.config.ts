@@ -9,7 +9,7 @@ import {
 } from '@abacritt/angularx-social-login';
 import { HttpClientModule } from '@angular/common/http';
 
-export const mockData = false;
+export const mockData = true;
 
 const googleLoginOptions: GoogleInitOptions = {
   oneTapEnabled: true,

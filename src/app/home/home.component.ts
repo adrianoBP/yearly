@@ -15,6 +15,8 @@ import {
   faBan,
   faFloppyDisk,
   faDownload,
+  faChevronLeft,
+  faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { EditEventsComponent } from '../edit-event/edit-event.component';
 import { ListEventsWindowComponent } from '../list-events-window/list-events-window.component';
@@ -23,6 +25,7 @@ import html2canvas from 'html2canvas';
 import { MockCalendarService } from '../services/mock/calendar.service';
 import { MockAuthService } from '../services/mock/auth.service';
 import { mockData } from '../app.config';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -42,9 +45,12 @@ export class HomeComponent {
   banIcon = faBan;
   floppyDiskIcon = faFloppyDisk;
   downloadIcon = faDownload;
+  chevronLeftIcon = faChevronLeft;
+  chevronRightIcon = faChevronRight;
+
+  currentYear = new Date().getFullYear();
 
   year: number = new Date().getFullYear();
-  // months: Month[] = [];
   months: { [key: string]: Month } = {};
 
   colors: { [key: string]: GoogleCalendarColor } = {};
@@ -52,7 +58,7 @@ export class HomeComponent {
 
   eventStart: Date | undefined;
   eventEnd: Date | undefined;
-  newEvents: Event[] = [];
+  eventsToAdd: Event[] = [];
 
   selectedColorId: string | undefined;
 
@@ -66,6 +72,12 @@ export class HomeComponent {
     this.calendarService = mockData
       ? this.injector.get(MockCalendarService)
       : this.injector.get(GoogleCalendarService);
+
+    this.buildMonths();
+  }
+
+  buildMonths() {
+    this.months = {};
 
     const date = new Date(`${this.year}-01-01`);
 
@@ -94,11 +106,7 @@ export class HomeComponent {
     }
   }
 
-  ngOnInit(): void {
-    this.fetchGoogleDetails();
-  }
-
-  async fetchGoogleDetails() {
+  async ngOnInit() {
     await this.loadColors(); // We need to wait for the colors to load before we can load the events
     this.loadEvents();
   }
@@ -109,27 +117,29 @@ export class HomeComponent {
 
   loadMonthsEvents() {
     for (let month in this.months) {
+      const monthStart = new Date(
+        `${this.year}-${this.months[month].number + 1}-01`
+      );
+      const monthEnd = new Date(
+        `${this.year}-${this.months[month].number + 1}-${
+          this.months[month].days.length
+        }`
+      );
+
       this.months[month].events = this.events.filter((event) => {
         return (
-          moment(`${this.year}-${this.months[month].number + 1}-01`).isBetween(
-            event.start,
-            event.end
-          ) ||
-          (this.months[month].number >= event.start.getMonth() &&
-            this.months[month].number <= event.end.getMonth())
+          moment(event.start).isBetween(monthStart, monthEnd) ||
+          moment(event.end).isBetween(monthStart, monthEnd)
         );
       });
     }
   }
 
   async loadEvents() {
-    this.newEvents = [];
-    this.eventsToDelete = [];
+    const yearStart = new Date(`${this.year}-01-01T00:00:00Z`);
+    const yearEnd = new Date(`${this.year}-12-31T23:59:59Z`);
 
-    const start = new Date(`${new Date().getFullYear()}-01-01T00:00:00Z`);
-    const end = new Date(`${new Date().getFullYear()}-12-31T23:59:59Z`);
-
-    const result = await this.calendarService.getEvents(start, end);
+    const result = await this.calendarService.getEvents(yearStart, yearEnd);
     this.events = [];
     this.events = result.map((event) => {
       return {
@@ -149,14 +159,28 @@ export class HomeComponent {
     this.colors = await this.calendarService.getColors();
   }
 
-  getMonthEvents({ events, number }: Month) {
+  getMonthEvents({ events, number, days }: Month) {
+    const monthStart = new Date(`${this.year}-${number + 1}-01`);
+    const monthEnd = new Date(`${this.year}-${number + 1}-${days.length}`);
     return [
       ...(events ?? []),
-      ...this.newEvents.filter(
+      ...this.eventsToAdd.filter(
         (event) =>
-          number >= event.start.getMonth() && number <= event.end.getMonth()
+          moment(event.start).isBetween(monthStart, monthEnd) ||
+          moment(event.end).isBetween(monthStart, monthEnd)
       ),
-    ];
+    ].filter(
+      (event) => this.eventsToDelete.findIndex((e) => e.id === event.id) === -1
+    );
+  }
+
+  changeYear(newYear: number) {
+    this.year = newYear;
+
+    this.events = [];
+
+    this.buildMonths();
+    this.loadEvents();
   }
 
   selectColor(colorId: string) {
@@ -207,7 +231,7 @@ export class HomeComponent {
   mousePosition: MouseEvent | undefined;
   showEditEvent(event: Event, mouseEvent: MouseEvent) {
     this.newEvent = event;
-    this.newEvents.push(event);
+    this.eventsToAdd.push(event);
     this.isEditEventWindowOpen = true;
     this.mousePosition = mouseEvent;
   }
@@ -236,13 +260,13 @@ export class HomeComponent {
   onEditEventComplete({ event, cancel }: { event?: Event; cancel?: boolean }) {
     this.eventStart = undefined;
     this.eventEnd = undefined;
-    this.newEvents.pop();
+    this.eventsToAdd.pop();
 
     if (cancel || event == null) return;
 
     event!.description += '\n~🗃️~';
     // replace last event
-    this.newEvents.push(event!);
+    this.eventsToAdd.push(event!);
   }
 
   eventsToDelete: Event[] = [];
@@ -263,7 +287,7 @@ export class HomeComponent {
     this.events = this.events.filter(
       (event) => !deletedIds?.includes(event.id)
     );
-    this.newEvents = this.newEvents.filter(
+    this.eventsToAdd = this.eventsToAdd.filter(
       (event) => !deletedIds?.includes(event.id)
     );
 
@@ -278,7 +302,7 @@ export class HomeComponent {
   };
 
   async pushChanges() {
-    const gEvents: GoogleCalendarEvent[] = this.newEvents.map((event) => {
+    const gEvents: GoogleCalendarEvent[] = this.eventsToAdd.map((event) => {
       return {
         summary: event.title,
         description: event.description,
@@ -296,6 +320,9 @@ export class HomeComponent {
     await this.calendarService.deleteEvents(
       this.eventsToDelete.map((event) => event.id)
     );
+
+    this.eventsToAdd = [];
+    this.eventsToDelete = [];
 
     await this.loadEvents();
   }

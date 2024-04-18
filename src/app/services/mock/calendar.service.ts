@@ -45,11 +45,26 @@ export class MockCalendarService {
         start: { date: '2024-05-20' },
         end: { date: '2024-06-10' },
       } as GoogleCalendarEvent,
+      {
+        id: '3',
+        summary: 'Another Test Event',
+        description: 'This is another test event',
+        start: { date: '2025-02-17' },
+        end: { date: '2025-02-19' },
+      } as GoogleCalendarEvent,
+      {
+        id: '4',
+        summary: 'Another Test Event',
+        description: 'This is another test event',
+        start: { date: '2024-12-17' },
+        end: { date: '2025-01-19' },
+      } as GoogleCalendarEvent,
     ];
 
     return results.filter((event) => {
       return (
-        new Date(event.start.date) >= start && new Date(event.end.date) <= end
+        new Date(event.start.date).getFullYear() === start.getFullYear() ||
+        new Date(event.end.date).getFullYear() === end.getFullYear()
       );
     });
   }

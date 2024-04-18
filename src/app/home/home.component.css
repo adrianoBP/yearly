@@ -26,9 +26,8 @@
   }
 
   #info {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    width: 100%;
+    justify-content: space-around
   }
 
   .mobile-hidden {
@@ -38,6 +37,22 @@
   app-list-events-window,
   app-edit-event {
     width: 100%;
+  }
+}
+
+@media (hover: hover) {
+  nav button:not(:disabled):hover {
+    cursor: pointer;
+    background-color: #f5f5f5;
+  }
+
+  .color:hover {
+    cursor: pointer;
+    opacity: 20%;
+  }
+
+  .color.icon:hover {
+    opacity: 70%;
   }
 }
 
@@ -72,11 +87,6 @@ nav button {
   border: none;
 }
 
-nav button:not(:disabled):hover {
-  cursor: pointer;
-  background-color: #f5f5f5;
-}
-
 app-month {
   display: flex;
   justify-content: center;
@@ -103,17 +113,22 @@ app-month {
   opacity: 50%;
 }
 
-.color:hover {
-  cursor: pointer;
-  opacity: 20%;
-}
-
-.color.icon:hover {
-  opacity: 70%;
-}
-
 .color.selected {
   opacity: 100%;
+}
+
+#year-selection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .6rem;
+
+  background-color: #f5f5f5;
+  border-radius: 1rem;
+
+  p {
+    font-weight: bold;
+  }
 }
 
 app-edit-event {
