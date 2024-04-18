@@ -47,7 +47,11 @@ export class MockCalendarService {
       } as GoogleCalendarEvent,
     ];
 
-    return results;
+    return results.filter((event) => {
+      return (
+        new Date(event.start.date) >= start && new Date(event.end.date) <= end
+      );
+    });
   }
 
   async createEvent(event: GoogleCalendarEvent): Promise<GoogleCalendarEvent> {

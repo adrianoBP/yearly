@@ -25,6 +25,16 @@
     justify-content: space-evenly;
   }
 
+  #info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .mobile-hidden {
+    display: none;
+  }
+
   app-list-events-window,
   app-edit-event {
     width: 100%;
@@ -73,14 +83,7 @@ app-month {
   align-items: center;
 }
 
-nav>div.center {
-  gap: .3rem;
-}
-
 #colors {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
   gap: var(--colors-gap);
 }
 
