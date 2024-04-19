@@ -1,3 +1,5 @@
+import { Moment } from 'moment';
+
 export interface Event {
   id: string;
   title: string;
@@ -6,6 +8,9 @@ export interface Event {
   end: Date;
   colour: string;
   colorId: string;
+
+  startUTC: Moment;
+  endUTC: Moment;
 }
 
 export interface EventDay {

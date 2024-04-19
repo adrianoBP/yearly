@@ -9,7 +9,7 @@ import {
   GoogleCalendarEvent,
 } from '../services/google/calendar.service';
 import { Event } from '../interfaces/event.interface';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faBan,
@@ -102,6 +102,14 @@ export class HomeComponent {
         name: monthName,
         number: monthNumber,
         days,
+        startUTC: moment.utc(
+          `${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-01`
+        ),
+        endUTC: moment.utc(
+          `${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-${
+            days.length
+          }`
+        ),
       } as Month;
     }
   }
@@ -111,27 +119,15 @@ export class HomeComponent {
     this.loadEvents();
   }
 
-  getMonthName(date: Date) {
-    return date.toLocaleString('default', { month: 'long' });
-  }
-
   loadMonthsEvents() {
     for (let month in this.months) {
-      const monthStart = new Date(
-        `${this.year}-${this.months[month].number + 1}-01`
+      const monthStart = this.months[month].startUTC;
+      const monthEnd = this.months[month].endUTC;
+      this.months[month].events = this.getEventsInBetween(
+        monthStart,
+        monthEnd,
+        this.events
       );
-      const monthEnd = new Date(
-        `${this.year}-${this.months[month].number + 1}-${
-          this.months[month].days.length
-        }`
-      );
-
-      this.months[month].events = this.events.filter((event) => {
-        return (
-          moment(event.start).isBetween(monthStart, monthEnd) ||
-          moment(event.end).isBetween(monthStart, monthEnd)
-        );
-      });
     }
   }
 
@@ -146,9 +142,12 @@ export class HomeComponent {
         id: event.id,
         title: event.summary,
         description: event.description,
-        start: new Date(event.start.date),
+        start: moment(event.start.date).toDate(),
         end: moment(event.end.date).add(-1, 'day').toDate(), // Remove 1 day as Google Calendar API returns the next day at midnight
         colour: this.colors[event.colorId ?? '1'].background,
+
+        startUTC: moment.utc(event.start.date),
+        endUTC: moment.utc(event.end.date),
       } as Event;
     });
     this.events = [...this.events];
@@ -159,16 +158,10 @@ export class HomeComponent {
     this.colors = await this.calendarService.getColors();
   }
 
-  getMonthEvents({ events, number, days }: Month) {
-    const monthStart = new Date(`${this.year}-${number + 1}-01`);
-    const monthEnd = new Date(`${this.year}-${number + 1}-${days.length}`);
+  getMonthEvents({ events, startUTC: monthStart, endUTC: monthEnd }: Month) {
     return [
       ...(events ?? []),
-      ...this.eventsToAdd.filter(
-        (event) =>
-          moment(event.start).isBetween(monthStart, monthEnd) ||
-          moment(event.end).isBetween(monthStart, monthEnd)
-      ),
+      ...this.getEventsInBetween(monthStart, monthEnd, this.eventsToAdd),
     ].filter(
       (event) => this.eventsToDelete.findIndex((e) => e.id === event.id) === -1
     );
@@ -176,9 +169,7 @@ export class HomeComponent {
 
   changeYear(newYear: number) {
     this.year = newYear;
-
     this.events = [];
-
     this.buildMonths();
     this.loadEvents();
   }
@@ -237,8 +228,11 @@ export class HomeComponent {
   }
 
   requestNewEventDetails(mouseEvent: MouseEvent) {
+    const eventStartUTC = moment.utc(this.eventStart);
+    const eventEndUTC = moment.utc(this.eventEnd);
+
     // Invert dates if the start date is after the end date
-    if (moment(this.eventStart).isAfter(moment(this.eventEnd))) {
+    if (eventStartUTC.isAfter(eventEndUTC)) {
       const temp = this.eventStart;
       this.eventStart = this.eventEnd;
       this.eventEnd = temp;
@@ -252,6 +246,9 @@ export class HomeComponent {
       end: this.eventEnd,
       colour: this.colors[this.selectedColorId!].background,
       colorId: this.selectedColorId,
+
+      startUTC: eventStartUTC,
+      endUTC: eventEndUTC,
     } as Event;
 
     this.showEditEvent(newEvent, mouseEvent);
@@ -294,13 +291,6 @@ export class HomeComponent {
     this.loadMonthsEvents();
   }
 
-  monthsOrder = (
-    a: KeyValue<string, Month>,
-    b: KeyValue<string, Month>
-  ): number => {
-    return a.value.number - b.value.number;
-  };
-
   async pushChanges() {
     const gEvents: GoogleCalendarEvent[] = this.eventsToAdd.map((event) => {
       return {
@@ -328,8 +318,8 @@ export class HomeComponent {
   }
 
   get todaysPercentage(): number {
-    const todayDay = moment().dayOfYear();
-    const yearDays = moment().isLeapYear() ? 366 : 365;
+    const todayDay = moment.utc().dayOfYear();
+    const yearDays = moment.utc().isLeapYear() ? 366 : 365;
     const percentage = (todayDay / yearDays) * 100;
     return percentage;
   }
@@ -345,4 +335,24 @@ export class HomeComponent {
       link.remove();
     });
   }
+
+  // UTIL functions
+  getMonthName(date: Date) {
+    return date.toLocaleString('default', { month: 'long' });
+  }
+
+  getEventsInBetween(start: Moment, end: Moment, events: Event[]) {
+    return events.filter(
+      (event) =>
+        event.startUTC.isBetween(start, end, undefined, '[]') ||
+        event.endUTC.isBetween(start, end, undefined, '[]')
+    );
+  }
+
+  monthsOrder = (
+    a: KeyValue<string, Month>,
+    b: KeyValue<string, Month>
+  ): number => {
+    return a.value.number - b.value.number;
+  };
 }

@@ -1,3 +1,4 @@
+import { Moment } from 'moment';
 import { Event } from './event.interface';
 
 export interface Month {
@@ -5,6 +6,8 @@ export interface Month {
   number: number;
   days: Day[];
   events?: Event[];
+  startUTC: Moment;
+  endUTC: Moment;
 }
 
 export type WeekDay = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
