@@ -31,6 +31,9 @@
   right: 0;
   bottom: 0;
   opacity: 40%;
+
+  z-index: 2;
+  cursor: pointer;
 }
 
 .container .selection.start {
@@ -53,4 +56,8 @@
 .isPast {
   color: #a8a8a8;
   font-weight: lighter;
+}
+
+.pointer {
+  cursor: pointer !important;
 }
