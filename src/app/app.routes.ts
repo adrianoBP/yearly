@@ -11,7 +11,7 @@ import { GoogleAuthService } from './services/google/auth.service';
 import { MockAuthService } from './services/mock/auth.service';
 import { mockData } from './app.config';
 
-const canActivateHome: CanActivateFn = (route: ActivatedRouteSnapshot) => {
+const isLoggedIn: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const loggedIn = inject(
     mockData ? MockAuthService : GoogleAuthService
   ).isLoggedIn;
@@ -20,6 +20,11 @@ const canActivateHome: CanActivateFn = (route: ActivatedRouteSnapshot) => {
 };
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent, canActivate: [canActivateHome] },
+  { path: '', component: HomeComponent, canActivate: [isLoggedIn] },
+  {
+    path: 'settings',
+    component: HomeComponent,
+    canActivate: [isLoggedIn],
+  },
   { path: 'login', component: LoginComponent },
 ];

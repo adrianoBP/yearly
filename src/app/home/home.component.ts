@@ -7,6 +7,7 @@ import {
   GoogleCalendarColor,
   GoogleCalendarService,
   GoogleCalendarEvent,
+  GoogleCalendar,
 } from '../services/google/calendar.service';
 import { Event } from '../interfaces/event.interface';
 import moment, { Moment } from 'moment';
@@ -17,6 +18,7 @@ import {
   faDownload,
   faChevronLeft,
   faChevronRight,
+  faCogs,
 } from '@fortawesome/free-solid-svg-icons';
 import { EditEventsComponent } from '../edit-event/edit-event.component';
 import { ListEventsWindowComponent } from '../list-events-window/list-events-window.component';
@@ -26,6 +28,7 @@ import { MockCalendarService } from '../services/mock/calendar.service';
 import { MockAuthService } from '../services/mock/auth.service';
 import { mockData } from '../app.config';
 import { BehaviorSubject } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -47,6 +50,7 @@ export class HomeComponent {
   downloadIcon = faDownload;
   chevronLeftIcon = faChevronLeft;
   chevronRightIcon = faChevronRight;
+  cogsIcon = faCogs;
 
   currentYear = new Date().getFullYear();
 
@@ -54,6 +58,7 @@ export class HomeComponent {
   months: { [key: string]: Month } = {};
 
   colors: { [key: string]: GoogleCalendarColor } = {};
+  calendars: GoogleCalendar[] = [];
   events: Event[] = [];
 
   eventStart: Date | undefined;
@@ -65,7 +70,7 @@ export class HomeComponent {
   authService: GoogleAuthService | MockAuthService;
   calendarService: GoogleCalendarService | MockCalendarService;
 
-  constructor(private injector: Injector) {
+  constructor(private injector: Injector, public router: Router) {
     this.authService = mockData
       ? this.injector.get(MockAuthService)
       : this.injector.get(GoogleAuthService);
@@ -115,8 +120,15 @@ export class HomeComponent {
   }
 
   async ngOnInit() {
-    await this.loadColors(); // We need to wait for the colors to load before we can load the events
-    this.loadEvents();
+    Promise.all([
+      this.calendarService.getColors(),
+      this.calendarService.getCalendars(),
+    ]).then((values) => {
+      this.colors = values[0];
+      this.calendars = values[1];
+
+      console.log(this.calendars);
+    });
   }
 
   loadMonthsEvents() {

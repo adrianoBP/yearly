@@ -34,6 +34,10 @@
             [disabled]="(eventsToAdd.length == 0 && eventsToDelete.length == 0)|| isEditEventWindowOpen"><fa-icon
                [icon]="floppyDiskIcon"
                [size]="'lg'"></fa-icon></button>
+    <!-- navigate to settings -->
+
+    <button (click)="router.navigate(['/settings'])"><fa-icon [icon]="cogsIcon"
+               [size]="'lg'"></fa-icon></button>
     <button (click)="authService.logOut()">SignOut</button>
   </div>
 </nav>

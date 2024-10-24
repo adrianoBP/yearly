@@ -3,6 +3,18 @@ import { SocialUser } from '@abacritt/angularx-social-login';
 import { GoogleAuthService } from './auth.service';
 import moment from 'moment';
 
+export interface GoogleCalendar {
+  id: string;
+  etag: string;
+  summary: string;
+  summaryOverride?: string;
+  timezone: string;
+  backgroundColor: string;
+  foregroundColor: string;
+  colorId: string;
+  accessRole: string;
+}
+
 export interface GoogleCalendarEvent {
   id: string;
   htmlLink?: string;
@@ -22,6 +34,10 @@ export interface GoogleCalendarEventPerson {
 
 export interface GoogleCalendarEventDate {
   date: string;
+}
+
+export interface GoogleCalendarListResponse {
+  items: GoogleCalendar[];
 }
 
 export interface GoogleCalendarEventListResponse {
@@ -46,6 +62,16 @@ export class GoogleCalendarService {
   constructor(private googleAuthService: GoogleAuthService) {}
 
   private baseUrl = 'https://www.googleapis.com/calendar/v3';
+
+  async getCalendars(): Promise<GoogleCalendar[]> {
+    const url = `${this.baseUrl}/users/me/calendarList`;
+    const response =
+      await this.googleAuthService.makeRequest<GoogleCalendarListResponse>(
+        url,
+        'get'
+      );
+    return response.items;
+  }
 
   async getColors(): Promise<{ [key: string]: GoogleCalendarColor }> {
     const url = `${this.baseUrl}/colors`;
