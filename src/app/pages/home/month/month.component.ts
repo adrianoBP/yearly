@@ -6,10 +6,10 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Day, WeekDay, Month } from '../../interfaces/month.interface';
+import { Day, WeekDay, Month } from '../../../interfaces/month.interface';
 import { DayComponent } from './day/day.component';
 import moment from 'moment';
-import { Event, EventDay } from '../../interfaces/event.interface';
+import { Event, EventDay } from '../../../interfaces/event.interface';
 
 @Component({
   selector: 'app-month',

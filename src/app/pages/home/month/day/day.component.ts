@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Day } from '../../../interfaces/month.interface';
-import { EventDay } from '../../../interfaces/event.interface';
+import { Day } from '../../../../interfaces/month.interface';
+import { EventDay } from '../../../../interfaces/event.interface';
 import { CommonModule } from '@angular/common';
 import moment from 'moment';
 

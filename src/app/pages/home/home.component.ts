@@ -1,15 +1,15 @@
 import { Component, Injector } from '@angular/core';
-import { Day, Month, WeekDay } from '../interfaces/month.interface';
+import { Day, Month, WeekDay } from '../../interfaces/month.interface';
 import { CommonModule, KeyValue } from '@angular/common';
 import { MonthComponent } from './month/month.component';
-import { GoogleAuthService } from '../services/google/auth.service';
+import { GoogleAuthService } from '../../services/google/auth.service';
 import {
   GoogleCalendarColor,
   GoogleCalendarService,
   GoogleCalendarEvent,
   GoogleCalendar,
-} from '../services/google/calendar.service';
-import { Event } from '../interfaces/event.interface';
+} from '../../services/google/calendar.service';
+import { Event } from '../../interfaces/event.interface';
 import moment, { Moment } from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -20,13 +20,13 @@ import {
   faChevronRight,
   faCogs,
 } from '@fortawesome/free-solid-svg-icons';
-import { EditEventsComponent } from '../edit-event/edit-event.component';
-import { ListEventsWindowComponent } from '../list-events-window/list-events-window.component';
+import { EditEventsComponent } from '../../edit-event/edit-event.component';
+import { ListEventsWindowComponent } from '../../list-events-window/list-events-window.component';
 import { v4 as uuidv4 } from 'uuid';
 import html2canvas from 'html2canvas';
-import { MockCalendarService } from '../services/mock/calendar.service';
-import { MockAuthService } from '../services/mock/auth.service';
-import { mockData } from '../app.config';
+import { MockCalendarService } from '../../services/mock/calendar.service';
+import { MockAuthService } from '../../services/mock/auth.service';
+import { mockData } from '../../app.config';
 import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
 

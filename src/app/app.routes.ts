@@ -4,7 +4,7 @@ import {
   Router,
   Routes,
 } from '@angular/router';
-import { HomeComponent } from './home/home.component';
+import { HomeComponent } from './pages/home/home.component';
 import { LoginComponent } from './login/login.component';
 import { inject } from '@angular/core';
 import { GoogleAuthService } from './services/google/auth.service';
