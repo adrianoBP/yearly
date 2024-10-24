@@ -1,1 +1,7 @@
-<p>settings works!</p>
+<div *ngFor="let calendar of calendars">
+  <!-- add checkbox -->
+  <input type="checkbox"
+         [checked]="isCalendarAllowed(calendar.id)"
+         (change)="toggleCalendar(calendar.id)">
+  {{getCalendarName(calendar)}}
+</div>

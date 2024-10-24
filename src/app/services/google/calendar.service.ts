@@ -34,6 +34,7 @@ export interface GoogleCalendarEventPerson {
 
 export interface GoogleCalendarEventDate {
   date: string;
+  dateTime: string;
 }
 
 export interface GoogleCalendarListResponse {
@@ -83,7 +84,44 @@ export class GoogleCalendarService {
     return response.event;
   }
 
-  async getEvents(start: Date, end: Date): Promise<GoogleCalendarEvent[]> {
+  async getEvents(
+    start: Date,
+    end: Date,
+    calendarId: string
+  ): Promise<GoogleCalendarEvent[]> {
+    const queryParameters: { [key: string]: string } = {
+      timeMin: moment(start).toISOString(),
+      timeMax: moment(end).toISOString(),
+      orderBy: 'startTime',
+      singleEvents: 'true',
+      pageToken: '',
+    };
+
+    const results: GoogleCalendarEvent[] = [];
+
+    do {
+      const query = Object.keys(queryParameters)
+        .map((paramKey) => {
+          return `${paramKey}=${queryParameters[paramKey]}`;
+        })
+        .join('&');
+
+      const url = `${this.baseUrl}/calendars/${calendarId}/events?${query}`;
+
+      const response =
+        await this.googleAuthService.makeRequest<GoogleCalendarEventListResponse>(
+          url,
+          'get'
+        );
+      results.push(...response.items);
+
+      queryParameters['pageToken'] = response.nextPageToken || '';
+    } while (queryParameters['pageToken'] !== '');
+
+    return results;
+  }
+
+  async getEventsOLD(start: Date, end: Date): Promise<GoogleCalendarEvent[]> {
     const queryParameters: { [key: string]: string } = {
       q: '🗃️',
       timeMin: moment(start).toISOString(),

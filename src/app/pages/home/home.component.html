@@ -46,7 +46,7 @@
   <app-month *ngFor="let month of months | keyvalue: monthsOrder"
              [month]="month.value"
              [year]="year"
-             [events]="getMonthEvents(month.value)"
+             [events]="month.value.events"
              [canCreateNewEvent]="canCreateNewEvent"
              (onDayClick)="onDayClickEvent($event)"></app-month>
 </div>

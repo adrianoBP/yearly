@@ -9,7 +9,11 @@ import { CommonModule } from '@angular/common';
 import { Day, WeekDay, Month } from '../../../interfaces/month.interface';
 import { DayComponent } from './day/day.component';
 import moment from 'moment';
-import { Event, EventDay } from '../../../interfaces/event.interface';
+import {
+  Event,
+  EventDay,
+  EventExtended,
+} from '../../../interfaces/event.interface';
 
 @Component({
   selector: 'app-month',
@@ -20,7 +24,7 @@ import { Event, EventDay } from '../../../interfaces/event.interface';
 })
 export class MonthComponent {
   @Input() month!: Month;
-  @Input() events!: Event[];
+  @Input() events!: EventExtended[];
   @Input() canCreateNewEvent!: boolean;
   @Input() year!: number;
   @Output() onDayClick = new EventEmitter<{
@@ -36,17 +40,23 @@ export class MonthComponent {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (
-      changes['events'] &&
-      JSON.stringify(changes['events'].currentValue) ===
-        JSON.stringify(changes['events'].previousValue)
+      this.events == null ||
+      changes['events'] == null ||
+      this.events.length === 0 ||
+      (changes['events'] &&
+        JSON.stringify(changes['events'].currentValue) ===
+          JSON.stringify(changes['events'].previousValue))
     )
       return;
 
     this.eventsByDay = {} as { [key: number]: Event[] };
-
+    debugger;
     for (let event of this.events) {
-      const eventDaysCount = Math.round(
-        moment(event.end).add(1, 'days').diff(event.start, 'days', true)
+      const eventDaysCount = Math.max(
+        Math.round(
+          moment(event.end).add(1, 'days').diff(event.start, 'days', true)
+        ),
+        1
       );
 
       for (let i = 0; i < eventDaysCount; i++) {

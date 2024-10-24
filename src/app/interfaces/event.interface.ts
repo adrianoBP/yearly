@@ -13,6 +13,10 @@ export interface Event {
   endUTC: Moment;
 }
 
+export interface EventExtended extends Event {
+  calendarId: string;
+}
+
 export interface EventDay {
   isFirstDay: boolean;
   isLastDay: boolean;

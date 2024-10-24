@@ -5,11 +5,10 @@ import { MonthComponent } from './month/month.component';
 import { GoogleAuthService } from '../../services/google/auth.service';
 import {
   GoogleCalendarColor,
-  GoogleCalendarService,
   GoogleCalendarEvent,
   GoogleCalendar,
 } from '../../services/google/calendar.service';
-import { Event } from '../../interfaces/event.interface';
+import { Event, EventExtended } from '../../interfaces/event.interface';
 import moment, { Moment } from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -24,11 +23,11 @@ import { EditEventsComponent } from '../../edit-event/edit-event.component';
 import { ListEventsWindowComponent } from '../../list-events-window/list-events-window.component';
 import { v4 as uuidv4 } from 'uuid';
 import html2canvas from 'html2canvas';
-import { MockCalendarService } from '../../services/mock/calendar.service';
 import { MockAuthService } from '../../services/mock/auth.service';
 import { mockData } from '../../app.config';
-import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
+import { CalendarService } from '../../services/calendar.service';
+import { Settings, SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'app-home',
@@ -52,6 +51,10 @@ export class HomeComponent {
   chevronRightIcon = faChevronRight;
   cogsIcon = faCogs;
 
+  settings: Settings = {
+    allowedCalendars: [],
+  };
+
   currentYear = new Date().getFullYear();
 
   year: number = new Date().getFullYear();
@@ -59,7 +62,7 @@ export class HomeComponent {
 
   colors: { [key: string]: GoogleCalendarColor } = {};
   calendars: GoogleCalendar[] = [];
-  events: Event[] = [];
+  events: EventExtended[] = [];
 
   eventStart: Date | undefined;
   eventEnd: Date | undefined;
@@ -68,15 +71,16 @@ export class HomeComponent {
   selectedColorId: string | undefined;
 
   authService: GoogleAuthService | MockAuthService;
-  calendarService: GoogleCalendarService | MockCalendarService;
 
-  constructor(private injector: Injector, public router: Router) {
+  constructor(
+    private injector: Injector,
+    public router: Router,
+    private calendarService: CalendarService,
+    private settingsService: SettingsService
+  ) {
     this.authService = mockData
       ? this.injector.get(MockAuthService)
       : this.injector.get(GoogleAuthService);
-    this.calendarService = mockData
-      ? this.injector.get(MockCalendarService)
-      : this.injector.get(GoogleCalendarService);
 
     this.buildMonths();
   }
@@ -115,75 +119,96 @@ export class HomeComponent {
             days.length
           }`
         ),
+        events: [],
       } as Month;
     }
   }
 
   async ngOnInit() {
+    this.settings = this.settingsService.getSettings();
+
     Promise.all([
       this.calendarService.getColors(),
       this.calendarService.getCalendars(),
-    ]).then((values) => {
+    ]).then(async (values) => {
       this.colors = values[0];
       this.calendars = values[1];
 
-      console.log(this.calendars);
+      this.loadEventsIntoCalendar();
+
+      console.log(this.months);
     });
   }
 
-  loadMonthsEvents() {
-    for (let month in this.months) {
-      const monthStart = this.months[month].startUTC;
-      const monthEnd = this.months[month].endUTC;
-      this.months[month].events = this.getEventsInBetween(
-        monthStart,
-        monthEnd,
-        this.events
+  addEventsToCalendar(events: GoogleCalendarEvent[], calendar: GoogleCalendar) {
+    for (const event of events) {
+      const startMonth = this.getMonthName(
+        new Date(event.start.date ?? event.start.dateTime)
       );
-    }
-  }
+      const endMonth = this.getMonthName(
+        new Date(event.end.date ?? event.end.dateTime)
+      );
 
-  async loadEvents() {
-    const yearStart = new Date(`${this.year}-01-01T00:00:00Z`);
-    const yearEnd = new Date(`${this.year}-12-31T23:59:59Z`);
-
-    const result = await this.calendarService.getEvents(yearStart, yearEnd);
-    this.events = [];
-    this.events = result.map((event) => {
-      return {
+      const calendarEvent = {
         id: event.id,
         title: event.summary,
         description: event.description,
-        start: moment(event.start.date).toDate(),
-        end: moment(event.end.date).add(-1, 'day').toDate(), // Remove 1 day as Google Calendar API returns the next day at midnight
-        colour: this.colors[event.colorId ?? '1'].background,
+        start: moment(event.start.date ?? event.start.dateTime).toDate(),
+        end: moment(event.end.date ?? event.end.dateTime)
+          .add(-1, 'day')
+          .toDate(), // Remove 1 day as Google Calendar API returns the next day at midnight
+        colour: calendar.backgroundColor,
 
-        startUTC: moment.utc(event.start.date),
-        endUTC: moment.utc(event.end.date),
-      } as Event;
-    });
-    this.events = [...this.events];
-    this.loadMonthsEvents();
+        startUTC: moment.utc(event.start.date ?? event.start.dateTime),
+        endUTC: moment.utc(event.end.date ?? event.end.dateTime),
+
+        calendarId: calendar.id,
+      } as EventExtended;
+
+      // Add only if year matches
+      if (calendarEvent.startUTC.year() == this.year)
+        this.months[startMonth].events.push(calendarEvent);
+      if (
+        startMonth !== endMonth &&
+        calendarEvent.endUTC.year() === this.year
+      ) {
+        this.months[endMonth].events.push(calendarEvent);
+      }
+
+      // Force push to trigger change detection
+      this.months[startMonth].events = [...this.months[startMonth].events];
+      this.months[endMonth].events = [...this.months[endMonth].events];
+    }
   }
 
+  async loadEventsIntoCalendar() {
+    for (let calendar of this.calendars) {
+      if (!this.settings.allowedCalendars.includes(calendar.id)) continue;
+
+      const yearStart = new Date(`${this.year}-01-01T00:00:00Z`);
+      const yearEnd = new Date(`${this.year}-12-31T23:59:59Z`);
+      try {
+        const events = await this.calendarService.getEvents(
+          yearStart,
+          yearEnd,
+          calendar.id
+        );
+        console.log(calendar.summary, events);
+
+        this.addEventsToCalendar(events, calendar);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
   async loadColors() {
     this.colors = await this.calendarService.getColors();
   }
-
-  getMonthEvents({ events, startUTC: monthStart, endUTC: monthEnd }: Month) {
-    return [
-      ...(events ?? []),
-      ...this.getEventsInBetween(monthStart, monthEnd, this.eventsToAdd),
-    ].filter(
-      (event) => this.eventsToDelete.findIndex((e) => e.id === event.id) === -1
-    );
-  }
-
   changeYear(newYear: number) {
     this.year = newYear;
     this.events = [];
     this.buildMonths();
-    this.loadEvents();
+    this.loadEventsIntoCalendar();
   }
 
   selectColor(colorId: string) {
@@ -300,7 +325,7 @@ export class HomeComponent {
       (event) => !deletedIds?.includes(event.id)
     );
 
-    this.loadMonthsEvents();
+    // this.loadMonthsEvents();
   }
 
   async pushChanges() {
@@ -326,7 +351,7 @@ export class HomeComponent {
     this.eventsToAdd = [];
     this.eventsToDelete = [];
 
-    await this.loadEvents();
+    // await this.loadEvents();
   }
 
   get todaysPercentage(): number {

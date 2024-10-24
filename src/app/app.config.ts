@@ -8,6 +8,8 @@ import {
   SocialAuthServiceConfig,
 } from '@abacritt/angularx-social-login';
 import { HttpClientModule } from '@angular/common/http';
+import { CalendarService } from './services/calendar.service';
+import { SettingsService } from './services/settings.service';
 
 export const mockData = false;
 
@@ -36,5 +38,7 @@ export const appConfig: ApplicationConfig = {
         ],
       } as SocialAuthServiceConfig,
     },
+    CalendarService,
+    SettingsService,
   ],
 };

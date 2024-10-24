@@ -1,11 +1,12 @@
 import { Moment } from 'moment';
-import { Event } from './event.interface';
+import { Event, EventExtended } from './event.interface';
 
 export interface Month {
   name: string;
   number: number;
   days: Day[];
-  events?: Event[];
+  events: EventExtended[];
+  // events: { [key: string]: EventExtended };
   startUTC: Moment;
   endUTC: Moment;
 }
