@@ -52,8 +52,6 @@ export class MonthComponent {
     this.eventsByDay = {} as { [key: number]: CalendarEvent[] };
 
     for (let event of this.events) {
-      if (event.title.includes('Spanish')) debugger;
-
       let startDay = moment(event.start).date();
       let endDay = moment(event.end).subtract(1, 'minutes').date();
 
