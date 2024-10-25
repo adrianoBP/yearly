@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Day } from '../../../../interfaces/month.interface';
-import { EventDay } from '../../../../interfaces/event.interface';
+import { CalendarEvent } from '../../../../interfaces/event.interface';
 import { CommonModule } from '@angular/common';
 import moment from 'moment';
 
@@ -13,7 +13,7 @@ import moment from 'moment';
 })
 export class DayComponent {
   @Input() day!: Day;
-  @Input() events: EventDay[] = [];
+  @Input() events: CalendarEvent[] = [];
   @Input() canCreateNewEvent!: boolean;
   @Output() onDayClick = new EventEmitter<{
     day: Day;
@@ -37,7 +37,7 @@ export class DayComponent {
     return this.today.isAfter(this.day.date, 'day');
   }
 
-  get sortedEvents(): EventDay[] {
+  get sortedEvents(): CalendarEvent[] {
     return this.events.sort((a, b) => b.duration - a.duration);
   }
 }

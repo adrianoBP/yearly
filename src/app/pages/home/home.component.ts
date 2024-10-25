@@ -135,19 +135,20 @@ export class HomeComponent {
       this.calendars = values[1];
 
       this.loadEventsIntoCalendar();
-
-      console.log(this.months);
     });
   }
 
   addEventsToCalendar(events: GoogleCalendarEvent[], calendar: GoogleCalendar) {
     for (const event of events) {
+      let endDate = moment(event.end.date ?? event.end.dateTime);
+      // If the time is midnight, set the time to 23:59:59 to avoid the event being considered as the next day
+      if (endDate.hour() === 0 && endDate.minute() === 0)
+        endDate = endDate.subtract(1, 'second');
+
       const startMonth = this.getMonthName(
         new Date(event.start.date ?? event.start.dateTime)
       );
-      const endMonth = this.getMonthName(
-        new Date(event.end.date ?? event.end.dateTime)
-      );
+      const endMonth = this.getMonthName(endDate.toDate());
 
       const calendarEvent = {
         id: event.id,
@@ -155,8 +156,8 @@ export class HomeComponent {
         description: event.description,
         start: moment(event.start.date ?? event.start.dateTime).toDate(),
         end: moment(event.end.date ?? event.end.dateTime)
-          .add(-1, 'day')
-          .toDate(), // Remove 1 day as Google Calendar API returns the next day at midnight
+          // .add(-1, 'day') // Remove 1 day as Google Calendar API returns the next day at midnight
+          .toDate(),
         colour: calendar.backgroundColor,
 
         startUTC: moment.utc(event.start.date ?? event.start.dateTime),
@@ -182,18 +183,23 @@ export class HomeComponent {
   }
 
   async loadEventsIntoCalendar() {
+    // TODO: Pull calendar events at the same time
+
     for (let calendar of this.calendars) {
       if (!this.settings.allowedCalendars.includes(calendar.id)) continue;
 
       const yearStart = new Date(`${this.year}-01-01T00:00:00Z`);
       const yearEnd = new Date(`${this.year}-12-31T23:59:59Z`);
       try {
-        const events = await this.calendarService.getEvents(
+        let events = await this.calendarService.getEvents(
           yearStart,
           yearEnd,
           calendar.id
         );
-        console.log(calendar.summary, events);
+
+        // remove recurring events
+        // TODO: this should be a setting
+        events = events.filter((event) => event.recurringEventId == null);
 
         this.addEventsToCalendar(events, calendar);
       } catch (e) {

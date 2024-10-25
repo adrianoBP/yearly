@@ -25,6 +25,7 @@ export interface GoogleCalendarEvent {
   organizer: GoogleCalendarEventPerson;
   start: GoogleCalendarEventDate;
   end: GoogleCalendarEventDate;
+  recurringEventId?: string;
 }
 
 export interface GoogleCalendarEventPerson {
