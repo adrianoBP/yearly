@@ -11,7 +11,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { CalendarService } from './services/calendar.service';
 import { SettingsService } from './services/settings.service';
 
-export const mockData = true;
+export const mockData = false;
 
 const googleLoginOptions: GoogleInitOptions = {
   oneTapEnabled: true,

@@ -26,11 +26,13 @@ export interface GoogleCalendarEvent {
   start: GoogleCalendarEventDate;
   end: GoogleCalendarEventDate;
   recurringEventId?: string;
+  attendees?: GoogleCalendarEventPerson[];
 }
 
 export interface GoogleCalendarEventPerson {
   email: string;
   self: boolean;
+  responseStatus?: string;
 }
 
 export interface GoogleCalendarEventDate {
@@ -67,29 +69,23 @@ export class GoogleCalendarService {
 
   async getCalendars(): Promise<GoogleCalendar[]> {
     const url = `${this.baseUrl}/users/me/calendarList`;
-    const response =
-      await this.googleAuthService.makeRequest<GoogleCalendarListResponse>(
-        url,
-        'get'
-      );
+    const response = await this.googleAuthService.makeRequest<GoogleCalendarListResponse>(
+      url,
+      'get'
+    );
     return response.items;
   }
 
   async getColors(): Promise<{ [key: string]: GoogleCalendarColor }> {
     const url = `${this.baseUrl}/colors`;
-    const response =
-      await this.googleAuthService.makeRequest<GoogleCalendarColorsResponse>(
-        url,
-        'get'
-      );
+    const response = await this.googleAuthService.makeRequest<GoogleCalendarColorsResponse>(
+      url,
+      'get'
+    );
     return response.event;
   }
 
-  async getEvents(
-    start: Date,
-    end: Date,
-    calendarId: string
-  ): Promise<GoogleCalendarEvent[]> {
+  async getEvents(start: Date, end: Date, calendarId: string): Promise<GoogleCalendarEvent[]> {
     const queryParameters: { [key: string]: string } = {
       timeMin: moment(start).toISOString(),
       timeMax: moment(end).toISOString(),
@@ -109,11 +105,10 @@ export class GoogleCalendarService {
 
       const url = `${this.baseUrl}/calendars/${calendarId}/events?${query}`;
 
-      const response =
-        await this.googleAuthService.makeRequest<GoogleCalendarEventListResponse>(
-          url,
-          'get'
-        );
+      const response = await this.googleAuthService.makeRequest<GoogleCalendarEventListResponse>(
+        url,
+        'get'
+      );
       results.push(...response.items);
 
       queryParameters['pageToken'] = response.nextPageToken || '';
@@ -143,11 +138,10 @@ export class GoogleCalendarService {
         .join('&');
 
       const url = `${this.baseUrl}/calendars/primary/events?${query}`;
-      const response =
-        await this.googleAuthService.makeRequest<GoogleCalendarEventListResponse>(
-          url,
-          'get'
-        );
+      const response = await this.googleAuthService.makeRequest<GoogleCalendarEventListResponse>(
+        url,
+        'get'
+      );
       results.push(...response.items);
     } while (pageToken !== '');
 
@@ -156,22 +150,17 @@ export class GoogleCalendarService {
 
   async createEvent(event: GoogleCalendarEvent): Promise<GoogleCalendarEvent> {
     const url = `${this.baseUrl}/calendars/primary/events`;
-    const response =
-      await this.googleAuthService.makeRequest<GoogleCalendarEvent>(
-        url,
-        'post',
-        {
-          summary: event.summary,
-          description: event.description,
-          start: {
-            date: event.start.date,
-          },
-          end: {
-            date: event.end.date,
-          },
-          colorId: event.colorId,
-        }
-      );
+    const response = await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
+      summary: event.summary,
+      description: event.description,
+      start: {
+        date: event.start.date,
+      },
+      end: {
+        date: event.end.date,
+      },
+      colorId: event.colorId,
+    });
     return response;
   }
 

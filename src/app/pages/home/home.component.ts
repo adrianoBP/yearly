@@ -134,8 +134,19 @@ export class HomeComponent {
     );
   }
 
+  isEventDeclined(event: GoogleCalendarEvent): boolean {
+    if (event.attendees == null) return false;
+
+    for (const attendee of event.attendees) {
+      if (attendee.self && attendee.responseStatus === 'declined') return true;
+    }
+
+    return false;
+  }
+
   addEventsToCalendar(events: GoogleCalendarEvent[], calendar: GoogleCalendar) {
-    for (const event of events) {
+    for (const event of events.filter((event) => !this.isEventDeclined(event))) {
+      // Filter out declined events
       const startDate = moment(event.start.date ?? event.start.dateTime);
       let endDate = moment(event.end.date ?? event.end.dateTime);
       // If the time is midnight, set the time to 23:59:59 to avoid the event being considered as the next day
@@ -143,6 +154,8 @@ export class HomeComponent {
 
       const startMonth = this.getMonthName(new Date(event.start.date ?? event.start.dateTime));
       const endMonth = this.getMonthName(endDate.toDate());
+
+      if (event.summary.includes('Emporium wedding')) debugger;
 
       const calendarEvent = {
         id: event.id,
