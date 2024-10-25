@@ -6,5 +6,5 @@
   "colon": false,
   "arrowParens": "always",
   "endOfLine": "auto",
-  "printWidth": 80
+  "printWidth": 100
 }

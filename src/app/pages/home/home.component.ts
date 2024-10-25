@@ -17,12 +17,12 @@ import {
   faDownload,
   faChevronLeft,
   faChevronRight,
-  faCogs,
+  faCog,
+  faSignOutAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { EditEventsComponent } from '../../edit-event/edit-event.component';
 import { ListEventsWindowComponent } from '../../list-events-window/list-events-window.component';
 import { v4 as uuidv4 } from 'uuid';
-import html2canvas from 'html2canvas';
 import { MockAuthService } from '../../services/mock/auth.service';
 import { mockData } from '../../app.config';
 import { Router } from '@angular/router';
@@ -49,7 +49,8 @@ export class HomeComponent {
   downloadIcon = faDownload;
   chevronLeftIcon = faChevronLeft;
   chevronRightIcon = faChevronRight;
-  cogsIcon = faCogs;
+  cogIcon = faCog;
+  exitIcon = faSignOutAlt;
 
   settings: Settings = {
     allowedCalendars: [],
@@ -111,13 +112,9 @@ export class HomeComponent {
         name: monthName,
         number: monthNumber,
         days,
-        startUTC: moment.utc(
-          `${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-01`
-        ),
+        startUTC: moment.utc(`${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-01`),
         endUTC: moment.utc(
-          `${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-${
-            days.length
-          }`
+          `${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-${days.length}`
         ),
         events: [],
       } as Month;
@@ -127,37 +124,32 @@ export class HomeComponent {
   async ngOnInit() {
     this.settings = this.settingsService.getSettings();
 
-    Promise.all([
-      this.calendarService.getColors(),
-      this.calendarService.getCalendars(),
-    ]).then(async (values) => {
-      this.colors = values[0];
-      this.calendars = values[1];
+    Promise.all([this.calendarService.getColors(), this.calendarService.getCalendars()]).then(
+      async (values) => {
+        this.colors = values[0];
+        this.calendars = values[1];
 
-      this.loadEventsIntoCalendar();
-    });
+        this.loadEventsIntoCalendars();
+      }
+    );
   }
 
   addEventsToCalendar(events: GoogleCalendarEvent[], calendar: GoogleCalendar) {
     for (const event of events) {
+      const startDate = moment(event.start.date ?? event.start.dateTime);
       let endDate = moment(event.end.date ?? event.end.dateTime);
       // If the time is midnight, set the time to 23:59:59 to avoid the event being considered as the next day
-      if (endDate.hour() === 0 && endDate.minute() === 0)
-        endDate = endDate.subtract(1, 'second');
+      if (endDate.hour() === 0 && endDate.minute() === 0) endDate = endDate.subtract(1, 'second');
 
-      const startMonth = this.getMonthName(
-        new Date(event.start.date ?? event.start.dateTime)
-      );
+      const startMonth = this.getMonthName(new Date(event.start.date ?? event.start.dateTime));
       const endMonth = this.getMonthName(endDate.toDate());
 
       const calendarEvent = {
         id: event.id,
         title: event.summary,
         description: event.description,
-        start: moment(event.start.date ?? event.start.dateTime).toDate(),
-        end: moment(event.end.date ?? event.end.dateTime)
-          // .add(-1, 'day') // Remove 1 day as Google Calendar API returns the next day at midnight
-          .toDate(),
+        start: startDate.toDate(),
+        end: endDate.toDate(),
         colour: calendar.backgroundColor,
 
         startUTC: moment.utc(event.start.date ?? event.start.dateTime),
@@ -169,10 +161,7 @@ export class HomeComponent {
       // Add only if year matches
       if (calendarEvent.startUTC.year() == this.year)
         this.months[startMonth].events.push(calendarEvent);
-      if (
-        startMonth !== endMonth &&
-        calendarEvent.endUTC.year() === this.year
-      ) {
+      if (startMonth !== endMonth && calendarEvent.endUTC.year() === this.year) {
         this.months[endMonth].events.push(calendarEvent);
       }
 
@@ -182,39 +171,37 @@ export class HomeComponent {
     }
   }
 
-  async loadEventsIntoCalendar() {
-    // TODO: Pull calendar events at the same time
+  async loadEventsIntoCalendars() {
+    const yearStart = new Date(`${this.year}-01-01T00:00:00Z`);
+    const yearEnd = new Date(`${this.year}-12-31T23:59:59Z`);
 
-    for (let calendar of this.calendars) {
-      if (!this.settings.allowedCalendars.includes(calendar.id)) continue;
+    this.calendars
+      .filter((calendar) => this.settings.allowedCalendars.includes(calendar.id)) // Only calendars that are enabled
+      .forEach((calendar) => this.loadEventsIntoCalendar(calendar, yearStart, yearEnd)); // Load events for each calendar in parallel
+  }
 
-      const yearStart = new Date(`${this.year}-01-01T00:00:00Z`);
-      const yearEnd = new Date(`${this.year}-12-31T23:59:59Z`);
-      try {
-        let events = await this.calendarService.getEvents(
-          yearStart,
-          yearEnd,
-          calendar.id
-        );
+  async loadEventsIntoCalendar(calendar: GoogleCalendar, start: Date, end: Date) {
+    try {
+      let events = await this.calendarService.getEvents(start, end, calendar.id);
 
-        // remove recurring events
-        // TODO: this should be a setting
-        events = events.filter((event) => event.recurringEventId == null);
+      // remove recurring events // TODO: this should be a setting
+      events = events.filter((event) => event.recurringEventId == null);
 
-        this.addEventsToCalendar(events, calendar);
-      } catch (e) {
-        console.log(e);
-      }
+      this.addEventsToCalendar(events, calendar);
+    } catch (e) {
+      console.log(e);
     }
   }
+
   async loadColors() {
     this.colors = await this.calendarService.getColors();
   }
+
   changeYear(newYear: number) {
     this.year = newYear;
     this.events = [];
     this.buildMonths();
-    this.loadEventsIntoCalendar();
+    this.loadEventsIntoCalendars();
   }
 
   selectColor(colorId: string) {
@@ -310,13 +297,7 @@ export class HomeComponent {
   }
 
   eventsToDelete: Event[] = [];
-  onListEventsComplete({
-    deletedIds,
-    cancel,
-  }: {
-    deletedIds: string[];
-    cancel?: boolean;
-  }) {
+  onListEventsComplete({ deletedIds, cancel }: { deletedIds: string[]; cancel?: boolean }) {
     if (cancel || deletedIds.length == 0) return;
 
     this.eventsToDelete = [
@@ -324,12 +305,8 @@ export class HomeComponent {
       ...this.events.filter((event) => deletedIds.includes(event.id)),
     ];
 
-    this.events = this.events.filter(
-      (event) => !deletedIds?.includes(event.id)
-    );
-    this.eventsToAdd = this.eventsToAdd.filter(
-      (event) => !deletedIds?.includes(event.id)
-    );
+    this.events = this.events.filter((event) => !deletedIds?.includes(event.id));
+    this.eventsToAdd = this.eventsToAdd.filter((event) => !deletedIds?.includes(event.id));
 
     // this.loadMonthsEvents();
   }
@@ -350,9 +327,7 @@ export class HomeComponent {
     });
     await this.calendarService.createEvents(gEvents);
 
-    await this.calendarService.deleteEvents(
-      this.eventsToDelete.map((event) => event.id)
-    );
+    await this.calendarService.deleteEvents(this.eventsToDelete.map((event) => event.id));
 
     this.eventsToAdd = [];
     this.eventsToDelete = [];
@@ -365,18 +340,6 @@ export class HomeComponent {
     const yearDays = moment.utc().isLeapYear() ? 366 : 365;
     const percentage = (todayDay / yearDays) * 100;
     return percentage;
-  }
-
-  share() {
-    html2canvas(document.querySelector('#calendar')!).then(function (canvas) {
-      // download
-      const img = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = 'calendar.png';
-      link.href = img;
-      link.click();
-      link.remove();
-    });
   }
 
   // UTIL functions
@@ -392,10 +355,7 @@ export class HomeComponent {
     );
   }
 
-  monthsOrder = (
-    a: KeyValue<string, Month>,
-    b: KeyValue<string, Month>
-  ): number => {
+  monthsOrder = (a: KeyValue<string, Month>, b: KeyValue<string, Month>): number => {
     return a.value.number - b.value.number;
   };
 }
