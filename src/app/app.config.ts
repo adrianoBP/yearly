@@ -10,6 +10,9 @@ import {
 import { HttpClientModule } from '@angular/common/http';
 import { CalendarService } from './services/calendar.service';
 import { SettingsService } from './services/settings.service';
+import { WindowsService } from './windows/windows.service';
+
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 export const mockData = false;
 
@@ -21,6 +24,7 @@ const googleLoginOptions: GoogleInitOptions = {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideAnimationsAsync(),
     provideRouter(routes),
     importProvidersFrom(HttpClientModule),
     {
@@ -40,5 +44,6 @@ export const appConfig: ApplicationConfig = {
     },
     CalendarService,
     SettingsService,
+    WindowsService,
   ],
 };

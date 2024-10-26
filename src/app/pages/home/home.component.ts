@@ -28,6 +28,8 @@ import { mockData } from '../../app.config';
 import { Router } from '@angular/router';
 import { CalendarService } from '../../services/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
+import { WindowContainerComponent } from '../../windows/window-container/window-container.component';
+import { WindowParameters, WindowsService } from '../../windows/windows.service';
 
 @Component({
   selector: 'app-home',
@@ -38,6 +40,7 @@ import { Settings, SettingsService } from '../../services/settings.service';
     MonthComponent,
     EditEventsComponent,
     ListEventsWindowComponent,
+    WindowContainerComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
@@ -77,7 +80,8 @@ export class HomeComponent {
     private injector: Injector,
     public router: Router,
     private calendarService: CalendarService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    public windowsService: WindowsService
   ) {
     this.authService = mockData
       ? this.injector.get(MockAuthService)
@@ -132,6 +136,8 @@ export class HomeComponent {
         this.loadEventsIntoCalendars();
       }
     );
+
+    // this.windowsService.openWindow('list-events', { eventsList: [] });
   }
 
   isEventDeclined(event: GoogleCalendarEvent): boolean {
@@ -234,8 +240,13 @@ export class HomeComponent {
     events: Event[];
     mouseEvent: MouseEvent;
   }) {
-    if (this.selectedColorId == null) this.showEventsList(events, mouseEvent);
-    else this.tryCreateEvent(date, mouseEvent);
+    if (events?.length > 0) {
+      const side = mouseEvent.clientX < window.innerWidth / 2 ? 'left' : 'right';
+      this.windowsService.openWindow('list-events', { eventsList: events, date }, side);
+    }
+
+    // if (this.selectedColorId == null) this.showEventsList(events, mouseEvent);
+    // else this.tryCreateEvent(date, mouseEvent);
   }
 
   tryCreateEvent(date: Date, mouseEvent: MouseEvent) {

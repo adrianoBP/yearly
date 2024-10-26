@@ -1,0 +1,11 @@
+<div id="backdrop"
+     (click)="windowsService.closeWindow()"
+     [ngClass]="{'from-left': windowsService.openingSide == 'right', 'from-right': windowsService.openingSide == 'left'}">
+  <div id="window"
+       *ngIf="windowsService.anyWindowOpen()"
+       [@swipeIn]="{ value: true, params: getParameters()}"
+       (click)="$event.stopPropagation();">
+    <app-events-list *ngIf="windowsService.isWindowOpen('list-events')"
+                     [parameters]="windowsService.parameters"></app-events-list>
+  </div>
+</div>

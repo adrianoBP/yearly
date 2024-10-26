@@ -1,0 +1,36 @@
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 auto 0 auto;
+  padding: 0.5rem 0 0.5rem 0;
+}
+
+.event-details {
+  display: flex;
+  align-items: center;
+
+  padding: 1rem;
+}
+
+.event-details:not(:last-child) {
+  border-bottom: 1px solid #efefef;
+}
+
+.event-colour {
+  width: 1.2rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.event-details p {
+  margin: 0 0.5rem 0 0.5rem;
+}
+
+.event-details .dates {
+  margin-left: auto;
+}

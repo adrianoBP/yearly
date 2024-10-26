@@ -1,27 +1,17 @@
 <div class="container"
      (click)="onClick($event)">
-     <p [ngClass]="{'selectable': canCreateNewEvent, 'isToday': isToday, 'isPast': isPast}">{{day.number}}</p>
+     <p
+        [ngClass]="{'selectable': canCreateNewEvent, 'isToday': isToday, 'isPast': isPast, 'pointer': events.length > 0}">
+          {{day.number}}</p>
 
      <div class="selection"
           *ngFor="let eventDay of sortedEvents"
           [ngClass]="{'start': eventDay.isFirstDay, 'end': eventDay.isLastDay}"
           [ngStyle]="{'background-color': eventDay.colour}"></div>
 
-     <!-- <div id="markers-container">
-          <div class="event-marker"
-               *ngFor="let colour of eventColours "
-               [ngStyle]="{'background-color': colour}"></div>
-     </div> -->
-
      <div id="icons-container">
           <div class="event-icon"
                *ngFor="let icon of getEnabledIcons">{{icon}}</div>
      </div>
-     <!--
-     <div class="selection"
-          *ngIf="this.events.length > 0 "
-          [ngClass]="{'start': isStartDay, 'end': isEndDay}">
-     </div> -->
-
 
 </div>

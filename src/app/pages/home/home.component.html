@@ -61,3 +61,5 @@
                         [y]="mousePosition?.pageY"
                         [ngStyle]="{'z-index': (isEventsListWindowOpen ? '2' : '-1')}">
 </app-list-events-window>
+
+<app-window-container *ngIf="windowsService.anyWindowOpen()"></app-window-container>
