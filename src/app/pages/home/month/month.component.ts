@@ -19,7 +19,7 @@ export class MonthComponent {
   @Input() year!: number;
   @Output() onDayClick = new EventEmitter<{
     date: Date;
-    events: Event[];
+    events: EventExtended[];
     mouseEvent: MouseEvent;
   }>();
 
@@ -38,9 +38,12 @@ export class MonthComponent {
       let startDay = eventStartDateTime.date();
       let endDay = eventEndDateTime.date();
 
+      let eventActualEndDate = eventEndDateTime.date();
+
       // If the event ends at midnight, consider the previous day as the last day
       if (eventEndDateTime.hour() === 0 && eventEndDateTime.minute() === 0) {
         endDay -= 1;
+        eventActualEndDate = eventEndDateTime.clone().subtract(1, 'day').date();
       }
 
       // if the event is in the previous month, set the starting day to 1
@@ -61,7 +64,7 @@ export class MonthComponent {
         this.eventsByDay[dayNumber].push({
           ...event,
           isFirstDay: momentDay.isSame(eventStartDateTime, 'day'),
-          isLastDay: momentDay.date() === endDay,
+          isLastDay: momentDay.date() === eventActualEndDate, // TODO: Check what happens for events longer than 1 month
           duration: eventEndDateTime.diff(eventStartDateTime, 'days') + 1,
         } as EventExtended);
       }

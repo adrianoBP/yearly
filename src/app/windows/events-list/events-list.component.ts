@@ -31,7 +31,6 @@ export class EventsListComponent {
 
     const start = moment(event.start);
     const end = moment(event.end);
-
     return `${start.format('HH:mm')} - ${end.format('HH:mm')}`;
   }
 }
