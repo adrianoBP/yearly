@@ -40,20 +40,13 @@ export class DayComponent {
   };
 
   ngOnChanges(): void {
-    // if (this.events.length > 0) {
-    //   this.isStartDay = true;
-    //   this.isEndDay = true;
-    // }
-
     for (const event of this.events) {
       if (!this.eventColours.includes(event.colour)) {
         this.eventColours.push(event.colour);
       }
 
       const eventIsStartDay = moment(event.start).isSame(this.day.date, 'day');
-      const eventIsEndDay = moment(event.end)
-        .subtract(1, 'second')
-        .isSame(this.day.date, 'day');
+      const eventIsEndDay = moment(event.end).subtract(1, 'second').isSame(this.day.date, 'day');
 
       this.isMultiDay = this.isMultiDay || !eventIsStartDay || !eventIsEndDay;
       this.isStartDay = this.isStartDay || eventIsStartDay;

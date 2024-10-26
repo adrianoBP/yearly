@@ -26,28 +26,7 @@ export class CalendarService {
     return this.calendars;
   }
 
-  async getEvents(
-    start: Date,
-    end: Date,
-    calendarId: string
-  ): Promise<GoogleCalendarEvent[]> {
+  async getEvents(start: Date, end: Date, calendarId: string): Promise<GoogleCalendarEvent[]> {
     return this.calendarAPIService.getEvents(start, end, calendarId);
-  }
-
-  // LEGACY CODE
-  async getColors() {
-    return this.calendarAPIService.getColors();
-  }
-
-  async getEventsOLD(start: Date, end: Date): Promise<GoogleCalendarEvent[]> {
-    return this.calendarAPIService.getEventsOLD(start, end);
-  }
-
-  async createEvents(events: GoogleCalendarEvent[]) {
-    return this.calendarAPIService.createEvents(events);
-  }
-
-  async deleteEvents(eventIds: string[]): Promise<void> {
-    return this.calendarAPIService.deleteEvents(eventIds);
   }
 }

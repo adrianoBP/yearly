@@ -1,19 +1,9 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  Output,
-  SimpleChanges,
-} from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Day, WeekDay, Month } from '../../../interfaces/month.interface';
 import { DayComponent } from './day/day.component';
 import moment from 'moment';
-import {
-  Event,
-  CalendarEvent,
-  EventExtended,
-} from '../../../interfaces/event.interface';
+import { Event, CalendarEvent, EventExtended } from '../../../interfaces/event.interface';
 
 @Component({
   selector: 'app-month',
@@ -38,17 +28,7 @@ export class MonthComponent {
   // events dictionary
   eventsByDay: { [key: number]: CalendarEvent[] } = {};
 
-  ngOnChanges(changes: SimpleChanges): void {
-    // if (
-    //   this.events == null ||
-    //   changes['events'] == null ||
-    //   this.events.length === 0 ||
-    //   (changes['events'] &&
-    //     JSON.stringify(changes['events'].currentValue) ===
-    //       JSON.stringify(changes['events'].previousValue))
-    // )
-    //   return;
-
+  ngOnChanges(): void {
     this.eventsByDay = {} as { [key: number]: CalendarEvent[] };
 
     for (let event of this.events) {
@@ -65,12 +45,9 @@ export class MonthComponent {
 
       for (let dayNumber = startDay; dayNumber <= endDay; dayNumber++) {
         // if the day is not in the dictionary, add it
-        if (this.eventsByDay[dayNumber] == null)
-          this.eventsByDay[dayNumber] = [];
+        if (this.eventsByDay[dayNumber] == null) this.eventsByDay[dayNumber] = [];
 
-        const momentDay = moment(
-          new Date(`${this.year}-${this.month.number + 1}-${dayNumber}`)
-        );
+        const momentDay = moment(new Date(`${this.year}-${this.month.number + 1}-${dayNumber}`));
 
         // add the event to the dictionary
         this.eventsByDay[dayNumber].push({
@@ -97,9 +74,7 @@ export class MonthComponent {
   }
 
   onDayClickEvent({ day, mouseEvent }: { day: Day; mouseEvent: MouseEvent }) {
-    const date = new Date(
-      `${this.year}-${this.month.number + 1}-${day.number}`
-    );
+    const date = new Date(`${this.year}-${this.month.number + 1}-${day.number}`);
     this.onDayClick.emit({
       date,
       events: this.eventsByDay[day.number],

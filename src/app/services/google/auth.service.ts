@@ -15,27 +15,6 @@ export class GoogleAuthService {
   private ACCESS_TOKEN_KEY = 'googleAccessToken';
   private accessToken = '';
 
-  // constructor(private router: Router, private httpService: HttpService) {
-  //   this.isLoggedIn = true;
-  //   this.getAccessToken();
-  // }
-  // getAccessToken(onTokenRetrieved?: () => void): void {
-  //   if (localStorage.getItem(this.ACCESS_TOKEN_KEY) != null) {
-  //     this.accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY) as string;
-  //     if (onTokenRetrieved) onTokenRetrieved();
-  //     return;
-  //   }
-  // }
-  // getAccessTokenAsync(params: any): Promise<void> {
-  //   return new Promise((resolve, reject) => {
-  //     resolve();
-  //   });
-  // }
-  // loginWithGoogle(): void {}
-  // logOut(): void {
-  //   this.router.navigate(['/login']);
-  // }
-
   constructor(
     private router: Router,
     private httpService: HttpService,
@@ -60,14 +39,12 @@ export class GoogleAuthService {
       return;
     }
 
-    this.socialAuthService
-      .getAccessToken(GoogleLoginProvider.PROVIDER_ID)
-      .then((accessToken) => {
-        this.accessToken = accessToken;
-        console.log(this.accessToken);
-        localStorage.setItem(this.ACCESS_TOKEN_KEY, this.accessToken);
-        if (onTokenRetrieved) onTokenRetrieved();
-      });
+    this.socialAuthService.getAccessToken(GoogleLoginProvider.PROVIDER_ID).then((accessToken) => {
+      this.accessToken = accessToken;
+      console.log(this.accessToken);
+      localStorage.setItem(this.ACCESS_TOKEN_KEY, this.accessToken);
+      if (onTokenRetrieved) onTokenRetrieved();
+    });
   }
 
   getAccessTokenAsync(forceReload?: boolean): Promise<void> {
@@ -142,10 +119,7 @@ export class GoogleAuthService {
   /**
    * If the API request returns 'Unauthorized', gets a new access token and tries again.
    */
-  private async authWrapper<T>(
-    callback: () => T,
-    reAuthorise: boolean = true
-  ): Promise<T> {
+  private async authWrapper<T>(callback: () => T, reAuthorise: boolean = true): Promise<T> {
     try {
       return await callback();
     } catch (error) {

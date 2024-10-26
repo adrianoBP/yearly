@@ -42,53 +42,6 @@ export class MockCalendarService {
     return [];
   }
 
-  async getEventsOLD(start: Date, end: Date): Promise<GoogleCalendarEvent[]> {
-    const results: GoogleCalendarEvent[] = [
-      {
-        id: '1',
-        summary: 'Birthday Event',
-        description: 'This is a test event',
-        start: { date: '2024-02-18' },
-        end: { date: '2024-02-19' },
-      } as GoogleCalendarEvent,
-      {
-        id: '2',
-        summary: 'Across Months',
-        description: 'This is another test event',
-        start: { date: '2024-05-20' },
-        end: { date: '2024-06-10' },
-      } as GoogleCalendarEvent,
-      {
-        id: '3',
-        summary: 'Next Year',
-        description: 'This is another test event',
-        start: { date: '2025-02-17' },
-        end: { date: '2025-02-19' },
-      } as GoogleCalendarEvent,
-      {
-        id: '4',
-        summary: 'Across years',
-        description: 'This is another test event',
-        start: { date: '2024-12-17' },
-        end: { date: '2025-01-19' },
-      } as GoogleCalendarEvent,
-      {
-        id: '5',
-        summary: 'End-Start months',
-        description: 'This is another test event',
-        start: { date: '2024-09-30' },
-        end: { date: '2024-10-02' },
-      } as GoogleCalendarEvent,
-    ];
-
-    return results.filter((event) => {
-      return (
-        new Date(event.start.date).getFullYear() === start.getFullYear() ||
-        new Date(event.end.date).getFullYear() === end.getFullYear()
-      );
-    });
-  }
-
   async createEvent(event: GoogleCalendarEvent): Promise<GoogleCalendarEvent> {
     return event;
   }

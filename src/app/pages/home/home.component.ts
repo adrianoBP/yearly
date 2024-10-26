@@ -13,43 +13,29 @@ import moment, { Moment } from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faBan,
-  faFloppyDisk,
-  faDownload,
   faChevronLeft,
   faChevronRight,
   faCog,
   faSignOutAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import { EditEventsComponent } from '../../edit-event/edit-event.component';
-import { ListEventsWindowComponent } from '../../list-events-window/list-events-window.component';
-import { v4 as uuidv4 } from 'uuid';
 import { MockAuthService } from '../../services/mock/auth.service';
 import { mockData } from '../../app.config';
 import { Router } from '@angular/router';
 import { CalendarService } from '../../services/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
 import { WindowContainerComponent } from '../../windows/window-container/window-container.component';
-import { WindowParameters, WindowsService } from '../../windows/windows.service';
+import { WindowsService } from '../../windows/windows.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    CommonModule,
-    FontAwesomeModule,
-    MonthComponent,
-    EditEventsComponent,
-    ListEventsWindowComponent,
-    WindowContainerComponent,
-  ],
+  imports: [CommonModule, FontAwesomeModule, MonthComponent, WindowContainerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
   // FontAwesome icons
   banIcon = faBan;
-  floppyDiskIcon = faFloppyDisk;
-  downloadIcon = faDownload;
   chevronLeftIcon = faChevronLeft;
   chevronRightIcon = faChevronRight;
   cogIcon = faCog;
@@ -64,15 +50,8 @@ export class HomeComponent {
   year: number = new Date().getFullYear();
   months: { [key: string]: Month } = {};
 
-  colors: { [key: string]: GoogleCalendarColor } = {};
   calendars: GoogleCalendar[] = [];
   events: EventExtended[] = [];
-
-  eventStart: Date | undefined;
-  eventEnd: Date | undefined;
-  eventsToAdd: Event[] = [];
-
-  selectedColorId: string | undefined;
 
   authService: GoogleAuthService | MockAuthService;
 
@@ -128,16 +107,11 @@ export class HomeComponent {
   async ngOnInit() {
     this.settings = this.settingsService.getSettings();
 
-    Promise.all([this.calendarService.getColors(), this.calendarService.getCalendars()]).then(
-      async (values) => {
-        this.colors = values[0];
-        this.calendars = values[1];
+    Promise.all([this.calendarService.getCalendars()]).then(async (values) => {
+      this.calendars = values[0];
 
-        this.loadEventsIntoCalendars();
-      }
-    );
-
-    // this.windowsService.openWindow('list-events', { eventsList: [] });
+      this.loadEventsIntoCalendars();
+    });
   }
 
   isEventDeclined(event: GoogleCalendarEvent): boolean {
@@ -212,23 +186,11 @@ export class HomeComponent {
     }
   }
 
-  async loadColors() {
-    this.colors = await this.calendarService.getColors();
-  }
-
   changeYear(newYear: number) {
     this.year = newYear;
     this.events = [];
     this.buildMonths();
     this.loadEventsIntoCalendars();
-  }
-
-  selectColor(colorId: string) {
-    this.selectedColorId = colorId;
-  }
-
-  get canCreateNewEvent() {
-    return this.selectedColorId != null;
   }
 
   onDayClickEvent({
@@ -244,119 +206,6 @@ export class HomeComponent {
       const side = mouseEvent.clientX < window.innerWidth / 2 ? 'left' : 'right';
       this.windowsService.openWindow('list-events', { eventsList: events, date }, side);
     }
-
-    // if (this.selectedColorId == null) this.showEventsList(events, mouseEvent);
-    // else this.tryCreateEvent(date, mouseEvent);
-  }
-
-  tryCreateEvent(date: Date, mouseEvent: MouseEvent) {
-    if (this.eventStart == null) {
-      this.eventStart = date;
-      return;
-    }
-
-    if (this.eventEnd == null) this.eventEnd = date;
-
-    this.requestNewEventDetails(mouseEvent);
-  }
-
-  // TODO: Move to service
-  isEventsListWindowOpen: boolean = false;
-  eventsListInfo: Event[] = [];
-  showEventsList(events: Event[], mouseEvent: MouseEvent) {
-    if (events == null || events.length == 0) return;
-    this.eventsListInfo = events;
-    this.isEventsListWindowOpen = true;
-    this.mousePosition = mouseEvent;
-  }
-
-  // TODO: Move to service
-  isEditEventWindowOpen: boolean = false;
-  newEvent: Event = {} as Event;
-  mousePosition: MouseEvent | undefined;
-  showEditEvent(event: Event, mouseEvent: MouseEvent) {
-    this.newEvent = event;
-    this.eventsToAdd.push(event);
-    this.isEditEventWindowOpen = true;
-    this.mousePosition = mouseEvent;
-  }
-
-  requestNewEventDetails(mouseEvent: MouseEvent) {
-    const eventStartUTC = moment.utc(this.eventStart);
-    const eventEndUTC = moment.utc(this.eventEnd);
-
-    // Invert dates if the start date is after the end date
-    if (eventStartUTC.isAfter(eventEndUTC)) {
-      const temp = this.eventStart;
-      this.eventStart = this.eventEnd;
-      this.eventEnd = temp;
-    }
-
-    const newEvent = {
-      id: uuidv4(),
-      title: '',
-      description: '',
-      start: this.eventStart,
-      end: this.eventEnd,
-      colour: this.colors[this.selectedColorId!].background,
-      colorId: this.selectedColorId,
-
-      startUTC: eventStartUTC,
-      endUTC: eventEndUTC,
-    } as Event;
-
-    this.showEditEvent(newEvent, mouseEvent);
-  }
-
-  onEditEventComplete({ event, cancel }: { event?: Event; cancel?: boolean }) {
-    this.eventStart = undefined;
-    this.eventEnd = undefined;
-    this.eventsToAdd.pop();
-
-    if (cancel || event == null) return;
-
-    event!.description += '\n~🗃️~';
-    // replace last event
-    this.eventsToAdd.push(event!);
-  }
-
-  eventsToDelete: Event[] = [];
-  onListEventsComplete({ deletedIds, cancel }: { deletedIds: string[]; cancel?: boolean }) {
-    if (cancel || deletedIds.length == 0) return;
-
-    this.eventsToDelete = [
-      ...this.eventsToDelete,
-      ...this.events.filter((event) => deletedIds.includes(event.id)),
-    ];
-
-    this.events = this.events.filter((event) => !deletedIds?.includes(event.id));
-    this.eventsToAdd = this.eventsToAdd.filter((event) => !deletedIds?.includes(event.id));
-
-    // this.loadMonthsEvents();
-  }
-
-  async pushChanges() {
-    const gEvents: GoogleCalendarEvent[] = this.eventsToAdd.map((event) => {
-      return {
-        summary: event.title,
-        description: event.description,
-        start: {
-          date: moment(event.start).format('YYYY-MM-DD'),
-        },
-        end: {
-          date: moment(event.end).add(1, 'day').format('YYYY-MM-DD'),
-        },
-        colorId: event.colorId,
-      } as GoogleCalendarEvent;
-    });
-    await this.calendarService.createEvents(gEvents);
-
-    await this.calendarService.deleteEvents(this.eventsToDelete.map((event) => event.id));
-
-    this.eventsToAdd = [];
-    this.eventsToDelete = [];
-
-    // await this.loadEvents();
   }
 
   get todaysPercentage(): number {

@@ -117,37 +117,6 @@ export class GoogleCalendarService {
     return results;
   }
 
-  async getEventsOLD(start: Date, end: Date): Promise<GoogleCalendarEvent[]> {
-    const queryParameters: { [key: string]: string } = {
-      q: '🗃️',
-      timeMin: moment(start).toISOString(),
-      timeMax: moment(end).toISOString(),
-      orderBy: 'startTime',
-      singleEvents: 'true',
-      pageToken: '',
-    };
-
-    const results: GoogleCalendarEvent[] = [];
-
-    let pageToken = '';
-    do {
-      const query = Object.keys(queryParameters)
-        .map((paramKey) => {
-          return `${paramKey}=${queryParameters[paramKey]}`;
-        })
-        .join('&');
-
-      const url = `${this.baseUrl}/calendars/primary/events?${query}`;
-      const response = await this.googleAuthService.makeRequest<GoogleCalendarEventListResponse>(
-        url,
-        'get'
-      );
-      results.push(...response.items);
-    } while (pageToken !== '');
-
-    return results;
-  }
-
   async createEvent(event: GoogleCalendarEvent): Promise<GoogleCalendarEvent> {
     const url = `${this.baseUrl}/calendars/primary/events`;
     const response = await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
