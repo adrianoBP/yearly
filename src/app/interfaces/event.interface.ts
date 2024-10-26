@@ -15,10 +15,9 @@ export interface Event {
 
 export interface EventExtended extends Event {
   calendarId: string;
-}
 
-export interface CalendarEvent extends EventExtended {
   isFirstDay: boolean;
   isLastDay: boolean;
   duration: number;
+  allDay: boolean;
 }

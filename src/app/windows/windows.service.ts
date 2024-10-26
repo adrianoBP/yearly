@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Event } from '../interfaces/event.interface';
+import { Event, EventExtended } from '../interfaces/event.interface';
 
 export type WindowType = 'list-events' | 'add-event';
 
 export interface WindowParameters {
-  eventsList?: Event[];
+  eventsList?: EventExtended[];
   date: Date;
 }
 

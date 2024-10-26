@@ -31,6 +31,12 @@
   margin: 0 0.5rem 0 0.5rem;
 }
 
-.event-details .dates {
+.event-details #event-time {
+  background: #bfeefd;
+  border-radius: 0.5rem;
+  padding: 0 0.5rem 0 0.5rem;
+  font-size: 90%;
+  border: 1px solid #009eb7;
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1);
   margin-left: auto;
 }

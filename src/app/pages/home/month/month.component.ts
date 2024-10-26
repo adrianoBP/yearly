@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Day, WeekDay, Month } from '../../../interfaces/month.interface';
 import { DayComponent } from './day/day.component';
 import moment from 'moment';
-import { Event, CalendarEvent, EventExtended } from '../../../interfaces/event.interface';
+import { Event, EventExtended } from '../../../interfaces/event.interface';
 
 @Component({
   selector: 'app-month',
@@ -26,20 +26,28 @@ export class MonthComponent {
   weekDays: WeekDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // events dictionary
-  eventsByDay: { [key: number]: CalendarEvent[] } = {};
+  eventsByDay: { [key: number]: EventExtended[] } = {};
 
   ngOnChanges(): void {
-    this.eventsByDay = {} as { [key: number]: CalendarEvent[] };
+    this.eventsByDay = {} as { [key: number]: EventExtended[] };
 
     for (let event of this.events) {
-      let startDay = moment(event.start).date();
-      let endDay = moment(event.end).subtract(1, 'minutes').date();
+      const eventStartDateTime = moment(event.start);
+      const eventEndDateTime = moment(event.end);
+
+      let startDay = eventStartDateTime.date();
+      let endDay = eventEndDateTime.date();
+
+      // If the event ends at midnight, consider the previous day as the last day
+      if (eventEndDateTime.hour() === 0 && eventEndDateTime.minute() === 0) {
+        endDay -= 1;
+      }
 
       // if the event is in the previous month, set the starting day to 1
-      if (this.month.name !== moment(event.start).format('MMMM')) startDay = 1;
+      if (this.month.name !== eventStartDateTime.format('MMMM')) startDay = 1;
 
       // if the event is in the next month, set the ending day to the last day of the month
-      if (this.month.name !== moment(event.end).format('MMMM')) {
+      if (this.month.name !== eventEndDateTime.format('MMMM')) {
         endDay = this.month.days[this.month.days.length - 1].number;
       }
 
@@ -52,13 +60,10 @@ export class MonthComponent {
         // add the event to the dictionary
         this.eventsByDay[dayNumber].push({
           ...event,
-          isFirstDay: momentDay.isSame(event.start, 'day'),
-          isLastDay: momentDay.isSame(
-            moment(event.end).subtract(1, 'minutes').toDate(), // Remove 1 minute to avoid the end date being considered as the next day
-            'day'
-          ),
-          duration: moment(event.end).diff(event.start, 'days') + 1,
-        } as CalendarEvent);
+          isFirstDay: momentDay.isSame(eventStartDateTime, 'day'),
+          isLastDay: momentDay.date() === endDay,
+          duration: eventEndDateTime.diff(eventStartDateTime, 'days') + 1,
+        } as EventExtended);
       }
     }
   }
@@ -68,7 +73,7 @@ export class MonthComponent {
     return new Array(this.weekDays.indexOf(firstDayOfMonth));
   }
 
-  getDayEvents(day: Day): CalendarEvent[] {
+  getDayEvents(day: Day): EventExtended[] {
     if (this.eventsByDay[day.number] == null) return [];
     return this.eventsByDay[day.number];
   }

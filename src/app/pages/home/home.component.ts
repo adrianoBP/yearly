@@ -129,8 +129,9 @@ export class HomeComponent {
       // Filter out declined events
       const startDate = moment(event.start.date ?? event.start.dateTime);
       let endDate = moment(event.end.date ?? event.end.dateTime);
-      // If the time is midnight, set the time to 23:59:59 to avoid the event being considered as the next day
-      if (endDate.hour() === 0 && endDate.minute() === 0) endDate = endDate.subtract(1, 'second');
+
+      // // If the time is midnight, set the time to 23:59:59 to avoid the event being considered as the next day
+      // if (endDate.hour() === 0 && endDate.minute() === 0) endDate = endDate.subtract(1, 'second');
 
       const startMonth = this.getMonthName(new Date(event.start.date ?? event.start.dateTime));
       const endMonth = this.getMonthName(endDate.toDate());
@@ -149,6 +150,8 @@ export class HomeComponent {
         endUTC: moment.utc(event.end.date ?? event.end.dateTime),
 
         calendarId: calendar.id,
+
+        allDay: !event.start.dateTime,
       } as EventExtended;
 
       // Add only if year matches
@@ -199,7 +202,7 @@ export class HomeComponent {
     mouseEvent,
   }: {
     date: Date;
-    events: Event[];
+    events: EventExtended[];
     mouseEvent: MouseEvent;
   }) {
     if (events?.length > 0) {
