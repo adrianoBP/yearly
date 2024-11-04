@@ -3,17 +3,19 @@
 
   <div id="info">
     <h3>Yearly</h3>
-    <p class="mobile-hidden">{{authService.socialUser?.firstName}}'s calendar</p>
-    <p class="mobile-hidden">{{todaysPercentage.toFixed(2)}}%</p>
+    <!-- <p class="mobile-hidden">{{authService.socialUser?.firstName}}'s calendar</p>
+    <p class="mobile-hidden">{{todaysPercentage.toFixed(2)}}%</p> -->
+
+    <div id="year-selection">
+      <button (click)="changeYear(year - 1)"><fa-icon [icon]="chevronLeftIcon"
+                 [size]="'lg'"></fa-icon></button>
+      <p (click)="changeYear(currentYear)">{{year}}</p>
+      <button (click)="changeYear(year + 1)"><fa-icon [icon]="chevronRightIcon"
+                 [size]="'lg'"></fa-icon></button>
+    </div>
   </div>
 
-  <div id="year-selection">
-    <button (click)="changeYear(year - 1)"><fa-icon [icon]="chevronLeftIcon"
-               [size]="'lg'"></fa-icon></button>
-    <p (click)="changeYear(currentYear)">{{year}}</p>
-    <button (click)="changeYear(year + 1)"><fa-icon [icon]="chevronRightIcon"
-               [size]="'lg'"></fa-icon></button>
-  </div>
+
 
   <div id="actions">
     <button (click)="router.navigate(['/settings'])"><fa-icon [icon]="cogIcon"

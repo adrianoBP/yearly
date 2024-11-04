@@ -1,4 +1,5 @@
 <div class="container"
+     [id]="dayId"
      (click)="onClick($event)">
      <p
         [ngClass]="{'selectable': canCreateNewEvent, 'isToday': isToday, 'isPast': isPast, 'pointer': events.length > 0}">

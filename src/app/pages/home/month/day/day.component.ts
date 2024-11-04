@@ -26,6 +26,7 @@ export class DayComponent {
   }>();
 
   today;
+  dayId: string = '';
   constructor() {
     this.today = moment();
   }
@@ -40,6 +41,9 @@ export class DayComponent {
   };
 
   ngOnChanges(): void {
+    // Ensure we have a unique day id to be able to scroll to this element
+    this.dayId = `day-${this.day.date.getDate()}-${this.day.date.getMonth()}-${this.day.date.getFullYear()}`;
+
     for (const event of this.events) {
       if (!this.eventColours.includes(event.colour)) {
         this.eventColours.push(event.colour);

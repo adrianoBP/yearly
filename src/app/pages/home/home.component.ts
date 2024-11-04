@@ -106,6 +106,10 @@ export class HomeComponent {
       this.calendars = values[0];
 
       this.loadEventsIntoCalendars();
+
+      const today = new Date();
+      const dayId = 'day-' + today.getDate() + '-' + today.getMonth() + '-' + today.getFullYear();
+      document.getElementById(dayId)!.scrollIntoView({ behavior: 'smooth' });
     });
   }
 
