@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { SocialUser } from '@abacritt/angularx-social-login';
 import { GoogleAuthService } from './auth.service';
 import moment from 'moment';
+import { Event } from '../../interfaces/event.interface';
 
 export interface GoogleCalendar {
   id: string;
@@ -139,14 +140,14 @@ export class GoogleCalendarService {
     }
   }
 
-  async deleteEvent(eventId: string): Promise<void> {
-    const url = `${this.baseUrl}/calendars/primary/events/${eventId}`;
+  async deleteEvent(event: Event): Promise<void> {
+    const url = `${this.baseUrl}/calendars/${event.calendarId}/events/${event.id}`;
     await this.googleAuthService.makeRequest<void>(url, 'delete');
   }
 
-  async deleteEvents(eventIds: string[]): Promise<void> {
-    for (const eventId of eventIds) {
-      await this.deleteEvent(eventId);
+  async deleteEvents(events: Event[]): Promise<void> {
+    for (const event of events) {
+      await this.deleteEvent(event);
     }
   }
 }

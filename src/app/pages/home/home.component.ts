@@ -3,12 +3,8 @@ import { Day, Month, WeekDay } from '../../interfaces/month.interface';
 import { CommonModule, KeyValue } from '@angular/common';
 import { MonthComponent } from './month/month.component';
 import { GoogleAuthService } from '../../services/google/auth.service';
-import {
-  GoogleCalendarColor,
-  GoogleCalendarEvent,
-  GoogleCalendar,
-} from '../../services/google/calendar.service';
-import { Event, EventExtended } from '../../interfaces/event.interface';
+import { GoogleCalendarEvent, GoogleCalendar } from '../../services/google/calendar.service';
+import { Event } from '../../interfaces/event.interface';
 import moment, { Moment } from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -24,7 +20,7 @@ import { Router } from '@angular/router';
 import { CalendarService } from '../../services/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
 import { WindowContainerComponent } from '../../windows/window-container/window-container.component';
-import { WindowsService } from '../../windows/windows.service';
+import { WindowParameters, WindowsService } from '../../windows/windows.service';
 
 @Component({
   selector: 'app-home',
@@ -51,7 +47,6 @@ export class HomeComponent {
   months: { [key: string]: Month } = {};
 
   calendars: GoogleCalendar[] = [];
-  events: EventExtended[] = [];
 
   authService: GoogleAuthService | MockAuthService;
 
@@ -130,9 +125,6 @@ export class HomeComponent {
       const startDate = moment(event.start.date ?? event.start.dateTime);
       let endDate = moment(event.end.date ?? event.end.dateTime);
 
-      // // If the time is midnight, set the time to 23:59:59 to avoid the event being considered as the next day
-      // if (endDate.hour() === 0 && endDate.minute() === 0) endDate = endDate.subtract(1, 'second');
-
       const startMonth = this.getMonthName(new Date(event.start.date ?? event.start.dateTime));
       const endMonth = this.getMonthName(endDate.toDate());
 
@@ -152,7 +144,7 @@ export class HomeComponent {
         calendarId: calendar.id,
 
         allDay: !event.start.dateTime,
-      } as EventExtended;
+      } as Event;
 
       // Add only if year matches
       if (calendarEvent.startUTC.year() == this.year)
@@ -191,7 +183,6 @@ export class HomeComponent {
 
   changeYear(newYear: number) {
     this.year = newYear;
-    this.events = [];
     this.buildMonths();
     this.loadEventsIntoCalendars();
   }
@@ -202,12 +193,29 @@ export class HomeComponent {
     mouseEvent,
   }: {
     date: Date;
-    events: EventExtended[];
+    events: Event[];
     mouseEvent: MouseEvent;
   }) {
     if (events?.length > 0) {
       const side = mouseEvent.clientX < window.innerWidth / 2 ? 'left' : 'right';
-      this.windowsService.openWindow('list-events', { eventsList: events, date }, side);
+      const parameters = { eventsList: events, date } as WindowParameters;
+      this.windowsService.openWindow(
+        'list-events',
+        parameters,
+        side,
+        async (deletedEvents: Event[]) => {
+          if (deletedEvents == null || deletedEvents.length == 0) return;
+
+          await this.calendarService.deleteEvents(deletedEvents);
+
+          const deletedEventsIds = deletedEvents.map((event) => event.id);
+          const monthName = this.getMonthName(date);
+
+          this.months[monthName].events = this.months[monthName].events.filter(
+            (event) => !deletedEventsIds.includes(event.id)
+          );
+        }
+      );
     }
   }
 

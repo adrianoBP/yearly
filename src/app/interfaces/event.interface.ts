@@ -1,5 +1,6 @@
 import { Moment } from 'moment';
 
+// Events displayed in the UI
 export interface Event {
   id: string;
   title: string;
@@ -11,9 +12,7 @@ export interface Event {
 
   startUTC: Moment;
   endUTC: Moment;
-}
 
-export interface EventExtended extends Event {
   calendarId: string;
 
   isFirstDay: boolean;

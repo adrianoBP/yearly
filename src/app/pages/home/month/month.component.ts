@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Day, WeekDay, Month } from '../../../interfaces/month.interface';
 import { DayComponent } from './day/day.component';
 import moment from 'moment';
-import { Event, EventExtended } from '../../../interfaces/event.interface';
+import { Event } from '../../../interfaces/event.interface';
 
 @Component({
   selector: 'app-month',
@@ -14,22 +14,22 @@ import { Event, EventExtended } from '../../../interfaces/event.interface';
 })
 export class MonthComponent {
   @Input() month!: Month;
-  @Input() events!: EventExtended[];
+  @Input() events!: Event[];
   @Input() canCreateNewEvent!: boolean;
   @Input() year!: number;
   @Output() onDayClick = new EventEmitter<{
     date: Date;
-    events: EventExtended[];
+    events: Event[];
     mouseEvent: MouseEvent;
   }>();
 
   weekDays: WeekDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // events dictionary
-  eventsByDay: { [key: number]: EventExtended[] } = {};
+  eventsByDay: { [key: number]: Event[] } = {};
 
   ngOnChanges(): void {
-    this.eventsByDay = {} as { [key: number]: EventExtended[] };
+    this.eventsByDay = {} as { [key: number]: Event[] };
 
     for (let event of this.events) {
       const eventStartDateTime = moment(event.start);
@@ -66,7 +66,7 @@ export class MonthComponent {
           isFirstDay: momentDay.isSame(eventStartDateTime, 'day'),
           isLastDay: momentDay.date() === eventActualEndDate, // TODO: Check what happens for events longer than 1 month
           duration: eventEndDateTime.diff(eventStartDateTime, 'days') + 1,
-        } as EventExtended);
+        } as Event);
       }
     }
   }
@@ -76,7 +76,7 @@ export class MonthComponent {
     return new Array(this.weekDays.indexOf(firstDayOfMonth));
   }
 
-  getDayEvents(day: Day): EventExtended[] {
+  getDayEvents(day: Day): Event[] {
     if (this.eventsByDay[day.number] == null) return [];
     return this.eventsByDay[day.number];
   }

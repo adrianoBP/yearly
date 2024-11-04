@@ -6,6 +6,7 @@ import {
 } from './google/calendar.service';
 import { MockCalendarService } from './mock/calendar.service';
 import { mockData } from '../app.config';
+import { Event } from '../interfaces/event.interface';
 
 @Injectable()
 export class CalendarService {
@@ -28,5 +29,9 @@ export class CalendarService {
 
   async getEvents(start: Date, end: Date, calendarId: string): Promise<GoogleCalendarEvent[]> {
     return this.calendarAPIService.getEvents(start, end, calendarId);
+  }
+
+  async deleteEvents(events: Event[]) {
+    return this.calendarAPIService.deleteEvents(events);
   }
 }

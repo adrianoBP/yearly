@@ -3,10 +3,9 @@ import {
   GoogleCalendar,
   GoogleCalendarColor,
   GoogleCalendarEvent,
-  GoogleCalendarEventListResponse,
-  GoogleCalendarListResponse,
 } from '../google/calendar.service';
 import { SocialUser } from '@abacritt/angularx-social-login';
+import { Event } from '../../interfaces/event.interface';
 
 @Injectable({ providedIn: 'root' })
 export class MockCalendarService {
@@ -52,13 +51,13 @@ export class MockCalendarService {
     }
   }
 
-  async deleteEvent(eventId: string): Promise<void> {
+  async deleteEvent(event: Event): Promise<void> {
     return;
   }
 
-  async deleteEvents(eventIds: string[]): Promise<void> {
-    for (const eventId of eventIds) {
-      await this.deleteEvent(eventId);
+  async deleteEvents(events: Event[]): Promise<void> {
+    for (const event of events) {
+      await this.deleteEvent(event);
     }
   }
 }
