@@ -142,8 +142,6 @@ export class HomeComponent {
         endUTC: moment.utc(event.end.date ?? event.end.dateTime),
 
         calendarId: calendar.id,
-
-        allDay: !event.start.dateTime,
       } as Event;
 
       // Add only if year matches
@@ -206,11 +204,9 @@ export class HomeComponent {
         async (deletedEvents: Event[]) => {
           if (deletedEvents == null || deletedEvents.length == 0) return;
 
-          await this.calendarService.deleteEvents(deletedEvents);
-
+          // Reflect changes in the calendar
           const deletedEventsIds = deletedEvents.map((event) => event.id);
           const monthName = this.getMonthName(date);
-
           this.months[monthName].events = this.months[monthName].events.filter(
             (event) => !deletedEventsIds.includes(event.id)
           );

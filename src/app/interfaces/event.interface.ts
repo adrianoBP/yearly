@@ -18,5 +18,4 @@ export interface Event {
   isFirstDay: boolean;
   isLastDay: boolean;
   duration: number;
-  allDay: boolean;
 }
