@@ -6,14 +6,14 @@ import { Event } from '../../interfaces/event.interface';
 
 export interface GoogleCalendar {
   id: string;
-  etag: string;
   summary: string;
   summaryOverride?: string;
   timezone: string;
   backgroundColor: string;
   foregroundColor: string;
-  colorId: string;
   accessRole: string;
+  selected?: boolean;
+  primary?: boolean;
 }
 
 export interface GoogleCalendarEvent {
@@ -21,8 +21,6 @@ export interface GoogleCalendarEvent {
   htmlLink?: string;
   summary: string;
   description?: string;
-  colorId?: string;
-  creator: GoogleCalendarEventPerson;
   organizer: GoogleCalendarEventPerson;
   start: GoogleCalendarEventDate;
   end: GoogleCalendarEventDate;
@@ -77,15 +75,6 @@ export class GoogleCalendarService {
     return response.items;
   }
 
-  async getColors(): Promise<{ [key: string]: GoogleCalendarColor }> {
-    const url = `${this.baseUrl}/colors`;
-    const response = await this.googleAuthService.makeRequest<GoogleCalendarColorsResponse>(
-      url,
-      'get'
-    );
-    return response.event;
-  }
-
   async getEvents(start: Date, end: Date, calendarId: string): Promise<GoogleCalendarEvent[]> {
     const queryParameters: { [key: string]: string } = {
       timeMin: moment(start).toISOString(),
@@ -118,26 +107,22 @@ export class GoogleCalendarService {
     return results;
   }
 
-  async createEvent(event: GoogleCalendarEvent): Promise<GoogleCalendarEvent> {
-    const url = `${this.baseUrl}/calendars/primary/events`;
-    const response = await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
-      summary: event.summary,
-      description: event.description,
-      start: {
-        date: event.start.date,
-      },
-      end: {
-        date: event.end.date,
-      },
-      colorId: event.colorId,
-    });
-    return response;
-  }
+  async createEvent(
+    event: Event,
+    start: string,
+    end: string,
+    isFullDay: boolean = true
+  ): Promise<void> {
+    const startDateTime = isFullDay ? { date: start } : { dateTime: start };
+    const endDateTime = isFullDay ? { date: end } : { dateTime: end };
 
-  async createEvents(events: GoogleCalendarEvent[]): Promise<void> {
-    for (const event of events) {
-      await this.createEvent(event);
-    }
+    const url = `${this.baseUrl}/calendars/${event.calendarId}/events`;
+    await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
+      summary: event.title,
+      description: event.description,
+      start: startDateTime,
+      end: endDateTime,
+    });
   }
 
   async deleteEvent(event: Event): Promise<void> {

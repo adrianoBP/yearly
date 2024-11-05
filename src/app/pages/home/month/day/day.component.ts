@@ -3,6 +3,7 @@ import { Day } from '../../../../interfaces/month.interface';
 import { Event } from '../../../../interfaces/event.interface';
 import { CommonModule } from '@angular/common';
 import moment from 'moment';
+import { CalendarService } from '../../../../services/calendar.service';
 
 interface EventIcon {
   enabled: boolean;
@@ -27,7 +28,7 @@ export class DayComponent {
 
   today;
   dayId: string = '';
-  constructor() {
+  constructor(public calendarService: CalendarService) {
     this.today = moment();
   }
 

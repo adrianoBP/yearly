@@ -1,0 +1,37 @@
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 auto 0 auto;
+  padding: 0.5rem 0 0.5rem 0;
+}
+
+.event-colour {
+  width: 1.2rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.event-parameter {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+}
+
+.event-parameter label {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.event-parameter input,
+.event-parameter select {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #b3b3b3;
+  transition: all 0.3s;
+}
+
+.event-parameter input:focus,
+.event-parameter select:focus {
+  outline: none;
+  border-color: var(--primary);
+}

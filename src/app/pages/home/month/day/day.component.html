@@ -1,4 +1,5 @@
 <div class="container"
+     [ngClass]="{'is-adding-new-event': calendarService.isAddingEvent}"
      [id]="dayId"
      (click)="onClick($event)">
      <p

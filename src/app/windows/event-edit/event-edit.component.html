@@ -1,0 +1,58 @@
+<p class="title">✨ New Event ✨</p>
+
+<div class="event-parameter margin-sides">
+        <label for="event-title"
+               class="margin-ends">Title</label>
+        <input type="text"
+               id="event-title"
+               placeholder="Event title"
+               [(ngModel)]="this.parameters.event.title">
+</div>
+
+<div class="event-parameter margin-sides">
+        <label for="event-start">Start</label>
+        <div class="horizontal">
+                <input type="date"
+                       id="event-start"
+                       [(ngModel)]="eventStartDate">
+                <input type="time"
+                       id="event-start-time"
+                       class="margin-sides"
+                       [(ngModel)]="eventStartTime">
+        </div>
+</div>
+
+<div class="event-parameter margin-sides">
+        <label for="event-start">End</label>
+        <div class="horizontal">
+                <input type="date"
+                       id="event-start"
+                       [(ngModel)]="eventEndDate">
+                <input type="time"
+                       id="event-start-time"
+                       class="margin-sides"
+                       [(ngModel)]="eventEndTime">
+        </div>
+</div>
+
+
+<div class="event-parameter margin margin-bottom-heavy">
+        <label for="event-calendar"
+               class="margin-bottom">Calendar</label>
+        <div class="horizontal center-items-y">
+
+                <select id="event-calendar"
+                        [(ngModel)]="this.selectedCalendar">
+                        <option *ngFor="let calendar of calendars"
+                                [ngValue]="calendar">{{utilService.getCalendarName(calendar)}}</option>
+                </select>
+                <div class="event-colour margin-sides"
+                     [ngClass]="{'raised': selectedCalendar != null}"
+                     [ngStyle]="{'background-color': selectedCalendar?.backgroundColor}"></div>
+        </div>
+
+</div>
+
+<button id="save-button"
+        (click)="saveChanges()"
+        [disabled]="!changesDetected">Save</button>

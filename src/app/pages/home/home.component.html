@@ -18,6 +18,9 @@
 
 
   <div id="actions">
+    <button (click)="toggleAddEvent()"
+            [ngClass]="{'editing-mode': calendarService.isAddingEvent}"><fa-icon [icon]="addEventIcon"
+               [size]="'lg'"></fa-icon></button>
     <button (click)="router.navigate(['/settings'])"><fa-icon [icon]="cogIcon"
                [size]="'lg'"></fa-icon></button>
     <button (click)="authService.logOut()"><fa-icon [icon]="exitIcon"

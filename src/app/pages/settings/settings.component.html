@@ -3,5 +3,5 @@
   <input type="checkbox"
          [checked]="isCalendarAllowed(calendar.id)"
          (change)="toggleCalendar(calendar.id)">
-  {{getCalendarName(calendar)}}
+  {{utilService.getCalendarName(calendar)}}
 </div>

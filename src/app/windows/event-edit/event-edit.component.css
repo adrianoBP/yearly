@@ -1,0 +1,11 @@
+@import url("../window.stylesheet.css");
+@import url("../../common.stylesheet.css");
+
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+#event-calendar {
+  width: 100%;
+}

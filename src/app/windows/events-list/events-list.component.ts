@@ -7,6 +7,11 @@ import { Event } from '../../interfaces/event.interface';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarService } from '../../services/calendar.service';
+import { UtilService } from '../../services/util.service';
+
+export interface EventsListParameters extends WindowParameters {
+  events: Event[];
+}
 
 interface EventDisplayDetails extends Event {
   isAllDay: boolean;
@@ -22,12 +27,13 @@ interface EventDisplayDetails extends Event {
   styleUrl: './events-list.component.css',
 })
 export class EventsListComponent {
-  @Input() parameters: WindowParameters = {
-    eventsList: [],
-    date: new Date(),
-  };
+  @Input() parameters!: EventsListParameters;
 
-  constructor(private windowsService: WindowsService, private calendarService: CalendarService) {}
+  constructor(
+    public utilService: UtilService,
+    private windowsService: WindowsService,
+    private calendarService: CalendarService
+  ) {}
 
   // FontAwesome icons
   faTrash = faTrash;
@@ -36,10 +42,8 @@ export class EventsListComponent {
   events: EventDisplayDetails[] = [];
   eventsToDelete: Event[] = [];
 
-  ngOnInit(): void {}
-
   ngOnChanges(): void {
-    this.events = this.parameters.eventsList!.map((event) => {
+    this.events = this.parameters.events.map((event) => {
       const startDate = moment(event.start);
       const endDate = moment(event.end);
 
@@ -63,10 +67,6 @@ export class EventsListComponent {
     });
   }
 
-  getFormattedDate(): string {
-    return moment(this.parameters.date).format('ddd, Do MMMM YYYY'); // Format: 'Mon, 1 January 2021'
-  }
-
   getTime(event: EventDisplayDetails): string {
     if (event.isAllDay) return 'All day';
 
@@ -81,7 +81,7 @@ export class EventsListComponent {
 
   removeEvent(event: Event): void {
     this.eventsToDelete.push(event);
-    this.parameters.eventsList = this.parameters.eventsList!.filter((e) => e.id !== event.id);
+    this.events = this.events!.filter((e) => e.id !== event.id);
   }
 
   async saveChanges(): Promise<void> {

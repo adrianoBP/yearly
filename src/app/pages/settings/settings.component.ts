@@ -3,6 +3,7 @@ import { CalendarService } from '../../services/calendar.service';
 import { CommonModule } from '@angular/common';
 import { GoogleCalendar } from '../../services/google/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
+import { UtilService } from '../../services/util.service';
 
 @Component({
   selector: 'app-settings',
@@ -14,7 +15,8 @@ import { Settings, SettingsService } from '../../services/settings.service';
 export class SettingsComponent {
   constructor(
     private calendarService: CalendarService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    public utilService: UtilService
   ) {}
 
   calendars: GoogleCalendar[] = [];
@@ -25,10 +27,6 @@ export class SettingsComponent {
   async ngOnInit() {
     this.settings = this.settingsService.getSettings();
     this.calendars = await this.calendarService.getCalendars();
-  }
-
-  getCalendarName(calendar: GoogleCalendar) {
-    return calendar.summaryOverride || calendar.summary;
   }
 
   isCalendarAllowed(calendarId: string) {

@@ -9,6 +9,7 @@ import moment, { Moment } from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faBan,
+  faCalendarPlus,
   faChevronLeft,
   faChevronRight,
   faCog,
@@ -20,7 +21,9 @@ import { Router } from '@angular/router';
 import { CalendarService } from '../../services/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
 import { WindowContainerComponent } from '../../windows/window-container/window-container.component';
-import { WindowParameters, WindowsService } from '../../windows/windows.service';
+import { WindowsService } from '../../windows/windows.service';
+import { EventsListParameters } from '../../windows/events-list/events-list.component';
+import { EditEventParameters } from '../../windows/event-edit/event-edit.component';
 
 @Component({
   selector: 'app-home',
@@ -36,6 +39,7 @@ export class HomeComponent {
   chevronRightIcon = faChevronRight;
   cogIcon = faCog;
   exitIcon = faSignOutAlt;
+  addEventIcon = faCalendarPlus;
 
   settings: Settings = {
     allowedCalendars: [],
@@ -53,7 +57,7 @@ export class HomeComponent {
   constructor(
     private injector: Injector,
     public router: Router,
-    private calendarService: CalendarService,
+    public calendarService: CalendarService,
     private settingsService: SettingsService,
     public windowsService: WindowsService
   ) {
@@ -111,6 +115,20 @@ export class HomeComponent {
       const dayId = 'day-' + today.getDate() + '-' + today.getMonth() + '-' + today.getFullYear();
       document.getElementById(dayId)!.scrollIntoView({ behavior: 'smooth' });
     });
+
+    const testEvent = {
+      start: new Date(),
+      end: new Date(),
+      title: 'Test event',
+      description: 'This is a test event',
+      colour: '#ff0000',
+      calendarId: 'adriano.boccardo@gmail.com',
+    } as Event;
+
+    // this.windowsService.openWindow('edit-event', {
+    //   event: testEvent,
+    //   isNewEvent: false,
+    // } as EditEventParameters);
   }
 
   isEventDeclined(event: GoogleCalendarEvent): boolean {
@@ -124,8 +142,8 @@ export class HomeComponent {
   }
 
   addEventsToCalendar(events: GoogleCalendarEvent[], calendar: GoogleCalendar) {
+    // Filter out declined events
     for (const event of events.filter((event) => !this.isEventDeclined(event))) {
-      // Filter out declined events
       const startDate = moment(event.start.date ?? event.start.dateTime);
       let endDate = moment(event.end.date ?? event.end.dateTime);
 
@@ -189,6 +207,12 @@ export class HomeComponent {
     this.loadEventsIntoCalendars();
   }
 
+  toggleAddEvent() {
+    this.calendarService.isAddingEvent = !this.calendarService.isAddingEvent;
+  }
+
+  newEventStart: Date | null = null;
+  newEventEnd: Date | null = null;
   onDayClickEvent({
     date,
     events,
@@ -198,9 +222,51 @@ export class HomeComponent {
     events: Event[];
     mouseEvent: MouseEvent;
   }) {
+    const side = mouseEvent.clientX < window.innerWidth / 2 ? 'left' : 'right';
+
+    if (this.calendarService.isAddingEvent) {
+      if (this.newEventStart == null) {
+        this.newEventStart = date;
+        return;
+      }
+
+      if (this.newEventEnd == null) {
+        // Add one day to the end date
+        this.newEventEnd = new Date(date);
+        this.newEventEnd.setDate(this.newEventEnd.getDate() + 1);
+      }
+
+      const newEvent = {
+        start: this.newEventStart,
+        end: this.newEventEnd,
+        title: 'New event',
+        description: 'This is a new event',
+        colour: '#ff0000',
+        calendarId: this.calendars[0].id,
+      } as Event;
+
+      // TODO: Add temporary event to the UI
+
+      this.windowsService.openWindow(
+        'edit-event',
+        {
+          event: newEvent,
+          isNewEvent: false,
+        } as EditEventParameters,
+        side,
+        (isEventAdded) => {
+          // TODO: Remove temporary event from the UI if event was not added
+
+          this.newEventStart = null;
+          this.newEventEnd = null;
+        }
+      );
+
+      return;
+    }
+
     if (events?.length > 0) {
-      const side = mouseEvent.clientX < window.innerWidth / 2 ? 'left' : 'right';
-      const parameters = { eventsList: events, date } as WindowParameters;
+      const parameters = { events, date } as EventsListParameters;
       this.windowsService.openWindow(
         'list-events',
         parameters,

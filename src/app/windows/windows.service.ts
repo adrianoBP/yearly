@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
-import { Event } from '../interfaces/event.interface';
+import { EventsListParameters } from './events-list/events-list.component';
+import { EditEventParameters } from './event-edit/event-edit.component';
 
-export type WindowType = 'list-events' | 'add-event';
+type WindowType = 'list-events' | 'edit-event';
 
 export interface WindowParameters {
-  eventsList?: Event[];
   date: Date;
 }
+
+export type WindowParametersType = EventsListParameters | EditEventParameters;
 
 @Injectable()
 export class WindowsService {
@@ -14,10 +16,7 @@ export class WindowsService {
 
   // Live data
   openedWindow: WindowType | null = null;
-  parameters: WindowParameters = {
-    eventsList: [],
-    date: {} as Date,
-  };
+  parameters: WindowParametersType | null = null;
   onClosingEvent: ((closingParameters: any) => void) | null = null;
 
   openingSide: 'left' | 'right' = 'left';
@@ -32,7 +31,7 @@ export class WindowsService {
 
   openWindow(
     type: WindowType,
-    parameters?: WindowParameters,
+    parameters?: WindowParametersType,
     side: 'left' | 'right' = 'left',
     onCloseEvent: ((closingParameters: any) => void) | null = null
   ): void {

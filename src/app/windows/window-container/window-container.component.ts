@@ -1,14 +1,15 @@
 import { Component } from '@angular/core';
-import { EventsListComponent } from '../events-list/events-list.component';
+import { EventsListComponent, EventsListParameters } from '../events-list/events-list.component';
 import { WindowsService } from '../windows.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { style, animate, transition, trigger } from '@angular/animations';
+import { EditEventParameters, EventEditComponent } from '../event-edit/event-edit.component';
 
 @Component({
   selector: 'app-window-container',
   standalone: true,
-  imports: [CommonModule, FormsModule, EventsListComponent],
+  imports: [CommonModule, FormsModule, EventsListComponent, EventEditComponent],
   templateUrl: './window-container.component.html',
   styleUrl: './window-container.component.css',
   animations: [
@@ -35,5 +36,13 @@ export class WindowContainerComponent {
       axis: this.isMobile() ? 'Y' : 'X',
       startPercentage: this.isMobile() || this.windowsService.openingSide === 'left' ? 100 : -100,
     };
+  }
+
+  get parameterAsEventList(): EventsListParameters {
+    return this.windowsService.parameters as EventsListParameters;
+  }
+
+  get parameterAsEventEdit(): EditEventParameters {
+    return this.windowsService.parameters as EditEventParameters;
   }
 }

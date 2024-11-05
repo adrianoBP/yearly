@@ -36,8 +36,14 @@ border-radius: 2rem; */
   opacity: 40%;
 
   cursor: pointer;
+}
 
-  /* border: 1px solid black;border-radius: 2rem; */
+@media (hover: hover) {
+  .is-adding-new-event:hover {
+    cursor: pointer;
+    border-radius: 2rem;
+    border: 1px solid black;
+  }
 }
 
 .container .selection.start {
