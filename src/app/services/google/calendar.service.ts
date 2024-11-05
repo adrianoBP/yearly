@@ -107,17 +107,22 @@ export class GoogleCalendarService {
     return results;
   }
 
-  async createEvent(
-    event: Event,
-    start: string,
-    end: string,
-    isFullDay: boolean = true
-  ): Promise<void> {
-    const startDateTime = isFullDay ? { date: start } : { dateTime: start };
-    const endDateTime = isFullDay ? { date: end } : { dateTime: end };
+  async createEvent(event: Event): Promise<GoogleCalendarEvent> {
+    const isFullDay =
+      event.startMoment.hours() === 0 &&
+      event.startMoment.minutes() === 0 &&
+      event.endMoment.hours() === 0 &&
+      event.endMoment.minutes() === 0;
+
+    const startDateTime = isFullDay
+      ? { date: event.startMoment.format('YYYY-MM-DD') }
+      : { dateTime: event.startMoment.toISOString() };
+    const endDateTime = isFullDay
+      ? { date: event.endMoment.format('YYYY-MM-DD') }
+      : { dateTime: event.endMoment.toISOString() };
 
     const url = `${this.baseUrl}/calendars/${event.calendarId}/events`;
-    await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
+    return await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
       summary: event.title,
       description: event.description,
       start: startDateTime,

@@ -27,6 +27,8 @@ export class WindowContainerComponent {
     this.enterAnimationName = this.isMobile() ? 'enterFromBottom' : 'enterFromLeft';
   }
 
+  // TODO: Fix closing animation (slide)
+
   isMobile(): boolean {
     return window.innerWidth < 768;
   }

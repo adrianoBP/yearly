@@ -43,4 +43,9 @@ export class CalendarService {
   async deleteEvents(events: Event[]) {
     return this.calendarAPIService.deleteEvents(events);
   }
+
+  async createEvent(event: Event): Promise<Event> {
+    const gcalEvent = await this.calendarAPIService.createEvent(event);
+    return this.utilService.googleEventToEvent(gcalEvent, event.colour, event.calendarId);
+  }
 }

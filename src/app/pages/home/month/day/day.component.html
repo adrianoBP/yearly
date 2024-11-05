@@ -1,9 +1,8 @@
 <div class="container"
-     [ngClass]="{'is-adding-new-event': calendarService.isAddingEvent}"
      [id]="dayId"
      (click)="onClick($event)">
      <p
-        [ngClass]="{'selectable': canCreateNewEvent, 'isToday': isToday, 'isPast': isPast, 'pointer': events.length > 0}">
+        [ngClass]="{'is-adding-new-event': calendarService.isAddingEvent, 'isToday': isToday, 'isPast': isPast, 'pointer': events.length > 0}">
           {{day.number}}</p>
 
      <div class="selection"

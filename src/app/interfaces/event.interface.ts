@@ -9,8 +9,8 @@ export interface Event {
   end: Date;
   colour: string;
 
-  startUTC: Moment;
-  endUTC: Moment;
+  startMoment: Moment;
+  endMoment: Moment;
 
   calendarId: string;
 

@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { WindowParameters } from '../windows.service';
+import { WindowParameters, WindowsService } from '../windows.service';
 import { Event } from '../../interfaces/event.interface';
 import { UtilService } from '../../services/util.service';
 import { CommonModule } from '@angular/common';
@@ -28,7 +28,11 @@ export interface EditEventParameters extends WindowParameters {
 export class EventEditComponent {
   @Input() parameters!: EditEventParameters;
 
-  constructor(public utilService: UtilService, public calendarService: CalendarService) {}
+  constructor(
+    public utilService: UtilService,
+    public calendarService: CalendarService,
+    private windowsService: WindowsService
+  ) {}
 
   // Properties
   calendars: GoogleCalendar[] = [];
@@ -44,29 +48,40 @@ export class EventEditComponent {
   async ngOnInit() {
     this.calendars = await this.calendarService.getCalendars();
 
+    this.eventStartDate = this.parameters.event.startMoment.format('YYYY-MM-DD');
+    this.eventEndDate = this.parameters.event.endMoment.format('YYYY-MM-DD');
+    this.eventStartTime = this.parameters.event.startMoment.format('HH:mm');
+    this.eventEndTime = this.parameters.event.endMoment.format('HH:mm');
+
     if (this.parameters.isNewEvent) {
       this.selectedCalendar =
         this.calendars.find((calendar) => calendar.primary) || this.calendars[0];
-    } else {
-      const startDate = moment(this.parameters.event.start);
-      const endDate = moment(this.parameters.event.end);
-
-      this.eventStartDate = startDate.format('YYYY-MM-DD');
-      this.eventEndDate = endDate.format('YYYY-MM-DD');
-      this.eventStartTime = startDate.format('HH:mm');
-      this.eventEndTime = endDate.format('HH:mm');
     }
+
+    // Focus on the title input
+    document.getElementById('event-title')?.focus();
   }
 
-  saveChanges(): void {
+  async saveChanges(): Promise<void> {
+    this.parameters.event.startMoment = moment(`${this.eventStartDate} ${this.eventStartTime}`);
+    this.parameters.event.endMoment = moment(`${this.eventEndDate} ${this.eventEndTime}`);
+
+    let event = this.parameters.event;
+
     if (this.parameters.isNewEvent) {
-      // TODO: Add new event
+      this.parameters.event.calendarId = this.selectedCalendar?.id || '';
+
+      event = await this.calendarService.createEvent(this.parameters.event);
+      event.colour = this.selectedCalendar?.backgroundColor || event.colour;
     } else {
       // TODO: Update existing event
     }
+
+    this.windowsService.closeWindow(event); // Push events to delete to the parent window
   }
 
-  get changesDetected(): boolean {
-    return this.selectedCalendar !== null;
+  get canSave(): boolean {
+    // TODO: Check end date is after start date (or all day)
+    return this.selectedCalendar !== null && this.parameters.event.title !== '';
   }
 }

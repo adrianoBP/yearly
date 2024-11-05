@@ -38,12 +38,17 @@ export class MonthComponent {
       let startDay = eventStartDateTime.date();
       let endDay = eventEndDateTime.date();
 
-      let eventActualEndDate = eventEndDateTime.date();
+      // If the end date is next year, set it to the last day of the month
+      if (eventEndDateTime.year() > this.year) {
+        endDay = this.month.days[this.month.days.length - 1].number + 1;
+      }
+
+      let eventRealEndDate = eventEndDateTime.format('YYYY-MM-DD');
 
       // If the event ends at midnight, consider the previous day as the last day
       if (eventEndDateTime.hour() === 0 && eventEndDateTime.minute() === 0) {
         endDay -= 1;
-        eventActualEndDate = eventEndDateTime.clone().subtract(1, 'day').date();
+        eventRealEndDate = eventEndDateTime.clone().subtract(1, 'day').format('YYYY-MM-DD');
       }
 
       // if the event is in the previous month, set the starting day to 1
@@ -64,7 +69,7 @@ export class MonthComponent {
         this.eventsByDay[dayNumber].push({
           ...event,
           isFirstDay: momentDay.isSame(eventStartDateTime, 'day'),
-          isLastDay: momentDay.date() === eventActualEndDate, // TODO: Check what happens for events longer than 1 month
+          isLastDay: momentDay.format('YYYY-MM-DD') === eventRealEndDate,
           duration: eventEndDateTime.diff(eventStartDateTime, 'days') + 1,
         } as Event);
       }

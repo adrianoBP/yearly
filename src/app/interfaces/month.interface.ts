@@ -6,8 +6,6 @@ export interface Month {
   number: number;
   days: Day[];
   events: Event[];
-  startUTC: Moment;
-  endUTC: Moment;
 }
 
 export type WeekDay = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';

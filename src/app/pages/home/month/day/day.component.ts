@@ -33,9 +33,6 @@ export class DayComponent {
   }
 
   eventColours: string[] = [];
-  isStartDay = false;
-  isEndDay = false;
-  isMultiDay = false;
 
   eventIcons: { [key: string]: EventIcon } = {
     flight: { enabled: false, icon: '✈️' } as EventIcon,
@@ -49,13 +46,6 @@ export class DayComponent {
       if (!this.eventColours.includes(event.colour)) {
         this.eventColours.push(event.colour);
       }
-
-      const eventIsStartDay = moment(event.start).isSame(this.day.date, 'day');
-      const eventIsEndDay = moment(event.end).subtract(1, 'second').isSame(this.day.date, 'day');
-
-      this.isMultiDay = this.isMultiDay || !eventIsStartDay || !eventIsEndDay;
-      this.isStartDay = this.isStartDay || eventIsStartDay;
-      this.isEndDay = this.isEndDay || eventIsEndDay;
 
       // Enable custom icons for specific events
       if (event.title.toLowerCase().includes('flight')) {

@@ -1,3 +1,11 @@
+* {
+  /* Disable touches */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .container {
   display: flex;
   justify-content: center;
@@ -6,9 +14,6 @@
 
   font-size: 1.2rem;
   position: relative;
-
-  /* border: 1px solid black;
-border-radius: 2rem; */
 }
 
 .container p {
@@ -18,13 +23,6 @@ border-radius: 2rem; */
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid transparent;
-}
-
-.container p.selectable:hover {
-  cursor: pointer;
-  border: 1px solid black;
-  border-radius: 2rem;
 }
 
 .container .selection {

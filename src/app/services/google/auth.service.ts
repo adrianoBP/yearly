@@ -27,7 +27,6 @@ export class GoogleAuthService {
       this.accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY) as string;
 
       if (this.isLoggedIn) {
-        console.log(this.socialUser);
         this.getAccessToken(false, () => this.router.navigate(['/']));
       }
     });
@@ -41,7 +40,6 @@ export class GoogleAuthService {
 
     this.socialAuthService.getAccessToken(GoogleLoginProvider.PROVIDER_ID).then((accessToken) => {
       this.accessToken = accessToken;
-      console.log(this.accessToken);
       localStorage.setItem(this.ACCESS_TOKEN_KEY, this.accessToken);
       if (onTokenRetrieved) onTokenRetrieved();
     });
@@ -58,7 +56,6 @@ export class GoogleAuthService {
         .getAccessToken(GoogleLoginProvider.PROVIDER_ID)
         .then((accessToken) => {
           this.accessToken = accessToken;
-          console.log(this.accessToken);
           localStorage.setItem(this.ACCESS_TOKEN_KEY, this.accessToken);
           resolve();
         })

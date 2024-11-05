@@ -15,7 +15,7 @@ import { WindowsService } from './windows/windows.service';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { UtilService } from './services/util.service';
 
-export const mockData = true;
+export const mockData = false;
 
 const googleLoginOptions: GoogleInitOptions = {
   oneTapEnabled: true,

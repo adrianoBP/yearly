@@ -24,6 +24,7 @@ import { WindowContainerComponent } from '../../windows/window-container/window-
 import { WindowsService } from '../../windows/windows.service';
 import { EventsListParameters } from '../../windows/events-list/events-list.component';
 import { EditEventParameters } from '../../windows/event-edit/event-edit.component';
+import { UtilService } from '../../services/util.service';
 
 @Component({
   selector: 'app-home',
@@ -59,7 +60,8 @@ export class HomeComponent {
     public router: Router,
     public calendarService: CalendarService,
     private settingsService: SettingsService,
-    public windowsService: WindowsService
+    public windowsService: WindowsService,
+    private utilService: UtilService
   ) {
     this.authService = mockData
       ? this.injector.get(MockAuthService)
@@ -94,8 +96,8 @@ export class HomeComponent {
         name: monthName,
         number: monthNumber,
         days,
-        startUTC: moment.utc(`${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-01`),
-        endUTC: moment.utc(
+        startMoment: moment(`${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-01`),
+        endMoment: moment(
           `${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-${days.length}`
         ),
         events: [],
@@ -116,14 +118,14 @@ export class HomeComponent {
       document.getElementById(dayId)!.scrollIntoView({ behavior: 'smooth' });
     });
 
-    const testEvent = {
-      start: new Date(),
-      end: new Date(),
-      title: 'Test event',
-      description: 'This is a test event',
-      colour: '#ff0000',
-      calendarId: 'adriano.boccardo@gmail.com',
-    } as Event;
+    // const testEvent = {
+    //   start: new Date(),
+    //   end: new Date(),
+    //   title: 'Test event',
+    //   description: 'This is a test event',
+    //   colour: '#ff0000',
+    //   calendarId: 'adriano.boccardo@gmail.com',
+    // } as Event;
 
     // this.windowsService.openWindow('edit-event', {
     //   event: testEvent,
@@ -141,41 +143,36 @@ export class HomeComponent {
     return false;
   }
 
-  addEventsToCalendar(events: GoogleCalendarEvent[], calendar: GoogleCalendar) {
-    // Filter out declined events
-    for (const event of events.filter((event) => !this.isEventDeclined(event))) {
-      const startDate = moment(event.start.date ?? event.start.dateTime);
-      let endDate = moment(event.end.date ?? event.end.dateTime);
+  addEventsToCalendar(events: Event[], calendarId: string | null = null) {
+    for (const event of events) {
+      const statMonthNumber = event.startMoment.month();
+      let endMonthNumber = event.endMoment.month();
 
-      const startMonth = this.getMonthName(new Date(event.start.date ?? event.start.dateTime));
-      const endMonth = this.getMonthName(endDate.toDate());
+      // event.calendarId = calendarId || event.calendarId;
 
-      if (event.summary.includes('Emporium wedding')) debugger;
+      // If the end month is in the next year, set it to the last day of the current year
+      if (event.endMoment.year() > this.year) endMonthNumber = 11;
 
-      const calendarEvent = {
-        id: event.id,
-        title: event.summary,
-        description: event.description,
-        start: startDate.toDate(),
-        end: endDate.toDate(),
-        colour: calendar.backgroundColor,
-
-        startUTC: moment.utc(event.start.date ?? event.start.dateTime),
-        endUTC: moment.utc(event.end.date ?? event.end.dateTime),
-
-        calendarId: calendar.id,
-      } as Event;
-
-      // Add only if year matches
-      if (calendarEvent.startUTC.year() == this.year)
-        this.months[startMonth].events.push(calendarEvent);
-      if (startMonth !== endMonth && calendarEvent.endUTC.year() === this.year) {
-        this.months[endMonth].events.push(calendarEvent);
+      // Loop through the months
+      for (let monthNumber = statMonthNumber; monthNumber <= endMonthNumber; monthNumber++) {
+        const monthName = this.getMonthName(new Date(`${this.year}-${monthNumber + 1}-01`));
+        this.months[monthName].events.push(event);
+        this.months[monthName].events = [...this.months[monthName].events];
       }
+    }
+  }
 
-      // Force push to trigger change detection
-      this.months[startMonth].events = [...this.months[startMonth].events];
-      this.months[endMonth].events = [...this.months[endMonth].events];
+  removeEventFromCalendar(eventToRemove: Event): void {
+    // Remove the event from all the months
+    for (
+      let monthNumber = eventToRemove.startMoment.month();
+      monthNumber <= eventToRemove.endMoment.month();
+      monthNumber++
+    ) {
+      const monthName = this.getMonthName(new Date(`${this.year}-${monthNumber + 1}-01`));
+      this.months[monthName].events = this.months[monthName].events.filter(
+        (event) => event.id !== eventToRemove.id
+      );
     }
   }
 
@@ -190,12 +187,14 @@ export class HomeComponent {
 
   async loadEventsIntoCalendar(calendar: GoogleCalendar, start: Date, end: Date) {
     try {
-      let events = await this.calendarService.getEvents(start, end, calendar.id);
+      let events = (await this.calendarService.getEvents(start, end, calendar.id))
+        // remove recurring and declined events  // TODO: this should be a setting
+        .filter((event) => event.recurringEventId == null && !this.isEventDeclined(event))
+        .map((event) =>
+          this.utilService.googleEventToEvent(event, calendar.backgroundColor, calendar.id)
+        );
 
-      // remove recurring events // TODO: this should be a setting
-      events = events.filter((event) => event.recurringEventId == null);
-
-      this.addEventsToCalendar(events, calendar);
+      this.addEventsToCalendar(events, calendar.id);
     } catch (e) {
       console.log(e);
     }
@@ -230,32 +229,51 @@ export class HomeComponent {
         return;
       }
 
+      // TODO: FIX when adding an event across years
+
       if (this.newEventEnd == null) {
         // Add one day to the end date
         this.newEventEnd = new Date(date);
+
+        // If end is before start, swap them
+        if (this.newEventEnd < this.newEventStart) {
+          const temp = this.newEventEnd;
+          this.newEventEnd = this.newEventStart;
+          this.newEventStart = temp;
+        }
+
+        // Add an extra day to the end date to make it inclusive (full day events reset at midnight of the next day)
         this.newEventEnd.setDate(this.newEventEnd.getDate() + 1);
       }
 
       const newEvent = {
+        id: 'temp-id',
         start: this.newEventStart,
         end: this.newEventEnd,
-        title: 'New event',
-        description: 'This is a new event',
+        title: '',
         colour: '#ff0000',
         calendarId: this.calendars[0].id,
+
+        startMoment: moment(this.newEventStart),
+        endMoment: moment(this.newEventEnd),
       } as Event;
 
-      // TODO: Add temporary event to the UI
+      this.addEventsToCalendar([newEvent], '');
 
       this.windowsService.openWindow(
         'edit-event',
         {
           event: newEvent,
-          isNewEvent: false,
+          isNewEvent: true,
         } as EditEventParameters,
         side,
-        (isEventAdded) => {
-          // TODO: Remove temporary event from the UI if event was not added
+        (createdEvent: Event) => {
+          if (createdEvent) {
+            this.addEventsToCalendar([createdEvent], createdEvent.calendarId);
+          }
+
+          // Remove the temporary event from the calendar
+          this.removeEventFromCalendar(newEvent);
 
           this.newEventStart = null;
           this.newEventEnd = null;
@@ -295,14 +313,6 @@ export class HomeComponent {
   // UTIL functions
   getMonthName(date: Date) {
     return date.toLocaleString('default', { month: 'long' });
-  }
-
-  getEventsInBetween(start: Moment, end: Moment, events: Event[]) {
-    return events.filter(
-      (event) =>
-        event.startUTC.isBetween(start, end, undefined, '[]') ||
-        event.endUTC.isBetween(start, end, undefined, '[]')
-    );
   }
 
   monthsOrder = (a: KeyValue<string, Month>, b: KeyValue<string, Month>): number => {
