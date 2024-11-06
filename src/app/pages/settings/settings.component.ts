@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { GoogleCalendar } from '../../services/google/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
 import { UtilService } from '../../services/util.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-settings',
@@ -16,7 +17,8 @@ export class SettingsComponent {
   constructor(
     private calendarService: CalendarService,
     private settingsService: SettingsService,
-    public utilService: UtilService
+    public utilService: UtilService,
+    public router: Router
   ) {}
 
   calendars: GoogleCalendar[] = [];

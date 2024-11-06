@@ -1,9 +1,9 @@
-<p class="title">{{utilService.getFormattedDate(this.parameters.date)}}</p>
+<p class="font-xl bold margin-sides-auto margin-ends">{{utilService.getFormattedDate(this.parameters.date)}}</p>
 
 <div *ngFor="let event of events"
      class="event-details">
 
-     <div class="event-colour"
+     <div class="colour-indicator raised"
           [ngStyle]="{'background-color': event.colour}"></div>
 
      <p>{{event.title}}</p>
@@ -11,6 +11,7 @@
      <p id="event-time">{{getTime(event)}}</p>
 
      <fa-icon id="event-delete"
+              class="red"
               [icon]="faTrash"
               [size]="'sm'"
               (click)="removeEvent(event)"></fa-icon>
@@ -18,5 +19,6 @@
 </div>
 
 <button id="save-button"
+        class="bg-primary margin-top-auto margin-sides-heavy margin-bottom-heavy"
         (click)="saveChanges()"
         [disabled]="this.eventsToDelete.length == 0">Save</button>

@@ -1,8 +1,8 @@
-<p class="title">✨ New Event ✨</p>
+<p class="font-xl bold margin-sides-auto margin-ends">✨ New Event ✨</p>
 
 <div class="event-parameter margin-sides">
         <label for="event-title"
-               class="margin-ends">Title</label>
+               class="font-m bold margin-ends">Title</label>
         <input type="text"
                id="event-title"
                placeholder="Event title"
@@ -10,7 +10,8 @@
 </div>
 
 <div class="event-parameter margin-sides">
-        <label for="event-start">Start</label>
+        <label for="event-start"
+               class="font-m bold">Start</label>
         <div class="horizontal">
                 <input type="date"
                        id="event-start"
@@ -23,7 +24,8 @@
 </div>
 
 <div class="event-parameter margin-sides">
-        <label for="event-start">End</label>
+        <label for="event-start"
+               class="font-m bold">End</label>
         <div class="horizontal">
                 <input type="date"
                        id="event-start"
@@ -38,7 +40,7 @@
 
 <div class="event-parameter margin margin-bottom-heavy">
         <label for="event-calendar"
-               class="margin-bottom">Calendar</label>
+               class="font-m bold margin-bottom">Calendar</label>
         <div class="horizontal center-items-y">
 
                 <select id="event-calendar"
@@ -46,7 +48,7 @@
                         <option *ngFor="let calendar of calendars"
                                 [ngValue]="calendar">{{utilService.getCalendarName(calendar)}}</option>
                 </select>
-                <div class="event-colour margin-sides"
+                <div class="colour-indicator margin-sides"
                      [ngClass]="{'raised': selectedCalendar != null}"
                      [ngStyle]="{'background-color': selectedCalendar?.backgroundColor}"></div>
         </div>
@@ -54,5 +56,6 @@
 </div>
 
 <button id="save-button"
+        class="bg-primary margin-top-auto margin-sides-heavy margin-bottom-heavy"
         (click)="saveChanges()"
         [disabled]="!canSave">Save</button>

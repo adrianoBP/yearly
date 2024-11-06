@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Day, WeekDay, Month } from '../../../interfaces/month.interface';
 import { DayComponent } from './day/day.component';

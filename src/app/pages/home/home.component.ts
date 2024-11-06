@@ -5,7 +5,7 @@ import { MonthComponent } from './month/month.component';
 import { GoogleAuthService } from '../../services/google/auth.service';
 import { GoogleCalendarEvent, GoogleCalendar } from '../../services/google/calendar.service';
 import { Event } from '../../interfaces/event.interface';
-import moment, { Moment } from 'moment';
+import moment from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faBan,

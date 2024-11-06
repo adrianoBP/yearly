@@ -6,24 +6,29 @@
     <!-- <p class="mobile-hidden">{{authService.socialUser?.firstName}}'s calendar</p>
     <p class="mobile-hidden">{{todaysPercentage.toFixed(2)}}%</p> -->
 
-    <div id="year-selection">
-      <button (click)="changeYear(year - 1)"><fa-icon [icon]="chevronLeftIcon"
+    <div id="year-selection"
+         class="bg-primary-light">
+      <button (click)="changeYear(year - 1)"
+              class="primary bg-primary-light"><fa-icon [icon]="chevronLeftIcon"
                  [size]="'lg'"></fa-icon></button>
-      <p (click)="changeYear(currentYear)">{{year}}</p>
-      <button (click)="changeYear(year + 1)"><fa-icon [icon]="chevronRightIcon"
+      <p (click)="changeYear(currentYear)"
+         class="pointer">{{year}}</p>
+      <button (click)="changeYear(year + 1)"
+              class="primary bg-primary-light"><fa-icon [icon]="chevronRightIcon"
                  [size]="'lg'"></fa-icon></button>
     </div>
   </div>
 
-
-
   <div id="actions">
     <button (click)="toggleAddEvent()"
+            class="primary bg-light border"
             [ngClass]="{'editing-mode': calendarService.isAddingEvent}"><fa-icon [icon]="addEventIcon"
                [size]="'lg'"></fa-icon></button>
-    <button (click)="router.navigate(['/settings'])"><fa-icon [icon]="cogIcon"
+    <button (click)="router.navigate(['/settings'])"
+            class="primary bg-light border"><fa-icon [icon]="cogIcon"
                [size]="'lg'"></fa-icon></button>
-    <button (click)="authService.logOut()"><fa-icon [icon]="exitIcon"
+    <button (click)="authService.logOut()"
+            class="primary bg-light border"><fa-icon [icon]="exitIcon"
                [size]="'lg'"></fa-icon></button>
   </div>
 </nav>
