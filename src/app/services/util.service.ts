@@ -8,6 +8,10 @@ import { Event } from '../interfaces/event.interface';
 export class UtilService {
   constructor() {}
 
+  isMobile(): boolean {
+    return window.innerWidth < 768;
+  }
+
   getFormattedDate(date: Date, format: string = 'ddd, Do MMMM YYYY'): string {
     return moment(date).format(format); // Format: 'Mon, 1 January 2021'
   }

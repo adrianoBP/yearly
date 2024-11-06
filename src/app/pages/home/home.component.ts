@@ -25,6 +25,15 @@ import { WindowsService } from '../../windows/windows.service';
 import { EventsListParameters } from '../../windows/events-list/events-list.component';
 import { EditEventParameters } from '../../windows/event-edit/event-edit.component';
 import { UtilService } from '../../services/util.service';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+  query,
+  animateChild,
+} from '@angular/animations';
 
 @Component({
   selector: 'app-home',
@@ -32,6 +41,16 @@ import { UtilService } from '../../services/util.service';
   imports: [CommonModule, FontAwesomeModule, MonthComponent, WindowContainerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
+  animations: [
+    trigger('inOutPaneAnimation', [
+      state('open', style({ 'background-color': 'rgba(0, 0, 0, 0.5)' })),
+      transition(':enter', [animate('0.2s ease-in-out'), query('@swipe', animateChild())]),
+      transition(':leave', [
+        query('@swipe', animateChild()),
+        animate('0.2s ease-in-out', style({ 'background-color': 'rgba(0, 0, 0, 0)' })),
+      ]),
+    ]),
+  ],
 })
 export class HomeComponent {
   // FontAwesome icons
@@ -106,6 +125,8 @@ export class HomeComponent {
   }
 
   async ngOnInit() {
+    this.addPageEventListeners();
+
     this.settings = this.settingsService.getSettings();
 
     Promise.all([this.calendarService.getCalendars()]).then(async (values) => {
@@ -117,20 +138,15 @@ export class HomeComponent {
       const dayId = 'day-' + today.getDate() + '-' + today.getMonth() + '-' + today.getFullYear();
       document.getElementById(dayId)!.scrollIntoView({ behavior: 'smooth' });
     });
+  }
 
-    // const testEvent = {
-    //   start: new Date(),
-    //   end: new Date(),
-    //   title: 'Test event',
-    //   description: 'This is a test event',
-    //   colour: '#ff0000',
-    //   calendarId: 'adriano.boccardo@gmail.com',
-    // } as Event;
-
-    // this.windowsService.openWindow('edit-event', {
-    //   event: testEvent,
-    //   isNewEvent: false,
-    // } as EditEventParameters);
+  addPageEventListeners(): void {
+    // Read for Escape button to close windows
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        this.windowsService.closeWindow();
+      }
+    });
   }
 
   isEventDeclined(event: GoogleCalendarEvent): boolean {
@@ -147,8 +163,6 @@ export class HomeComponent {
     for (const event of events) {
       const statMonthNumber = event.startMoment.month();
       let endMonthNumber = event.endMoment.month();
-
-      // event.calendarId = calendarId || event.calendarId;
 
       // If the end month is in the next year, set it to the last day of the current year
       if (event.endMoment.year() > this.year) endMonthNumber = 11;

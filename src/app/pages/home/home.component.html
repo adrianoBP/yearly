@@ -36,4 +36,5 @@
              (onDayClick)="onDayClickEvent($event)"></app-month>
 </div>
 
-<app-window-container *ngIf="windowsService.anyWindowOpen()"></app-window-container>
+<app-window-container *ngIf="windowsService.anyWindowOpen()"
+                      [@inOutPaneAnimation]="{value: windowsService.anyWindowOpen() ? 'open': 'closed'}"></app-window-container>

@@ -2,19 +2,18 @@
      (click)="windowsService.closeWindow()"
      [ngClass]="{'from-left': windowsService.openingSide == 'right', 'from-right': windowsService.openingSide == 'left'}">
 
-   <div id="window"
-        *ngIf="windowsService.anyWindowOpen()"
-        [@swipeIn]="{ value: true, params: getParameters()}"
-        (click)="$event.stopPropagation();">
+  <div id="window"
+       [@swipe]="{ value: true, params: getParameters()}"
+       (click)="$event.stopPropagation();">
 
-      <app-events-list *ngIf="windowsService.isWindowOpen('list-events')"
-                       [parameters]="parameterAsEventList">
-      </app-events-list>
+    <app-events-list *ngIf="windowsService.isWindowOpen('list-events')"
+                     [parameters]="parameterAsEventList">
+    </app-events-list>
 
-      <app-event-edit *ngIf="windowsService.isWindowOpen('edit-event')"
-                      [parameters]="parameterAsEventEdit">
-      </app-event-edit>
+    <app-event-edit *ngIf="windowsService.isWindowOpen('edit-event')"
+                    [parameters]="parameterAsEventEdit">
+    </app-event-edit>
 
-   </div>
+  </div>
 
 </div>

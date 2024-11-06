@@ -21,8 +21,6 @@
 
   display: flex;
   align-items: var(--window-alignment);
-
-  background-color: rgba(0, 0, 0, 0.5);
 }
 
 #backdrop.from-left {

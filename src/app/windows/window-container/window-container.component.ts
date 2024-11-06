@@ -3,8 +3,9 @@ import { EventsListComponent, EventsListParameters } from '../events-list/events
 import { WindowsService } from '../windows.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { style, animate, transition, trigger } from '@angular/animations';
+import { style, animate, transition, trigger, state } from '@angular/animations';
 import { EditEventParameters, EventEditComponent } from '../event-edit/event-edit.component';
+import { UtilService } from '../../services/util.service';
 
 @Component({
   selector: 'app-window-container',
@@ -13,30 +14,28 @@ import { EditEventParameters, EventEditComponent } from '../event-edit/event-edi
   templateUrl: './window-container.component.html',
   styleUrl: './window-container.component.css',
   animations: [
-    trigger('swipeIn', [
+    trigger('swipe', [
       transition(':enter', [
         style({ transform: 'translate{{axis}}({{startPercentage}}%)' }),
         animate('100ms', style({ transform: 'translate{{axis}}(0)' })),
+      ]),
+      transition(':leave', [
+        animate('100ms', style({ transform: 'translate{{axis}}({{startPercentage}}%)' })),
       ]),
     ]),
   ],
 })
 export class WindowContainerComponent {
   enterAnimationName: string;
-  constructor(public windowsService: WindowsService) {
-    this.enterAnimationName = this.isMobile() ? 'enterFromBottom' : 'enterFromLeft';
-  }
-
-  // TODO: Fix closing animation (slide)
-
-  isMobile(): boolean {
-    return window.innerWidth < 768;
+  constructor(public windowsService: WindowsService, private utilService: UtilService) {
+    this.enterAnimationName = this.utilService.isMobile() ? 'enterFromBottom' : 'enterFromLeft';
   }
 
   getParameters() {
     return {
-      axis: this.isMobile() ? 'Y' : 'X',
-      startPercentage: this.isMobile() || this.windowsService.openingSide === 'left' ? 100 : -100,
+      axis: this.utilService.isMobile() ? 'Y' : 'X',
+      startPercentage:
+        this.utilService.isMobile() || this.windowsService.openingSide === 'left' ? 120 : -120,
     };
   }
 

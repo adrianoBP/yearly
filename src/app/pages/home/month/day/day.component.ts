@@ -71,7 +71,6 @@ export class DayComponent {
   }
 
   get eventCalendars() {
-    // group events by calendar
     const eventsByCalendar: { [key: string]: string } = {};
     for (const event of this.events) {
       if (!eventsByCalendar[event.calendarId]) {
@@ -79,7 +78,6 @@ export class DayComponent {
       }
     }
 
-    // return a list
     return Object.keys(eventsByCalendar).map((key) => ({
       calendarId: key,
       colour: eventsByCalendar[key],

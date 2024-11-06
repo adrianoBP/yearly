@@ -28,7 +28,6 @@ export class CalendarService {
       this.calendars = calendars;
     }
 
-    // return sorted by summary
     this.calendars.sort((a, b) =>
       this.utilService.getCalendarName(a).localeCompare(this.utilService.getCalendarName(b))
     );
