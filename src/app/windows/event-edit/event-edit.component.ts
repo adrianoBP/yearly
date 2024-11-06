@@ -48,10 +48,7 @@ export class EventEditComponent {
   eventEndTime: string | null = null;
 
   async ngOnInit() {
-    const allowedCalendars = this.settingsService.getSettings().allowedCalendars;
-    this.calendars = (await this.calendarService.getCalendars()).filter((calendar) =>
-      allowedCalendars.includes(calendar.id)
-    );
+    this.calendars = await this.getCalendars();
 
     this.eventStartDate = this.parameters.event.startMoment.format('YYYY-MM-DD');
     this.eventEndDate = this.parameters.event.endMoment.format('YYYY-MM-DD');
@@ -65,6 +62,14 @@ export class EventEditComponent {
 
     // Focus on the title input
     document.getElementById('event-title')?.focus();
+  }
+
+  async getCalendars(): Promise<GoogleCalendar[]> {
+    // Only show calendars where the user can edit events
+    const allowedCalendars = this.settingsService.getSettings().allowedCalendars;
+    return (await this.calendarService.getCalendars()).filter((calendar) =>
+      allowedCalendars.includes(calendar.id)
+    );
   }
 
   async saveChanges(): Promise<void> {
