@@ -15,8 +15,6 @@ import { WindowsService } from './windows/windows.service';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { UtilService } from './services/util.service';
 
-export const mockData = false;
-
 const googleLoginOptions: GoogleInitOptions = {
   oneTapEnabled: true,
   scopes:
@@ -25,6 +23,14 @@ const googleLoginOptions: GoogleInitOptions = {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    {
+      provide: 'version',
+      useValue: '0.0.1',
+    },
+    {
+      provide: 'mockData',
+      useValue: false,
+    },
     provideAnimationsAsync(),
     provideRouter(routes),
     importProvidersFrom(HttpClientModule),

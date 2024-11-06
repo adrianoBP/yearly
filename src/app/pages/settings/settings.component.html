@@ -1,3 +1,5 @@
+<!-- TODO: Make it look nice -->
+
 <div *ngFor="let calendar of calendars">
   <!-- add checkbox -->
   <input type="checkbox"
@@ -5,3 +7,5 @@
          (change)="toggleCalendar(calendar.id)">
   {{utilService.getCalendarName(calendar)}}
 </div>
+
+v{{utilService.version}}

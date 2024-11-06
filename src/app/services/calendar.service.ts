@@ -5,14 +5,13 @@ import {
   GoogleCalendarService,
 } from './google/calendar.service';
 import { MockCalendarService } from './mock/calendar.service';
-import { mockData } from '../app.config';
 import { Event } from '../interfaces/event.interface';
 import { UtilService } from './util.service';
 
 @Injectable()
 export class CalendarService {
   constructor(private injector: Injector, private utilService: UtilService) {
-    this.calendarAPIService = mockData
+    this.calendarAPIService = utilService.mockData
       ? this.injector.get(MockCalendarService)
       : this.injector.get(GoogleCalendarService);
   }

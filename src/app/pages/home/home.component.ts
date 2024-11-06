@@ -16,7 +16,6 @@ import {
   faSignOutAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { MockAuthService } from '../../services/mock/auth.service';
-import { mockData } from '../../app.config';
 import { Router } from '@angular/router';
 import { CalendarService } from '../../services/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
@@ -82,7 +81,7 @@ export class HomeComponent {
     public windowsService: WindowsService,
     private utilService: UtilService
   ) {
-    this.authService = mockData
+    this.authService = utilService.mockData
       ? this.injector.get(MockAuthService)
       : this.injector.get(GoogleAuthService);
 

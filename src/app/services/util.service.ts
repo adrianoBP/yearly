@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import moment from 'moment';
 import { GoogleCalendar } from './google/calendar.service';
 import { GoogleCalendarEvent } from './google/calendar.service';
@@ -6,7 +6,21 @@ import { Event } from '../interfaces/event.interface';
 
 @Injectable()
 export class UtilService {
-  constructor() {}
+  private _version: string;
+  private _mockData: boolean;
+
+  constructor(@Inject('version') version: string, @Inject('mockData') mockData: boolean) {
+    this._version = version;
+    this._mockData = mockData;
+  }
+
+  get version() {
+    return this._version;
+  }
+
+  get mockData() {
+    return this._mockData;
+  }
 
   isMobile(): boolean {
     return window.innerWidth < 768;
