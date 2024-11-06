@@ -159,10 +159,12 @@ export class HomeComponent {
     return false;
   }
 
-  addEventsToCalendar(events: Event[], calendarId: string | null = null) {
+  addEventsToCalendar(events: Event[]) {
     for (const event of events) {
-      const statMonthNumber = event.startMoment.month();
-      let endMonthNumber = event.endMoment.month();
+      // If the start of the event is in the previous year, we want the beginning of the year
+      const statMonthNumber = event.startMoment.year() < this.year ? 0 : event.startMoment.month();
+      // If the end of the event is in the next year, we want the end of the year
+      let endMonthNumber = event.endMoment.year() > this.year ? 11 : event.endMoment.month();
 
       // If the end month is in the next year, set it to the last day of the current year
       if (event.endMoment.year() > this.year) endMonthNumber = 11;
@@ -176,16 +178,12 @@ export class HomeComponent {
     }
   }
 
-  removeEventFromCalendar(eventToRemove: Event): void {
+  removeEventsFromCalendar(eventsId: string[]): void {
     // Remove the event from all the months
-    for (
-      let monthNumber = eventToRemove.startMoment.month();
-      monthNumber <= eventToRemove.endMoment.month();
-      monthNumber++
-    ) {
+    for (let monthNumber = 0; monthNumber <= 11; monthNumber++) {
       const monthName = this.getMonthName(new Date(`${this.year}-${monthNumber + 1}-01`));
       this.months[monthName].events = this.months[monthName].events.filter(
-        (event) => event.id !== eventToRemove.id
+        (event) => !eventsId.includes(event.id)
       );
     }
   }
@@ -208,7 +206,7 @@ export class HomeComponent {
           this.utilService.googleEventToEvent(event, calendar.backgroundColor, calendar.id)
         );
 
-      this.addEventsToCalendar(events, calendar.id);
+      this.addEventsToCalendar(events);
     } catch (e) {
       console.log(e);
     }
@@ -243,8 +241,6 @@ export class HomeComponent {
         return;
       }
 
-      // TODO: FIX when adding an event across years
-
       if (this.newEventEnd == null) {
         // Add one day to the end date
         this.newEventEnd = new Date(date);
@@ -272,7 +268,7 @@ export class HomeComponent {
         endMoment: moment(this.newEventEnd),
       } as Event;
 
-      this.addEventsToCalendar([newEvent], '');
+      this.addEventsToCalendar([newEvent]);
 
       this.windowsService.openWindow(
         'edit-event',
@@ -283,11 +279,11 @@ export class HomeComponent {
         side,
         (createdEvent: Event) => {
           if (createdEvent) {
-            this.addEventsToCalendar([createdEvent], createdEvent.calendarId);
+            this.addEventsToCalendar([createdEvent]);
           }
 
           // Remove the temporary event from the calendar
-          this.removeEventFromCalendar(newEvent);
+          this.removeEventsFromCalendar([newEvent.id]);
 
           this.newEventStart = null;
           this.newEventEnd = null;
@@ -308,10 +304,7 @@ export class HomeComponent {
 
           // Reflect changes in the calendar
           const deletedEventsIds = deletedEvents.map((event) => event.id);
-          const monthName = this.getMonthName(date);
-          this.months[monthName].events = this.months[monthName].events.filter(
-            (event) => !deletedEventsIds.includes(event.id)
-          );
+          this.removeEventsFromCalendar(deletedEventsIds);
         }
       );
     }

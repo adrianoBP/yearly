@@ -32,11 +32,16 @@ export class MonthComponent {
     this.eventsByDay = {} as { [key: number]: Event[] };
 
     for (let event of this.events) {
-      const eventStartDateTime = moment(event.start);
-      const eventEndDateTime = moment(event.end);
+      const eventStartDateTime = event.startMoment;
+      const eventEndDateTime = event.endMoment;
 
-      let startDay = eventStartDateTime.date();
-      let endDay = eventEndDateTime.date();
+      // If the event is in the previous year, we always want the start of the month
+      let startDay = event.startMoment.year() < this.year ? 0 : eventStartDateTime.date();
+      // If the event is in the next year, we always want the end of the month
+      let endDay =
+        event.endMoment.year() > this.year
+          ? this.month.days[this.month.days.length - 1].number
+          : eventEndDateTime.date();
 
       // If the end date is next year, set it to the last day of the month
       if (eventEndDateTime.year() > this.year) {
