@@ -8,6 +8,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarService } from '../../services/calendar.service';
 import { GoogleCalendar } from '../../services/google/calendar.service';
 import moment from 'moment';
+import { SettingsService } from '../../services/settings.service';
 
 export interface EditEventParameters extends WindowParameters {
   isNewEvent: boolean;
@@ -31,7 +32,8 @@ export class EventEditComponent {
   constructor(
     public utilService: UtilService,
     public calendarService: CalendarService,
-    private windowsService: WindowsService
+    private windowsService: WindowsService,
+    private settingsService: SettingsService
   ) {}
 
   // Properties
@@ -46,7 +48,10 @@ export class EventEditComponent {
   eventEndTime: string | null = null;
 
   async ngOnInit() {
-    this.calendars = await this.calendarService.getCalendars();
+    const allowedCalendars = this.settingsService.getSettings().allowedCalendars;
+    this.calendars = (await this.calendarService.getCalendars()).filter((calendar) =>
+      allowedCalendars.includes(calendar.id)
+    );
 
     this.eventStartDate = this.parameters.event.startMoment.format('YYYY-MM-DD');
     this.eventEndDate = this.parameters.event.endMoment.format('YYYY-MM-DD');
