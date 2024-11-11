@@ -1,17 +1,16 @@
 <div id="backdrop"
      (click)="windowsService.closeWindow()"
-     [ngClass]="{'from-left': windowsService.openingSide == 'right', 'from-right': windowsService.openingSide == 'left'}">
+     [ngClass]="{'from-left': openingSide == 'left', 'from-right': openingSide == 'right'}">
 
   <div id="window"
        [@swipe]="{ value: true, params: getParameters()}"
-       (click)="$event.stopPropagation();">
+       (click)="$event.stopPropagation();"
+       *ngFor="let event of windowsService.windowQueue">
 
-    <app-events-list *ngIf="windowsService.isWindowOpen('list-events')"
-                     [parameters]="parameterAsEventList">
+    <app-events-list *ngIf="event.type == 'list-events'">
     </app-events-list>
 
-    <app-event-edit *ngIf="windowsService.isWindowOpen('edit-event')"
-                    [parameters]="parameterAsEventEdit">
+    <app-event-edit *ngIf="event.type == 'edit-event'">
     </app-event-edit>
 
   </div>

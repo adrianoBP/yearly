@@ -33,6 +33,7 @@ import {
   query,
   animateChild,
 } from '@angular/animations';
+import { MobileUtilService } from '../../services/mobile.util.service';
 
 @Component({
   selector: 'app-home',
@@ -79,13 +80,27 @@ export class HomeComponent {
     public calendarService: CalendarService,
     private settingsService: SettingsService,
     public windowsService: WindowsService,
-    private utilService: UtilService
+    private utilService: UtilService,
+    private mobileUtilService: MobileUtilService
   ) {
     this.authService = utilService.mockData
       ? this.injector.get(MockAuthService)
       : this.injector.get(GoogleAuthService);
 
     this.buildMonths();
+  }
+
+  async ngOnInit() {
+    this.addPageEventListeners();
+
+    this.settings = this.settingsService.getSettings();
+
+    Promise.all([this.calendarService.getCalendars()]).then(async (values) => {
+      this.calendars = values[0];
+
+      this.loadEventsIntoCalendars();
+      this.mobileUtilService.scrollTodayIntoView();
+    });
   }
 
   buildMonths() {
@@ -121,22 +136,6 @@ export class HomeComponent {
         events: [],
       } as Month;
     }
-  }
-
-  async ngOnInit() {
-    this.addPageEventListeners();
-
-    this.settings = this.settingsService.getSettings();
-
-    Promise.all([this.calendarService.getCalendars()]).then(async (values) => {
-      this.calendars = values[0];
-
-      this.loadEventsIntoCalendars();
-
-      const today = new Date();
-      const dayId = 'day-' + today.getDate() + '-' + today.getMonth() + '-' + today.getFullYear();
-      document.getElementById(dayId)!.scrollIntoView({ behavior: 'smooth' });
-    });
   }
 
   addPageEventListeners(): void {
@@ -232,9 +231,11 @@ export class HomeComponent {
     events: Event[];
     mouseEvent: MouseEvent;
   }) {
-    const side = mouseEvent.clientX < window.innerWidth / 2 ? 'left' : 'right';
+    // If user clicks on the left side of the screen, open the window on the right side and vice versa
+    const side = mouseEvent.clientX < window.innerWidth / 2 ? 'right' : 'left';
 
     if (this.calendarService.isAddingEvent) {
+      // TODO: Add to separate functions
       if (this.newEventStart == null) {
         this.newEventStart = date;
         return;
@@ -298,12 +299,26 @@ export class HomeComponent {
         'list-events',
         parameters,
         side,
-        async (deletedEvents: Event[]) => {
-          if (deletedEvents == null || deletedEvents.length == 0) return;
-
+        async (
+          {
+            deletedEvents,
+            updatedEvents,
+          }: {
+            deletedEvents: Event[];
+            updatedEvents: Event[];
+          } = { deletedEvents: [], updatedEvents: [] }
+        ) => {
           // Reflect changes in the calendar
-          const deletedEventsIds = deletedEvents.map((event) => event.id);
-          this.removeEventsFromCalendar(deletedEventsIds);
+
+          if (deletedEvents.length > 0) {
+            const deletedEventsIds = deletedEvents.map((event) => event.id);
+            this.removeEventsFromCalendar(deletedEventsIds);
+          }
+
+          if (updatedEvents.length > 0) {
+            this.removeEventsFromCalendar(updatedEvents.map((event) => event.id));
+            this.addEventsToCalendar(updatedEvents);
+          }
         }
       );
     }

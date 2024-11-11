@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, lastValueFrom } from 'rxjs';
 
-export type HTTPRequestType = 'get' | 'post' | 'delete';
+export type HTTPRequestType = 'get' | 'post' | 'patch' | 'delete';
 
 @Injectable({ providedIn: 'root' })
 export class HttpService {
@@ -20,11 +20,7 @@ export class HttpService {
     }
   }
 
-  async get<T>(
-    url: string,
-    headers: any = null,
-    tokenValidation?: () => boolean
-  ): Promise<T> {
+  async get<T>(url: string, headers: any = null, tokenValidation?: () => boolean): Promise<T> {
     if (tokenValidation != null && !tokenValidation()) throw 'Invalid token';
     const request = this.httpClient.get(url, { headers });
     return await this.webRequest(request);
@@ -45,11 +41,22 @@ export class HttpService {
     return (await this.webRequest(request)) as T;
   }
 
-  async delete<T>(
+  async patch<T>(
     url: string,
     headers: any = null,
+    body: any = null,
     tokenValidation?: () => boolean
   ): Promise<T> {
+    if (tokenValidation != null && !tokenValidation()) throw 'Invalid token';
+
+    // Convert JSON header
+    headers['Content-Type'] = 'application/json';
+
+    const request = this.httpClient.patch(url, body, { headers });
+    return (await this.webRequest(request)) as T;
+  }
+
+  async delete<T>(url: string, headers: any = null, tokenValidation?: () => boolean): Promise<T> {
     if (tokenValidation != null && !tokenValidation()) throw 'Invalid token';
     const request = this.httpClient.delete(url, { headers });
     return await this.webRequest(request);

@@ -1,7 +1,7 @@
 * {
   --window-width: 30%;
-  --window-height: 95%;
   --window-margin: 0 1rem 0 1rem;
+  --window-height: 95%;
   --window-alignment: center;
 }
 
@@ -12,6 +12,10 @@
     --window-height: 50%;
     --window-margin: 1rem auto 1rem auto;
     --window-alignment: end;
+  }
+
+  #backdrop {
+    justify-content: center !important;
   }
 }
 
@@ -42,6 +46,8 @@
   border-radius: 1rem;
 
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
+
+  position: absolute
 }
 
 #window>* {

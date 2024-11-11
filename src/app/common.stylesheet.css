@@ -32,7 +32,7 @@
 
   button:not(:disabled):hover {
     cursor: pointer;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.3);
   }
 
   ::-webkit-scrollbar-thumb:hover {
@@ -72,6 +72,14 @@
 
 .center-items-x {
   justify-content: center;
+}
+
+.fill-width {
+  width: 100%;
+}
+
+.fill-height {
+  height: 100%;
 }
 
 /* -- PADDING -- */
@@ -294,6 +302,10 @@
 }
 
 /* -- SHADOW -- */
+.raised-low {
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1);
+}
+
 .raised {
   box-shadow: 0 0.1rem 0.3em rgba(0, 0, 0, 0.15);
 }
@@ -462,6 +474,21 @@ button:active {
   filter: brightness(80%);
 }
 
+/* -- INPUT & SELECT */
+input,
+select {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #b3b3b3;
+  transition: all 0.3s;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
 /* -- CHECKBOX -- */
 input[type="checkbox"] {
   appearance: none;
@@ -518,6 +545,6 @@ span.pill {
   justify-content: center;
 
   border-radius: 0.6rem;
-  font-size: 0.8rem;
+  font-size: 90%;
   font-weight: 500;
 }

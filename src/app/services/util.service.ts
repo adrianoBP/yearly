@@ -22,10 +22,6 @@ export class UtilService {
     return this._mockData;
   }
 
-  isMobile(): boolean {
-    return window.innerWidth < 768;
-  }
-
   getFormattedDate(date: Date, format: string = 'ddd, Do MMMM YYYY'): string {
     return moment(date).format(format); // Format: 'Mon, 1 January 2021'
   }
@@ -52,5 +48,10 @@ export class UtilService {
       startMoment: moment(event.start.date ?? event.start.dateTime),
       endMoment: moment(event.end.date ?? event.end.dateTime),
     } as Event;
+  }
+
+  getCalendarColour(calendarId: string, calendars: GoogleCalendar[]): string {
+    const calendar = calendars.find((c) => c.id === calendarId);
+    return calendar ? calendar.backgroundColor : '';
   }
 }

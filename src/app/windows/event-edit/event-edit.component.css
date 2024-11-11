@@ -1,4 +1,3 @@
-@import url("../window.stylesheet.css");
 @import url("../../common.stylesheet.css");
 
 :host {
@@ -8,4 +7,12 @@
 
 #event-calendar {
   width: 100%;
+}
+
+#save-button {
+  flex: 4;
+}
+
+#back-button {
+  flex: 1;
 }

@@ -36,4 +36,12 @@ export class MockCalendarService {
       await this.deleteEvent(event);
     }
   }
+
+  async updateEvent(event: Event): Promise<void> {}
+
+  async updateEvents(events: Event[]): Promise<void> {}
+
+  async moveEvent(event: Event, originalCalendarId: string): Promise<void> {}
+
+  async moveEvents(events: Event[], originalCalendarId: string): Promise<void> {}
 }

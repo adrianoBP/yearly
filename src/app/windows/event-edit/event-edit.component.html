@@ -1,61 +1,69 @@
-<p class="font-xl bold margin-sides-auto margin-ends">✨ New Event ✨</p>
+<p class="font-xl bold margin-sides-auto margin-ends">{{this.parameters.isNewEvent ? '✨ New Event ✨' : '✏️ Edit Event
+       '}}</p>
 
-<div class="event-parameter margin-sides">
-        <label for="event-title"
-               class="font-m bold margin-ends">Title</label>
-        <input type="text"
-               id="event-title"
-               placeholder="Event title"
-               [(ngModel)]="this.parameters.event.title">
+<div class="column padding margin-sides">
+       <label for="event-title"
+              class="font-m bold margin-ends">Title</label>
+       <input type="text"
+              id="event-title"
+              placeholder="Event title"
+              [(ngModel)]="this.parameters.event.title">
 </div>
 
-<div class="event-parameter margin-sides">
-        <label for="event-start"
-               class="font-m bold">Start</label>
-        <div class="horizontal">
-                <input type="date"
-                       id="event-start"
-                       [(ngModel)]="eventStartDate">
-                <input type="time"
-                       id="event-start-time"
-                       class="margin-sides"
-                       [(ngModel)]="eventStartTime">
-        </div>
+<div class="column padding margin-sides">
+       <label for="event-start"
+              class="font-m bold">Start</label>
+       <div class="horizontal">
+              <input type="date"
+                     id="event-start"
+                     [(ngModel)]="eventStartDate">
+              <input type="time"
+                     id="event-start-time"
+                     class="margin-sides"
+                     [(ngModel)]="eventStartTime">
+       </div>
 </div>
 
-<div class="event-parameter margin-sides">
-        <label for="event-start"
-               class="font-m bold">End</label>
-        <div class="horizontal">
-                <input type="date"
-                       id="event-start"
-                       [(ngModel)]="eventEndDate">
-                <input type="time"
-                       id="event-start-time"
-                       class="margin-sides"
-                       [(ngModel)]="eventEndTime">
-        </div>
+<div class="column padding margin-sides">
+       <label for="event-start"
+              class="font-m bold">End</label>
+       <div class="horizontal">
+              <input type="date"
+                     id="event-start"
+                     [(ngModel)]="eventEndDate">
+              <input type="time"
+                     id="event-start-time"
+                     class="margin-sides"
+                     [(ngModel)]="eventEndTime">
+       </div>
 </div>
 
 
-<div class="event-parameter margin margin-bottom-heavy">
-        <label for="event-calendar"
-               class="font-m bold margin-bottom">Calendar</label>
-        <div class="horizontal center-items-y">
+<div class="column padding margin margin-bottom-heavy">
+       <label for="event-calendar"
+              class="font-m bold margin-bottom">Calendar</label>
+       <div class="horizontal center-items-y">
 
-                <select id="event-calendar"
-                        [(ngModel)]="this.selectedCalendar">
-                        <option *ngFor="let calendar of calendars"
-                                [ngValue]="calendar">{{utilService.getCalendarName(calendar)}}</option>
-                </select>
-                <div class="colour-indicator margin-sides"
-                     [ngClass]="{'raised': selectedCalendar != null}"
-                     [ngStyle]="{'background-color': selectedCalendar?.backgroundColor}"></div>
-        </div>
+              <select id="event-calendar"
+                      [(ngModel)]="this.selectedCalendar">
+                     <option *ngFor="let calendar of calendars"
+                             [ngValue]="calendar">{{utilService.getCalendarName(calendar)}}</option>
+              </select>
+              <div class="colour-indicator margin-sides"
+                   [ngClass]="{'raised': selectedCalendar != null}"
+                   [ngStyle]="{'background-color': selectedCalendar?.backgroundColor}"></div>
+       </div>
 
 </div>
 
-<button id="save-button"
-        class="bg-primary margin-top-auto margin-sides-heavy margin-bottom-heavy"
-        (click)="saveChanges()"
-        [disabled]="!canSave">Save</button>
+<footer class="row margin-top-auto fill-width center-items-x">
+       <button id="back-button"
+               class="margin-sides-heavy margin-bottom-heavy primary bg-light"
+               *ngIf="!this.parameters.isNewEvent"
+               (click)="$event.stopPropagation(); back()">Back</button>
+
+       <button id="save-button"
+               class="bg-primary margin-sides-heavy margin-bottom-heavy"
+               (click)="$event.stopPropagation(); saveChanges()"
+               [disabled]="!canSave">Save</button>
+</footer>

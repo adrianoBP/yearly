@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { WindowParameters, WindowsService } from '../windows.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +8,8 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarService } from '../../services/calendar.service';
 import { UtilService } from '../../services/util.service';
+import { EditEventParameters } from '../event-edit/event-edit.component';
+import { GoogleCalendar } from '../../services/google/calendar.service';
 
 export interface EventsListParameters extends WindowParameters {
   events: Event[];
@@ -27,22 +29,26 @@ interface EventDisplayDetails extends Event {
   styleUrl: './events-list.component.css',
 })
 export class EventsListComponent {
-  @Input() parameters!: EventsListParameters;
+  // FontAwesome icons
+  faTrash = faTrash;
+
+  // Properties
+  parameters: EventsListParameters;
+  events: EventDisplayDetails[] = [];
+  eventsToDelete: Event[] = [];
+  eventsToUpdate: Event[] = [];
+
+  availableCalendars: GoogleCalendar[] = [];
 
   constructor(
     public utilService: UtilService,
     private windowsService: WindowsService,
     private calendarService: CalendarService
-  ) {}
+  ) {
+    this.parameters = this.windowsService.getOpenedWindow()?.parameters as EventsListParameters;
+  }
 
-  // FontAwesome icons
-  faTrash = faTrash;
-
-  // Properties
-  events: EventDisplayDetails[] = [];
-  eventsToDelete: Event[] = [];
-
-  ngOnChanges(): void {
+  async ngOnInit(): Promise<void> {
     this.events = this.parameters.events.map((event) => {
       const startDate = moment(event.start);
       const endDate = moment(event.end);
@@ -65,6 +71,8 @@ export class EventsListComponent {
         endsNextDay: !endsSameDay && !isAllDay,
       };
     });
+
+    this.availableCalendars = await this.calendarService.getCalendars();
   }
 
   getTime(event: EventDisplayDetails): string {
@@ -79,6 +87,34 @@ export class EventsListComponent {
     return `${start.format('HH:mm')} - ${end.format('HH:mm')}`;
   }
 
+  openEvent(event: Event): void {
+    this.windowsService.openWindow(
+      'edit-event',
+      {
+        event,
+        isNewEvent: false,
+      } as EditEventParameters,
+      null,
+      (updatedEvent: Event) => {
+        if (updatedEvent) {
+          // Update the event colour
+          updatedEvent.colour = this.utilService.getCalendarColour(
+            updatedEvent.calendarId,
+            this.availableCalendars
+          );
+
+          event.colour = updatedEvent.colour;
+
+          // TODO: Check how to update the time + what happens to full days?
+
+          // Remove the old event from the list
+          this.eventsToUpdate = this.eventsToUpdate.filter((e) => e.id !== updatedEvent.id);
+          this.eventsToUpdate.push(updatedEvent);
+        }
+      }
+    );
+  }
+
   removeEvent(event: Event): void {
     this.eventsToDelete.push(event);
     this.events = this.events!.filter((e) => e.id !== event.id);
@@ -86,6 +122,10 @@ export class EventsListComponent {
 
   async saveChanges(): Promise<void> {
     await this.calendarService.deleteEvents(this.eventsToDelete);
-    this.windowsService.closeWindow(this.eventsToDelete); // Push events to delete to the parent window
+
+    this.windowsService.closeWindow({
+      deletedEvents: this.eventsToDelete,
+      updatedEvents: this.eventsToUpdate,
+    });
   }
 }

@@ -100,6 +100,18 @@ export class GoogleAuthService {
             ),
           reAuthorise
         );
+      case 'patch':
+        return await this.authWrapper<Promise<T>>(
+          async (): Promise<T> =>
+            await this.httpService.patch<T>(
+              url,
+              {
+                Authorization: `Bearer ${this.accessToken}`,
+              },
+              body
+            ),
+          reAuthorise
+        );
       case 'delete':
         return await this.authWrapper<Promise<T>>(
           async (): Promise<T> =>

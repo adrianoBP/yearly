@@ -14,6 +14,7 @@ import { WindowsService } from './windows/windows.service';
 
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { UtilService } from './services/util.service';
+import { MobileUtilService } from './services/mobile.util.service';
 
 const googleLoginOptions: GoogleInitOptions = {
   oneTapEnabled: true,
@@ -25,7 +26,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: 'version',
-      useValue: '0.0.2',
+      useValue: '0.1.3',
     },
     {
       provide: 'mockData',
@@ -53,5 +54,6 @@ export const appConfig: ApplicationConfig = {
     SettingsService,
     WindowsService,
     UtilService,
+    MobileUtilService,
   ],
 };

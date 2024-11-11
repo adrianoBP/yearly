@@ -108,18 +108,7 @@ export class GoogleCalendarService {
   }
 
   async createEvent(event: Event): Promise<GoogleCalendarEvent> {
-    const isFullDay =
-      event.startMoment.hours() === 0 &&
-      event.startMoment.minutes() === 0 &&
-      event.endMoment.hours() === 0 &&
-      event.endMoment.minutes() === 0;
-
-    const startDateTime = isFullDay
-      ? { date: event.startMoment.format('YYYY-MM-DD') }
-      : { dateTime: event.startMoment.toISOString() };
-    const endDateTime = isFullDay
-      ? { date: event.endMoment.format('YYYY-MM-DD') }
-      : { dateTime: event.endMoment.toISOString() };
+    const { start: startDateTime, end: endDateTime } = this.#getEventTime(event);
 
     const url = `${this.baseUrl}/calendars/${event.calendarId}/events`;
     return await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
@@ -139,5 +128,55 @@ export class GoogleCalendarService {
     for (const event of events) {
       await this.deleteEvent(event);
     }
+  }
+
+  async updateEvent(event: Event): Promise<GoogleCalendarEvent> {
+    const { start: startDateTime, end: endDateTime } = this.#getEventTime(event);
+
+    const url = `${this.baseUrl}/calendars/${event.calendarId}/events/${event.id}`;
+    return await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'patch', {
+      summary: event.title,
+      start: startDateTime,
+      end: endDateTime,
+    });
+  }
+
+  async updateEvents(events: Event[]): Promise<void> {
+    for (const event of events) {
+      await this.updateEvent(event);
+    }
+  }
+
+  async moveEvent(event: Event, originalCalendarId: string): Promise<GoogleCalendarEvent> {
+    const url = `${this.baseUrl}/calendars/${originalCalendarId}/events/${event.id}/move`;
+    return await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
+      destination: event.calendarId,
+    });
+  }
+
+  async moveEvents(events: Event[], originalCalendarId: string): Promise<void> {
+    for (const event of events) {
+      await this.moveEvent(event, originalCalendarId);
+    }
+  }
+
+  #getEventTime(event: Event): {
+    start: { date: string } | { dateTime: string };
+    end: { date: string } | { dateTime: string };
+  } {
+    const isFullDay =
+      event.startMoment.hours() === 0 &&
+      event.startMoment.minutes() === 0 &&
+      event.endMoment.hours() === 0 &&
+      event.endMoment.minutes() === 0;
+
+    const startDateTime = isFullDay
+      ? { date: event.startMoment.format('YYYY-MM-DD') }
+      : { dateTime: event.startMoment.toISOString() };
+    const endDateTime = isFullDay
+      ? { date: event.endMoment.format('YYYY-MM-DD') }
+      : { dateTime: event.endMoment.toISOString() };
+
+    return { start: startDateTime, end: endDateTime };
   }
 }

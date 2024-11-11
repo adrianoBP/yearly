@@ -10,46 +10,61 @@ export interface WindowParameters {
 
 export type WindowParametersType = EventsListParameters | EditEventParameters;
 
+interface Window {
+  type: WindowType;
+  parameters?: WindowParametersType;
+  side: 'left' | 'right';
+  onCloseEvent?: ((closingParameters: any) => void) | null;
+  onBackEvent?: (() => void) | null;
+}
+
 @Injectable()
 export class WindowsService {
   constructor() {}
 
-  // Live data
-  openedWindow: WindowType | null = null;
-  parameters: WindowParametersType | null = null;
-  onClosingEvent: ((closingParameters: any) => void) | null = null;
-
-  openingSide: 'left' | 'right' = 'left';
+  windowQueue: Window[] = [];
 
   anyWindowOpen(): boolean {
-    return this.openedWindow !== null;
-  }
-
-  isWindowOpen(type: WindowType): boolean {
-    return this.openedWindow === type;
+    return this.windowQueue.length > 0;
   }
 
   openWindow(
     type: WindowType,
     parameters?: WindowParametersType,
-    side: 'left' | 'right' = 'left',
-    onCloseEvent: ((closingParameters: any) => void) | null = null
+    side: 'left' | 'right' | null = 'left',
+    onCloseEvent: ((closingParameters: any) => void) | null = null,
+    onBackEvent: (() => void) | null = null
   ): void {
-    this.closeWindow(); // Ensure only one window is open at a time
-    this.openedWindow = type;
+    if (side == null) {
+      side = this.getOpenedWindow()?.side == null ? 'left' : this.getOpenedWindow()!.side;
+    }
 
-    if (parameters) this.parameters = parameters;
+    const window: Window = {
+      type,
+      parameters: parameters,
+      side,
+      onCloseEvent: onCloseEvent,
+      onBackEvent: onBackEvent,
+    };
 
-    this.openingSide = side;
-    this.onClosingEvent = onCloseEvent;
+    this.windowQueue.push(window);
+  }
+
+  getOpenedWindow(): Window | null {
+    return this.windowQueue[this.windowQueue.length - 1] || null;
   }
 
   closeWindow(closingParameters?: any): void {
-    this.openedWindow = null;
+    const closedWindow = this.windowQueue.pop();
+    if (closedWindow && closedWindow.onCloseEvent) {
+      closedWindow.onCloseEvent(closingParameters);
+    }
+  }
 
-    if (this.onClosingEvent) {
-      this.onClosingEvent(closingParameters);
-      this.onClosingEvent = null;
+  back(): void {
+    const closedWindow = this.windowQueue.pop();
+    if (closedWindow && closedWindow.onBackEvent) {
+      closedWindow.onBackEvent();
     }
   }
 }

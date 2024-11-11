@@ -46,4 +46,16 @@ export class CalendarService {
     const gcalEvent = await this.calendarAPIService.createEvent(event);
     return this.utilService.googleEventToEvent(gcalEvent, event.colour, event.calendarId);
   }
+
+  async updateEvent(event: Event): Promise<void> {
+    await this.calendarAPIService.updateEvent(event);
+  }
+
+  async updateEvents(events: Event[]) {
+    return this.calendarAPIService.updateEvents(events);
+  }
+
+  async moveEvent(event: Event, originalCalendarId: string) {
+    return this.calendarAPIService.moveEvent(event, originalCalendarId);
+  }
 }

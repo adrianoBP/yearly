@@ -1,4 +1,3 @@
-@import url("../window.stylesheet.css");
 @import url("../../common.stylesheet.css");
 
 :host {
@@ -7,10 +6,14 @@
 }
 
 .event-details {
-  display: flex;
-  align-items: center;
+  transition: all 0.3s;
+}
 
-  padding: 1rem;
+@media (hover: hover) {
+  .event-details:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
 }
 
 .event-details:not(:last-child) {
@@ -18,18 +21,7 @@
 }
 
 .event-details p {
-  margin: 0 0.5rem 0 0.5rem;
   max-width: 50%;
-}
-
-.event-details #event-time {
-  background: #bfeefd;
-  border-radius: 0.5rem;
-  padding: 0 0.5rem 0 0.5rem;
-  font-size: 90%;
-  border: 1px solid #009eb7;
-  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1);
-  margin-left: auto;
 }
 
 .event-details #event-delete {

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { WindowParameters, WindowsService } from '../windows.service';
 import { Event } from '../../interfaces/event.interface';
 import { UtilService } from '../../services/util.service';
@@ -27,25 +27,30 @@ export interface EditEventParameters extends WindowParameters {
   styleUrl: './event-edit.component.css',
 })
 export class EventEditComponent {
-  @Input() parameters!: EditEventParameters;
-
-  constructor(
-    public utilService: UtilService,
-    public calendarService: CalendarService,
-    private windowsService: WindowsService,
-    private settingsService: SettingsService
-  ) {}
+  parameters: EditEventParameters;
 
   // Properties
   calendars: GoogleCalendar[] = [];
 
   // Selection values
-  selectedCalendar: GoogleCalendar | null = null;
-
   eventStartDate: string | null = null;
   eventStartTime: string | null = null;
   eventEndDate: string | null = null;
   eventEndTime: string | null = null;
+  selectedCalendar: GoogleCalendar | null = null;
+
+  originalEvent: Event;
+
+  constructor(
+    public utilService: UtilService,
+    public calendarService: CalendarService,
+    public windowsService: WindowsService,
+    private settingsService: SettingsService
+  ) {
+    this.parameters = this.windowsService.getOpenedWindow()?.parameters as EditEventParameters;
+    // Make a copy of the event to allow for cancelling changes
+    this.originalEvent = { ...this.parameters.event };
+  }
 
   async ngOnInit() {
     this.calendars = await this.getCalendars();
@@ -55,10 +60,9 @@ export class EventEditComponent {
     this.eventStartTime = this.parameters.event.startMoment.format('HH:mm');
     this.eventEndTime = this.parameters.event.endMoment.format('HH:mm');
 
-    if (this.parameters.isNewEvent) {
-      this.selectedCalendar =
-        this.calendars.find((calendar) => calendar.primary) || this.calendars[0];
-    }
+    this.selectedCalendar = this.parameters.isNewEvent
+      ? this.calendars.find((calendar) => calendar.primary) || this.calendars[0]
+      : this.calendars.find((calendar) => calendar.id === this.parameters.event.calendarId) || null;
 
     // Focus on the title input
     document.getElementById('event-title')?.focus();
@@ -72,22 +76,37 @@ export class EventEditComponent {
     );
   }
 
+  back(): void {
+    // Copy the original event back to the event
+    Object.assign(this.parameters.event, this.originalEvent);
+
+    this.windowsService.back();
+  }
+
   async saveChanges(): Promise<void> {
     this.parameters.event.startMoment = moment(`${this.eventStartDate} ${this.eventStartTime}`);
     this.parameters.event.endMoment = moment(`${this.eventEndDate} ${this.eventEndTime}`);
 
     let event = this.parameters.event;
+    this.parameters.event.calendarId = this.selectedCalendar?.id || '';
 
     if (this.parameters.isNewEvent) {
-      this.parameters.event.calendarId = this.selectedCalendar?.id || '';
-
       event = await this.calendarService.createEvent(this.parameters.event);
       event.colour = this.selectedCalendar?.backgroundColor || event.colour;
     } else {
-      // TODO: Update existing event
+      // Update the event using the original calendar ID
+      await this.calendarService.updateEvent({
+        ...this.parameters.event,
+        calendarId: this.originalEvent.calendarId,
+      });
+
+      // Move the event if the calendar has changed
+      if (this.parameters.event.calendarId !== this.originalEvent.calendarId) {
+        await this.calendarService.moveEvent(this.parameters.event, this.originalEvent.calendarId);
+      }
     }
 
-    this.windowsService.closeWindow(event); // Push events to delete to the parent window
+    this.windowsService.closeWindow(event);
   }
 
   get canSave(): boolean {
