@@ -258,8 +258,6 @@ export class HomeComponent {
 
       const newEvent = {
         id: 'temp-id',
-        start: this.newEventStart,
-        end: this.newEventEnd,
         title: '',
         colour: '#ff0000',
         calendarId: this.calendars[0].id,

@@ -69,10 +69,12 @@ export class EventEditComponent {
   }
 
   async getCalendars(): Promise<GoogleCalendar[]> {
-    // Only show calendars where the user can edit events
     const allowedCalendars = this.settingsService.getSettings().allowedCalendars;
-    return (await this.calendarService.getCalendars()).filter((calendar) =>
-      allowedCalendars.includes(calendar.id)
+    return (await this.calendarService.getCalendars()).filter(
+      (calendar) =>
+        // TODO: Add to settings an option to only show ticked calendars
+        // allowedCalendars.includes(calendar.id)
+        calendar.accessRole === 'owner' || calendar.accessRole === 'writer'
     );
   }
 

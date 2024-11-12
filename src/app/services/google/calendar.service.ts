@@ -11,7 +11,7 @@ export interface GoogleCalendar {
   timezone: string;
   backgroundColor: string;
   foregroundColor: string;
-  accessRole: string;
+  accessRole: 'freeBusyReader' | 'owner' | 'reader' | 'writer';
   selected?: boolean;
   primary?: boolean;
 }

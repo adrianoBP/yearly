@@ -50,17 +50,14 @@ export class EventsListComponent {
 
   async ngOnInit(): Promise<void> {
     this.events = this.parameters.events.map((event) => {
-      const startDate = moment(event.start);
-      const endDate = moment(event.end);
-
       const startsAndEndsAtMidnight =
-        startDate.hour() === 0 &&
-        startDate.minute() === 0 &&
-        endDate.hour() === 0 &&
-        endDate.minute() === 0;
+        event.startMoment.hour() === 0 &&
+        event.startMoment.minute() === 0 &&
+        event.endMoment.hour() === 0 &&
+        event.endMoment.minute() === 0;
 
-      const startsSameDay = startDate.isSame(this.parameters.date, 'day');
-      const endsSameDay = endDate.isSame(this.parameters.date, 'day');
+      const startsSameDay = event.startMoment.isSame(this.parameters.date, 'day');
+      const endsSameDay = event.endMoment.isSame(this.parameters.date, 'day');
 
       const isAllDay = startsAndEndsAtMidnight || (!startsSameDay && !endsSameDay);
 
@@ -78,13 +75,10 @@ export class EventsListComponent {
   getTime(event: EventDisplayDetails): string {
     if (event.isAllDay) return 'All day';
 
-    const start = moment(event.start);
-    const end = moment(event.end);
+    if (event.startsPreviousDay) return `➡️ - ${event.endMoment.format('HH:mm')}`;
+    if (event.endsNextDay) return `${event.startMoment.format('HH:mm')} - ➡️`;
 
-    if (event.startsPreviousDay) return `➡️ - ${end.format('HH:mm')}`;
-    if (event.endsNextDay) return `${start.format('HH:mm')} - ➡️`;
-
-    return `${start.format('HH:mm')} - ${end.format('HH:mm')}`;
+    return `${event.startMoment.format('HH:mm')} - ${event.endMoment.format('HH:mm')}`;
   }
 
   openEvent(event: Event): void {
@@ -105,7 +99,7 @@ export class EventsListComponent {
 
           event.colour = updatedEvent.colour;
 
-          // TODO: Check how to update the time + what happens to full days?
+          // TODO: Update from full day event to in-day event and vice versa
 
           // Remove the old event from the list
           this.eventsToUpdate = this.eventsToUpdate.filter((e) => e.id !== updatedEvent.id);

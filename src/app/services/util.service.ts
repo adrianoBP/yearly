@@ -39,8 +39,6 @@ export class UtilService {
       id: event.id,
       title: event.summary,
       description: event.description,
-      start: moment(event.start.date ?? event.start.dateTime).toDate(),
-      end: moment(event.end.date ?? event.end.dateTime).toDate(),
       colour: backgroundColor,
 
       calendarId: calendarId,
