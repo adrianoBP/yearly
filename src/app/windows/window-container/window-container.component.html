@@ -1,0 +1,20 @@
+<!-- TODO: settings #4 -->
+<!-- TODO: settings #5: windowsService.back() or windowsService.backAllWindows()-->
+<div id="backdrop"
+     (click)="windowsService.back()"
+     [ngClass]="{'from-left': openingSide == 'left', 'from-right': openingSide == 'right'}">
+
+  <div id="window"
+       [@swipe]="{ value: true, params: getParameters()}"
+       (click)="$event.stopPropagation();"
+       *ngFor="let event of windowsService.windowQueue">
+
+    <app-events-list *ngIf="event.type == 'list-events'">
+    </app-events-list>
+
+    <app-event-edit *ngIf="event.type == 'edit-event'">
+    </app-event-edit>
+
+  </div>
+
+</div>

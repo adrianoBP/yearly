@@ -1,21 +1,18 @@
 import { Moment } from 'moment';
 
+// Events displayed in the UI
 export interface Event {
   id: string;
   title: string;
   description?: string;
-  start: Date;
-  end: Date;
   colour: string;
-  colorId: string;
 
-  startUTC: Moment;
-  endUTC: Moment;
-}
+  startMoment: Moment;
+  endMoment: Moment;
 
-export interface EventDay {
+  calendarId: string;
+
   isFirstDay: boolean;
   isLastDay: boolean;
-  colour: string;
   duration: number;
 }

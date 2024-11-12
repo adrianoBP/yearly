@@ -1,0 +1,35 @@
+@import url("../../common.stylesheet.css");
+
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+.event-details {
+  transition: all 0.3s;
+}
+
+@media (hover: hover) {
+  .event-details:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
+}
+
+.event-details:not(:last-child) {
+  border-bottom: 1px solid #efefef;
+}
+
+.event-details p {
+  max-width: 50%;
+}
+
+.event-details #event-delete {
+  transition: all 0.3s;
+}
+
+.event-details #event-delete:hover {
+  cursor: pointer;
+  text-shadow: 0 0 5px black;
+  transform: translateY(-2px);
+}

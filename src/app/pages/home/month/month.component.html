@@ -10,7 +10,7 @@
          *ngFor="let filler of fillerDays"></div>
     <app-day *ngFor="let day of month.days"
              [day]="day"
-             [events]="getDayEvents(day)"
+             [events]="this.eventsByDay[day.number]"
              [canCreateNewEvent]="canCreateNewEvent"
              (onDayClick)="onDayClickEvent($event)"></app-day>
   </div>

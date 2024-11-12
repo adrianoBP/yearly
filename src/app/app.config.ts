@@ -8,8 +8,13 @@ import {
   SocialAuthServiceConfig,
 } from '@abacritt/angularx-social-login';
 import { HttpClientModule } from '@angular/common/http';
+import { CalendarService } from './services/calendar.service';
+import { SettingsService } from './services/settings.service';
+import { WindowsService } from './windows/windows.service';
 
-export const mockData = false;
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { UtilService } from './services/util.service';
+import { MobileUtilService } from './services/mobile.util.service';
 
 const googleLoginOptions: GoogleInitOptions = {
   oneTapEnabled: true,
@@ -19,6 +24,15 @@ const googleLoginOptions: GoogleInitOptions = {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    {
+      provide: 'version',
+      useValue: '0.1.4',
+    },
+    {
+      provide: 'mockData',
+      useValue: false,
+    },
+    provideAnimationsAsync(),
     provideRouter(routes),
     importProvidersFrom(HttpClientModule),
     {
@@ -36,5 +50,10 @@ export const appConfig: ApplicationConfig = {
         ],
       } as SocialAuthServiceConfig,
     },
+    CalendarService,
+    SettingsService,
+    WindowsService,
+    UtilService,
+    MobileUtilService,
   ],
 };

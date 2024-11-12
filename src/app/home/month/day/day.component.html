@@ -1,8 +1,0 @@
-<div class="container">
-     <div class="selection"
-          *ngFor="let eventDay of sortedEvents"
-          [ngClass]="{'start': eventDay.isFirstDay, 'end': eventDay.isLastDay}"
-          [ngStyle]="{'background-color': eventDay.colour}"
-          (click)="onClick($event)"></div>
-     <p [ngClass]="{'selectable': canCreateNewEvent, 'isToday': isToday, 'isPast': isPast}">{{day.number}}</p>
-</div>

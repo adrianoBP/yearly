@@ -1,0 +1,18 @@
+<div class="container"
+     [id]="dayId"
+     (click)="onClick($event)">
+     <p
+        [ngClass]="{'is-adding-new-event': calendarService.isAddingEvent, 'isToday': isToday, 'isPast': isPast, 'pointer': events.length > 0}">
+          {{day.number}}</p>
+
+     <div class="selection"
+          *ngFor="let eventDay of sortedEvents"
+          [ngClass]="{'start': eventDay.isFirstDay, 'end': eventDay.isLastDay}"
+          [ngStyle]="{'background-color': eventDay.colour}"></div>
+
+     <div id="icons-container">
+          <div class="event-icon"
+               *ngFor="let icon of enabledIcons">{{icon}}</div>
+     </div>
+
+</div>

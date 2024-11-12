@@ -1,0 +1,18 @@
+@import url("../../common.stylesheet.css");
+
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+#event-calendar {
+  width: 100%;
+}
+
+#save-button {
+  flex: 4;
+}
+
+#back-button {
+  flex: 1;
+}
