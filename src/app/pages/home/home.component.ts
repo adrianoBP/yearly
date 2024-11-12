@@ -142,7 +142,8 @@ export class HomeComponent {
     // Read for Escape button to close windows
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
-        this.windowsService.closeWindow();
+        // TODO: settings #6
+        this.windowsService.backAllWindows();
       }
     });
   }

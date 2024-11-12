@@ -28,8 +28,16 @@ export class MonthComponent {
   // events dictionary
   eventsByDay: { [key: number]: Event[] } = {};
 
+  fillerDays: any[] = [];
+
   ngOnChanges(): void {
-    this.eventsByDay = {} as { [key: number]: Event[] };
+    // initialize the events dictionary
+    this.eventsByDay = this.month.days.reduce((acc, day) => {
+      acc[day.number] = [];
+      return acc;
+    }, {} as { [key: number]: Event[] });
+
+    this.fillerDays = new Array(this.weekDays.indexOf(this.month.days[0].weekDay));
 
     for (let event of this.events) {
       const eventStartDateTime = event.startMoment;
@@ -65,9 +73,6 @@ export class MonthComponent {
       }
 
       for (let dayNumber = startDay; dayNumber <= endDay; dayNumber++) {
-        // if the day is not in the dictionary, add it
-        if (this.eventsByDay[dayNumber] == null) this.eventsByDay[dayNumber] = [];
-
         const momentDay = moment(new Date(`${this.year}-${this.month.number + 1}-${dayNumber}`));
 
         // add the event to the dictionary
@@ -79,16 +84,6 @@ export class MonthComponent {
         } as Event);
       }
     }
-  }
-
-  get fillerDays() {
-    const firstDayOfMonth = this.month.days[0].weekDay;
-    return new Array(this.weekDays.indexOf(firstDayOfMonth));
-  }
-
-  getDayEvents(day: Day): Event[] {
-    if (this.eventsByDay[day.number] == null) return [];
-    return this.eventsByDay[day.number];
   }
 
   onDayClickEvent({ day, mouseEvent }: { day: Day; mouseEvent: MouseEvent }) {

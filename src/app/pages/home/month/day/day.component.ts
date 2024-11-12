@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { Day } from '../../../../interfaces/month.interface';
 import { Event } from '../../../../interfaces/event.interface';
 import { CommonModule } from '@angular/common';
@@ -26,8 +26,15 @@ export class DayComponent {
     mouseEvent: MouseEvent;
   }>();
 
-  today;
+  today: moment.Moment;
   dayId: string = '';
+
+  // Properties
+  isToday: boolean = false;
+  isPast: boolean = false;
+  sortedEvents: Event[] = [];
+  enabledIcons: string[] = [];
+
   constructor(public calendarService: CalendarService) {
     this.today = moment();
   }
@@ -38,7 +45,16 @@ export class DayComponent {
     flight: { enabled: false, icon: '✈️' } as EventIcon,
   };
 
-  ngOnChanges(): void {
+  ngOnChanges(changes: {
+    events: { previousValue: any[]; currentValue: any[]; firstChange: boolean };
+  }): void {
+    if (
+      !changes.events.firstChange &&
+      changes.events.currentValue.length == 0 &&
+      changes.events.previousValue.length == 0
+    )
+      return;
+
     // Ensure we have a unique day id to be able to scroll to this element
     this.dayId = `day-${this.day.date.getDate()}-${this.day.date.getMonth()}-${this.day.date.getFullYear()}`;
 
@@ -52,41 +68,20 @@ export class DayComponent {
         this.eventIcons['flight'].enabled = true;
       }
     }
+
+    this.updatedParameters();
+  }
+
+  updatedParameters(): void {
+    this.isToday = this.today.isSame(this.day.date, 'day');
+    this.isPast = this.today.isAfter(this.day.date, 'day');
+    this.sortedEvents = this.events.sort((a, b) => b.duration - a.duration);
+    this.enabledIcons = Object.keys(this.eventIcons)
+      .filter((key) => this.eventIcons[key].enabled)
+      .map((key) => this.eventIcons[key].icon);
   }
 
   onClick(mouseEvent: MouseEvent): void {
     this.onDayClick.emit({ day: this.day, mouseEvent });
-  }
-
-  get isToday(): boolean {
-    return this.today.isSame(this.day.date, 'day');
-  }
-
-  get isPast(): boolean {
-    return this.today.isAfter(this.day.date, 'day');
-  }
-
-  get sortedEvents(): Event[] {
-    return this.events.sort((a, b) => b.duration - a.duration);
-  }
-
-  get eventCalendars() {
-    const eventsByCalendar: { [key: string]: string } = {};
-    for (const event of this.events) {
-      if (!eventsByCalendar[event.calendarId]) {
-        eventsByCalendar[event.calendarId] = event.colour;
-      }
-    }
-
-    return Object.keys(eventsByCalendar).map((key) => ({
-      calendarId: key,
-      colour: eventsByCalendar[key],
-    }));
-  }
-
-  get getEnabledIcons() {
-    return Object.keys(this.eventIcons)
-      .filter((key) => this.eventIcons[key].enabled)
-      .map((key) => this.eventIcons[key].icon);
   }
 }
