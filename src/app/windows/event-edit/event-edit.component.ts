@@ -79,13 +79,6 @@ export class EventEditComponent {
     );
   }
 
-  back(): void {
-    // Copy the original event back to the event
-    Object.assign(this.parameters.event, this.originalEvent);
-
-    this.windowsService.back();
-  }
-
   async saveChanges(): Promise<void> {
     this.parameters.event.startMoment = moment(`${this.eventStartDate} ${this.eventStartTime}`);
     this.parameters.event.endMoment = moment(`${this.eventEndDate} ${this.eventEndTime}`);

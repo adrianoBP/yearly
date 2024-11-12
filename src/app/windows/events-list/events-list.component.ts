@@ -83,6 +83,7 @@ export class EventsListComponent {
   }
 
   openEvent(event: EventDisplayDetails): void {
+    const originalEvent = { ...event };
     this.windowsService.openWindow(
       'edit-event',
       {
@@ -91,6 +92,7 @@ export class EventsListComponent {
       } as EditEventParameters,
       null,
       (updatedEvent: EventDisplayDetails) => {
+        // on SAVE
         if (updatedEvent) {
           // Update the event colour
           updatedEvent.colour = this.utilService.getCalendarColour(
@@ -108,6 +110,10 @@ export class EventsListComponent {
           this.eventsToUpdate = this.eventsToUpdate.filter((e) => e.id !== updatedEvent.id);
           this.eventsToUpdate.push(updatedEvent);
         }
+      },
+      () => {
+        // on BACK
+        Object.assign(event, originalEvent);
       }
     );
   }

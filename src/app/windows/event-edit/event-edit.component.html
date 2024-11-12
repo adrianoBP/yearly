@@ -60,7 +60,7 @@
        <button id="back-button"
                class="margin-sides-heavy margin-bottom-heavy primary bg-light"
                *ngIf="!this.parameters.isNewEvent"
-               (click)="$event.stopPropagation(); back()">Back</button>
+               (click)="$event.stopPropagation(); windowsService.back()">Back</button>
 
        <button id="save-button"
                class="bg-primary margin-sides-heavy margin-bottom-heavy"
