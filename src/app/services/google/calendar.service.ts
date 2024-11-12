@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { SocialUser } from '@abacritt/angularx-social-login';
 import { GoogleAuthService } from './auth.service';
 import moment from 'moment';
 import { Event } from '../../interfaces/event.interface';
@@ -59,9 +58,6 @@ export interface GoogleCalendarColor {
 
 @Injectable({ providedIn: 'root' })
 export class GoogleCalendarService {
-  socialUser?: SocialUser;
-  isLoggedIn?: boolean;
-
   constructor(private googleAuthService: GoogleAuthService) {}
 
   private baseUrl = 'https://www.googleapis.com/calendar/v3';
@@ -171,11 +167,11 @@ export class GoogleCalendarService {
       event.endMoment.minutes() === 0;
 
     const startDateTime = isFullDay
-      ? { date: event.startMoment.format('YYYY-MM-DD') }
-      : { dateTime: event.startMoment.toISOString() };
+      ? { date: event.startMoment.format('YYYY-MM-DD'), dateTime: null }
+      : { dateTime: event.startMoment.toISOString(), date: null };
     const endDateTime = isFullDay
-      ? { date: event.endMoment.format('YYYY-MM-DD') }
-      : { dateTime: event.endMoment.toISOString() };
+      ? { date: event.endMoment.format('YYYY-MM-DD'), dateTime: null }
+      : { dateTime: event.endMoment.toISOString(), date: null };
 
     return { start: startDateTime, end: endDateTime };
   }

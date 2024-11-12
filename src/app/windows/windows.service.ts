@@ -61,10 +61,22 @@ export class WindowsService {
     }
   }
 
+  closeAllWindows(): void {
+    while (this.anyWindowOpen()) {
+      this.closeWindow();
+    }
+  }
+
   back(): void {
     const closedWindow = this.windowQueue.pop();
     if (closedWindow && closedWindow.onBackEvent) {
       closedWindow.onBackEvent();
+    }
+  }
+
+  backAllWindows(): void {
+    while (this.anyWindowOpen()) {
+      this.back();
     }
   }
 }

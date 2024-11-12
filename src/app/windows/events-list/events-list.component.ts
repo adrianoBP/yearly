@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { WindowParameters, WindowsService } from '../windows.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import moment from 'moment';
 import { Event } from '../../interfaces/event.interface';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -15,10 +14,10 @@ export interface EventsListParameters extends WindowParameters {
   events: Event[];
 }
 
-interface EventDisplayDetails extends Event {
+export interface EventDisplayDetails extends Event {
   isAllDay: boolean;
-  startsPreviousDay: boolean;
-  endsNextDay: boolean;
+  startsBefore: boolean;
+  endsAfter: boolean;
 }
 
 @Component({
@@ -49,39 +48,41 @@ export class EventsListComponent {
   }
 
   async ngOnInit(): Promise<void> {
-    this.events = this.parameters.events.map((event) => {
-      const startsAndEndsAtMidnight =
-        event.startMoment.hour() === 0 &&
-        event.startMoment.minute() === 0 &&
-        event.endMoment.hour() === 0 &&
-        event.endMoment.minute() === 0;
-
-      const startsSameDay = event.startMoment.isSame(this.parameters.date, 'day');
-      const endsSameDay = event.endMoment.isSame(this.parameters.date, 'day');
-
-      const isAllDay = startsAndEndsAtMidnight || (!startsSameDay && !endsSameDay);
-
-      return {
-        ...event,
-        isAllDay,
-        startsPreviousDay: !startsSameDay && !isAllDay,
-        endsNextDay: !endsSameDay && !isAllDay,
-      };
-    });
-
+    this.events = this.parameters.events.map(this.eventToDisplayEvent.bind(this));
     this.availableCalendars = await this.calendarService.getCalendars();
+  }
+
+  eventToDisplayEvent(event: Event): EventDisplayDetails {
+    const startsAtMidnight = event.startMoment.hour() === 0 && event.startMoment.minute() === 0;
+    const endsAtMidnight = event.endMoment.hour() === 0 && event.endMoment.minute() === 0;
+    const endsTonightAtMidnight =
+      endsAtMidnight &&
+      event.endMoment.clone().subtract(1, 'day').isSame(this.parameters.date, 'day');
+
+    const startsBeforeDate = event.startMoment.isBefore(this.parameters.date, 'day');
+    const endsAfterDate =
+      event.endMoment.isAfter(this.parameters.date, 'day') && !endsTonightAtMidnight;
+
+    const isAllDay = (startsBeforeDate || startsAtMidnight) && (endsAfterDate || endsAtMidnight);
+
+    return {
+      ...event,
+      isAllDay,
+      startsBefore: startsBeforeDate,
+      endsAfter: endsAfterDate,
+    };
   }
 
   getTime(event: EventDisplayDetails): string {
     if (event.isAllDay) return 'All day';
 
-    if (event.startsPreviousDay) return `➡️ - ${event.endMoment.format('HH:mm')}`;
-    if (event.endsNextDay) return `${event.startMoment.format('HH:mm')} - ➡️`;
+    if (event.startsBefore) return `➡️ - ${event.endMoment.format('HH:mm')}`;
+    if (event.endsAfter) return `${event.startMoment.format('HH:mm')} - ➡️`;
 
     return `${event.startMoment.format('HH:mm')} - ${event.endMoment.format('HH:mm')}`;
   }
 
-  openEvent(event: Event): void {
+  openEvent(event: EventDisplayDetails): void {
     this.windowsService.openWindow(
       'edit-event',
       {
@@ -89,7 +90,7 @@ export class EventsListComponent {
         isNewEvent: false,
       } as EditEventParameters,
       null,
-      (updatedEvent: Event) => {
+      (updatedEvent: EventDisplayDetails) => {
         if (updatedEvent) {
           // Update the event colour
           updatedEvent.colour = this.utilService.getCalendarColour(
@@ -97,9 +98,11 @@ export class EventsListComponent {
             this.availableCalendars
           );
 
-          event.colour = updatedEvent.colour;
-
-          // TODO: Update from full day event to in-day event and vice versa
+          // Update time display
+          const { isAllDay, startsBefore, endsAfter } = this.eventToDisplayEvent(updatedEvent);
+          updatedEvent.isAllDay = isAllDay;
+          updatedEvent.startsBefore = startsBefore;
+          updatedEvent.endsAfter = endsAfter;
 
           // Remove the old event from the list
           this.eventsToUpdate = this.eventsToUpdate.filter((e) => e.id !== updatedEvent.id);

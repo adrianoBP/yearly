@@ -9,10 +9,11 @@ import { CalendarService } from '../../services/calendar.service';
 import { GoogleCalendar } from '../../services/google/calendar.service';
 import moment from 'moment';
 import { SettingsService } from '../../services/settings.service';
+import { EventDisplayDetails } from '../events-list/events-list.component';
 
 export interface EditEventParameters extends WindowParameters {
   isNewEvent: boolean;
-  event: Event;
+  event: EventDisplayDetails;
 
   // Options for new events
   startDate?: Date;
@@ -72,7 +73,7 @@ export class EventEditComponent {
     const allowedCalendars = this.settingsService.getSettings().allowedCalendars;
     return (await this.calendarService.getCalendars()).filter(
       (calendar) =>
-        // TODO: Add to settings an option to only show ticked calendars
+        // TODO: settings #3
         // allowedCalendars.includes(calendar.id)
         calendar.accessRole === 'owner' || calendar.accessRole === 'writer'
     );
@@ -93,7 +94,9 @@ export class EventEditComponent {
     this.parameters.event.calendarId = this.selectedCalendar?.id || '';
 
     if (this.parameters.isNewEvent) {
-      event = await this.calendarService.createEvent(this.parameters.event);
+      event = (await this.calendarService.createEvent(
+        this.parameters.event
+      )) as EventDisplayDetails;
       event.colour = this.selectedCalendar?.backgroundColor || event.colour;
     } else {
       // Update the event using the original calendar ID
@@ -112,7 +115,11 @@ export class EventEditComponent {
   }
 
   get canSave(): boolean {
-    // TODO: Check end date is after start date (or all day)
-    return this.selectedCalendar !== null && this.parameters.event.title !== '';
+    if (this.selectedCalendar == null || this.parameters.event.title == '') return false;
+
+    const startMoment = moment(`${this.eventStartDate} ${this.eventStartTime}`);
+    const endMoment = moment(`${this.eventEndDate} ${this.eventEndTime}`);
+
+    return startMoment.isValid() && endMoment.isValid() && endMoment.isAfter(startMoment);
   }
 }

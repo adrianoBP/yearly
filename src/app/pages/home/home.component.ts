@@ -198,7 +198,9 @@ export class HomeComponent {
   async loadEventsIntoCalendar(calendar: GoogleCalendar, start: Date, end: Date) {
     try {
       let events = (await this.calendarService.getEvents(start, end, calendar.id))
-        // remove recurring and declined events  // TODO: this should be a setting
+        // remove recurring and declined events
+        // TODO: settings #1
+        // TODO: settings #2
         .filter((event) => event.recurringEventId == null && !this.isEventDeclined(event))
         .map((event) =>
           this.utilService.googleEventToEvent(event, calendar.backgroundColor, calendar.id)
