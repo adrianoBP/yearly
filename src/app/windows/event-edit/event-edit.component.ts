@@ -10,6 +10,7 @@ import { GoogleCalendar } from '../../services/google/calendar.service';
 import moment from 'moment';
 import { SettingsService } from '../../services/settings.service';
 import { EventDisplayDetails } from '../events-list/events-list.component';
+import { faFan } from '@fortawesome/free-solid-svg-icons';
 
 export interface EditEventParameters extends WindowParameters {
   isNewEvent: boolean;
@@ -28,10 +29,16 @@ export interface EditEventParameters extends WindowParameters {
   styleUrl: './event-edit.component.css',
 })
 export class EventEditComponent {
+  // Font awesome icons
+  fanIcon = faFan;
+
   parameters: EditEventParameters;
 
   // Properties
   calendars: GoogleCalendar[] = [];
+  originalEvent: Event;
+  isSaving: boolean = false;
+  canEdit: boolean = false;
 
   // Selection values
   eventStartDate: string | null = null;
@@ -39,8 +46,6 @@ export class EventEditComponent {
   eventEndDate: string | null = null;
   eventEndTime: string | null = null;
   selectedCalendar: GoogleCalendar | null = null;
-
-  originalEvent: Event;
 
   constructor(
     public utilService: UtilService,
@@ -54,6 +59,9 @@ export class EventEditComponent {
   }
 
   async ngOnInit() {
+    this.canEdit =
+      this.parameters.event.eventType == 'default' && this.parameters.event.creator.self;
+
     this.calendars = await this.getCalendars();
 
     this.eventStartDate = this.parameters.event.startMoment.format('YYYY-MM-DD');
@@ -80,6 +88,8 @@ export class EventEditComponent {
   }
 
   async saveChanges(): Promise<void> {
+    this.isSaving = true;
+
     this.parameters.event.startMoment = moment(`${this.eventStartDate} ${this.eventStartTime}`);
     this.parameters.event.endMoment = moment(`${this.eventEndDate} ${this.eventEndTime}`);
 
@@ -87,24 +97,33 @@ export class EventEditComponent {
     this.parameters.event.calendarId = this.selectedCalendar?.id || '';
 
     if (this.parameters.isNewEvent) {
-      event = (await this.calendarService.createEvent(
-        this.parameters.event
-      )) as EventDisplayDetails;
-      event.colour = this.selectedCalendar?.backgroundColor || event.colour;
+      event = { ...(await this.createEvent(event)) };
     } else {
-      // Update the event using the original calendar ID
-      await this.calendarService.updateEvent({
-        ...this.parameters.event,
-        calendarId: this.originalEvent.calendarId,
-      });
-
-      // Move the event if the calendar has changed
-      if (this.parameters.event.calendarId !== this.originalEvent.calendarId) {
-        await this.calendarService.moveEvent(this.parameters.event, this.originalEvent.calendarId);
-      }
+      await this.updateEvent();
     }
 
+    this.isSaving = false;
+
     this.windowsService.closeWindow(event);
+  }
+
+  async createEvent(event: EventDisplayDetails): Promise<EventDisplayDetails> {
+    event = (await this.calendarService.createEvent(this.parameters.event)) as EventDisplayDetails;
+    event.colour = this.selectedCalendar?.backgroundColor || event.colour;
+    return event;
+  }
+
+  async updateEvent() {
+    // Update the event using the original calendar ID
+    await this.calendarService.updateEvent({
+      ...this.parameters.event,
+      calendarId: this.originalEvent.calendarId,
+    });
+
+    // Move the event if the calendar has changed
+    if (this.parameters.event.calendarId !== this.originalEvent.calendarId) {
+      await this.calendarService.moveEvent(this.parameters.event, this.originalEvent.calendarId);
+    }
   }
 
   get canSave(): boolean {

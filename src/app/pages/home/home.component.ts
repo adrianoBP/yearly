@@ -263,6 +263,7 @@ export class HomeComponent {
         id: 'temp-id',
         title: '',
         colour: '#ff0000',
+        eventType: 'default',
         calendarId: this.calendars[0].id,
 
         startMoment: moment(this.newEventStart),
@@ -282,10 +283,14 @@ export class HomeComponent {
           if (createdEvent) {
             this.addEventsToCalendar([createdEvent]);
           }
-
           // Remove the temporary event from the calendar
           this.removeEventsFromCalendar([newEvent.id]);
-
+          this.newEventStart = null;
+          this.newEventEnd = null;
+        },
+        () => {
+          // Remove the temporary event from the calendar
+          this.removeEventsFromCalendar([newEvent.id]);
           this.newEventStart = null;
           this.newEventEnd = null;
         }

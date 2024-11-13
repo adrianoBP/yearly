@@ -3,7 +3,7 @@ import { WindowParameters, WindowsService } from '../windows.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Event } from '../../interfaces/event.interface';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faFan } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarService } from '../../services/calendar.service';
 import { UtilService } from '../../services/util.service';
@@ -30,12 +30,14 @@ export interface EventDisplayDetails extends Event {
 export class EventsListComponent {
   // FontAwesome icons
   faTrash = faTrash;
+  fanIcon = faFan;
 
   // Properties
   parameters: EventsListParameters;
   events: EventDisplayDetails[] = [];
   eventsToDelete: Event[] = [];
   eventsToUpdate: Event[] = [];
+  isSaving: boolean = false;
 
   availableCalendars: GoogleCalendar[] = [];
 
@@ -124,7 +126,9 @@ export class EventsListComponent {
   }
 
   async saveChanges(): Promise<void> {
+    this.isSaving = true;
     await this.calendarService.deleteEvents(this.eventsToDelete);
+    this.isSaving = false;
 
     this.windowsService.closeWindow({
       deletedEvents: this.eventsToDelete,
