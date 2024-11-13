@@ -40,6 +40,8 @@ export class UtilService {
       title: event.summary,
       description: event.description,
       colour: backgroundColor,
+      eventType: event.eventType,
+      creator: event.creator,
 
       calendarId: calendarId,
 

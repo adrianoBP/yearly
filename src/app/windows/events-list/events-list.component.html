@@ -23,4 +23,11 @@
 <button id="save-button"
         class="bg-primary margin-top-auto margin-sides-heavy margin-bottom-heavy"
         (click)="saveChanges()"
-        [disabled]="this.eventsToDelete.length == 0 && this.eventsToUpdate.length == 0">Save</button>
+        [disabled]="isSaving || (this.eventsToDelete.length == 0 && this.eventsToUpdate.length == 0)">
+     {{isSaving ? '' : 'Save'}}
+     <fa-icon *ngIf="isSaving"
+              [icon]="fanIcon"
+              [size]="'lg'"
+              [spin]="true">
+     </fa-icon>
+</button>

@@ -7,7 +7,8 @@
        <input type="text"
               id="event-title"
               placeholder="Event title"
-              [(ngModel)]="this.parameters.event.title">
+              [(ngModel)]="this.parameters.event.title"
+              [disabled]="!canEdit">
 </div>
 
 <div class="column padding margin-sides">
@@ -16,11 +17,13 @@
        <div class="horizontal">
               <input type="date"
                      id="event-start"
-                     [(ngModel)]="eventStartDate">
+                     [(ngModel)]="eventStartDate"
+                     [disabled]="!canEdit">
               <input type="time"
                      id="event-start-time"
                      class="margin-sides"
-                     [(ngModel)]="eventStartTime">
+                     [(ngModel)]="eventStartTime"
+                     [disabled]="!canEdit">
        </div>
 </div>
 
@@ -30,11 +33,13 @@
        <div class="horizontal">
               <input type="date"
                      id="event-start"
-                     [(ngModel)]="eventEndDate">
+                     [(ngModel)]="eventEndDate"
+                     [disabled]="!canEdit">
               <input type="time"
                      id="event-start-time"
                      class="margin-sides"
-                     [(ngModel)]="eventEndTime">
+                     [(ngModel)]="eventEndTime"
+                     [disabled]="!canEdit">
        </div>
 </div>
 
@@ -45,7 +50,8 @@
        <div class="horizontal center-items-y">
 
               <select id="event-calendar"
-                      [(ngModel)]="this.selectedCalendar">
+                      [(ngModel)]="this.selectedCalendar"
+                      [disabled]="!canEdit">
                      <option *ngFor="let calendar of calendars"
                              [ngValue]="calendar">{{utilService.getCalendarName(calendar)}}</option>
               </select>
@@ -65,5 +71,12 @@
        <button id="save-button"
                class="bg-primary margin-sides-heavy margin-bottom-heavy"
                (click)="$event.stopPropagation(); saveChanges()"
-               [disabled]="!canSave">Save</button>
+               [disabled]="!canSave || isSaving || !canEdit">
+              {{isSaving ? '' : 'Save'}}
+              <fa-icon *ngIf="isSaving"
+                       [icon]="fanIcon"
+                       [size]="'lg'"
+                       [spin]="true">
+              </fa-icon>
+       </button>
 </footer>

@@ -20,11 +20,13 @@ export interface GoogleCalendarEvent {
   htmlLink?: string;
   summary: string;
   description?: string;
+  creator: GoogleCalendarEventPerson;
   organizer: GoogleCalendarEventPerson;
   start: GoogleCalendarEventDate;
   end: GoogleCalendarEventDate;
   recurringEventId?: string;
   attendees?: GoogleCalendarEventPerson[];
+  eventType: 'birthday' | 'default' | 'focusTime' | 'fromGmail' | 'outOfOffice' | 'workingLocation';
 }
 
 export interface GoogleCalendarEventPerson {
