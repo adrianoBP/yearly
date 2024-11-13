@@ -1,8 +1,7 @@
-import { Component, Injector } from '@angular/core';
+import { Component } from '@angular/core';
 import { Day, Month, WeekDay } from '../../interfaces/month.interface';
 import { CommonModule, KeyValue } from '@angular/common';
 import { MonthComponent } from './month/month.component';
-import { GoogleAuthService } from '../../services/google/auth.service';
 import { GoogleCalendarEvent, GoogleCalendar } from '../../services/google/calendar.service';
 import { Event } from '../../interfaces/event.interface';
 import moment from 'moment';
@@ -15,7 +14,6 @@ import {
   faCog,
   faSignOutAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import { MockAuthService } from '../../services/mock/auth.service';
 import { Router } from '@angular/router';
 import { CalendarService } from '../../services/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
@@ -34,6 +32,7 @@ import {
   animateChild,
 } from '@angular/animations';
 import { MobileUtilService } from '../../services/mobile.util.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -72,21 +71,15 @@ export class HomeComponent {
 
   calendars: GoogleCalendar[] = [];
 
-  authService: GoogleAuthService | MockAuthService;
-
   constructor(
-    private injector: Injector,
     public router: Router,
+    public authService: AuthService,
     public calendarService: CalendarService,
     private settingsService: SettingsService,
     public windowsService: WindowsService,
     private utilService: UtilService,
     private mobileUtilService: MobileUtilService
   ) {
-    this.authService = utilService.mockData
-      ? this.injector.get(MockAuthService)
-      : this.injector.get(GoogleAuthService);
-
     this.buildMonths();
   }
 

@@ -11,6 +11,7 @@ import moment from 'moment';
 import { SettingsService } from '../../services/settings.service';
 import { EventDisplayDetails } from '../events-list/events-list.component';
 import { faFan } from '@fortawesome/free-solid-svg-icons';
+import { AuthService } from '../../services/auth.service';
 
 export interface EditEventParameters extends WindowParameters {
   isNewEvent: boolean;
@@ -51,7 +52,8 @@ export class EventEditComponent {
     public utilService: UtilService,
     public calendarService: CalendarService,
     public windowsService: WindowsService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private authService: AuthService
   ) {
     this.parameters = this.windowsService.getOpenedWindow()?.parameters as EditEventParameters;
     // Make a copy of the event to allow for cancelling changes
@@ -60,7 +62,8 @@ export class EventEditComponent {
 
   async ngOnInit() {
     this.canEdit =
-      this.parameters.event.eventType == 'default' && this.parameters.event.creator.self;
+      this.parameters.event.eventType == 'default' &&
+      this.parameters.event.creator.email == this.authService.socialUser?.email;
 
     this.calendars = await this.getCalendars();
 

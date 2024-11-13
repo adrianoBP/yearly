@@ -12,11 +12,17 @@
      <span
            class="pill padding-sides margin-sides margin-left-auto blue bg-light border raised-low">{{getTime(event)}}</span>
 
-     <fa-icon id="event-delete"
+     <fa-icon *ngIf="event.eventType == 'default' && event.creator.email == this.authService.socialUser?.email"
+              id="event-delete"
               class="red"
               [icon]="faTrash"
               [size]="'sm'"
               (click)="removeEvent(event)"></fa-icon>
+
+     <fa-icon *ngIf="event.eventType != 'default' || event.creator.email != this.authService.socialUser?.email"
+              class="grey-500"
+              [icon]="faLock"
+              [size]="'sm'"></fa-icon>
 
 </div>
 

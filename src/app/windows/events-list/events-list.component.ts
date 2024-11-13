@@ -3,12 +3,13 @@ import { WindowParameters, WindowsService } from '../windows.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Event } from '../../interfaces/event.interface';
-import { faTrash, faFan } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faFan, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarService } from '../../services/calendar.service';
 import { UtilService } from '../../services/util.service';
 import { EditEventParameters } from '../event-edit/event-edit.component';
 import { GoogleCalendar } from '../../services/google/calendar.service';
+import { AuthService } from '../../services/auth.service';
 
 export interface EventsListParameters extends WindowParameters {
   events: Event[];
@@ -31,6 +32,7 @@ export class EventsListComponent {
   // FontAwesome icons
   faTrash = faTrash;
   fanIcon = faFan;
+  faLock = faLock;
 
   // Properties
   parameters: EventsListParameters;
@@ -44,7 +46,8 @@ export class EventsListComponent {
   constructor(
     public utilService: UtilService,
     private windowsService: WindowsService,
-    private calendarService: CalendarService
+    private calendarService: CalendarService,
+    public authService: AuthService
   ) {
     this.parameters = this.windowsService.getOpenedWindow()?.parameters as EventsListParameters;
   }
