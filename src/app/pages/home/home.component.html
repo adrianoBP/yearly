@@ -1,6 +1,5 @@
 <!-- TODO: Move nav to its own component -->
 <nav>
-
   <div id="info">
     <h3>Yearly</h3>
     <!-- <p class="mobile-hidden">{{authService.socialUser?.firstName}}'s calendar</p>
@@ -9,32 +8,42 @@
     <div id="year-selection"
          class="bg-primary-light">
       <button (click)="changeYear(year - 1)"
-              class="primary bg-primary-light"><fa-icon [icon]="chevronLeftIcon"
-                 [size]="'lg'"></fa-icon></button>
+              class="primary bg-primary-light">
+        <fa-icon [icon]="chevronLeftIcon"
+                 [size]="'lg'"></fa-icon>
+      </button>
       <p (click)="changeYear(currentYear)"
-         class="pointer">{{year}}</p>
+         class="pointer">{{ year }}</p>
       <button (click)="changeYear(year + 1)"
-              class="primary bg-primary-light"><fa-icon [icon]="chevronRightIcon"
-                 [size]="'lg'"></fa-icon></button>
+              class="primary bg-primary-light">
+        <fa-icon [icon]="chevronRightIcon"
+                 [size]="'lg'"></fa-icon>
+      </button>
     </div>
   </div>
 
   <div id="actions">
     <button (click)="toggleAddEvent()"
             class="primary bg-light border"
-            [ngClass]="{'editing-mode': calendarService.isAddingEvent}"><fa-icon [icon]="addEventIcon"
-               [size]="'lg'"></fa-icon></button>
+            [ngClass]="{ 'editing-mode': calendarService.isAddingEvent }">
+      <fa-icon [icon]="addEventIcon"
+               [size]="'lg'"></fa-icon>
+    </button>
     <button (click)="router.navigate(['/settings'])"
-            class="primary bg-light border"><fa-icon [icon]="cogIcon"
-               [size]="'lg'"></fa-icon></button>
+            class="primary bg-light border">
+      <fa-icon [icon]="cogIcon"
+               [size]="'lg'"></fa-icon>
+    </button>
     <button (click)="authService.logOut()"
-            class="primary bg-light border"><fa-icon [icon]="exitIcon"
-               [size]="'lg'"></fa-icon></button>
+            class="primary bg-light border">
+      <fa-icon [icon]="exitIcon"
+               [size]="'lg'"></fa-icon>
+    </button>
   </div>
 </nav>
 
 <div id="calendar">
-  <app-month *ngFor="let month of months | keyvalue: monthsOrder"
+  <app-month *ngFor="let month of months | keyvalue : monthsOrder"
              [month]="month.value"
              [year]="year"
              [events]="month.value.events"
@@ -42,4 +51,4 @@
 </div>
 
 <app-window-container *ngIf="windowsService.anyWindowOpen()"
-                      [@inOutPaneAnimation]="{value: windowsService.anyWindowOpen() ? 'open': 'closed'}"></app-window-container>
+                      [@inOutPaneAnimation]="{ value: windowsService.anyWindowOpen() ? 'open' : 'closed' }"></app-window-container>

@@ -1,6 +1,6 @@
 import { ActivatedRouteSnapshot, CanActivateFn, Router, Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
-import { LoginComponent } from './login/login.component';
+import { LoginComponent } from './pages/login/login.component';
 import { inject } from '@angular/core';
 import { GoogleAuthService } from './services/google/auth.service';
 import { MockAuthService } from './services/mock/auth.service';

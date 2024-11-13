@@ -1,8 +1,8 @@
 import { Component, Injector } from '@angular/core';
-import { GoogleAuthService } from '../services/google/auth.service';
+import { GoogleAuthService } from '../../services/google/auth.service';
 import { GoogleSigninButtonModule } from '@abacritt/angularx-social-login';
-import { MockAuthService } from '../services/mock/auth.service';
-import { UtilService } from '../services/util.service';
+import { MockAuthService } from '../../services/mock/auth.service';
+import { UtilService } from '../../services/util.service';
 
 @Component({
   selector: 'app-login',
