@@ -257,6 +257,9 @@ export class HomeComponent {
         title: '',
         colour: '#ff0000',
         eventType: 'default',
+        creator: {
+          email: this.authService.socialUser?.email
+        },
         calendarId: this.calendars[0].id,
 
         startMoment: moment(this.newEventStart),
