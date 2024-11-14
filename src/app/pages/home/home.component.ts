@@ -15,7 +15,7 @@ import {
   faSignOutAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { Router } from '@angular/router';
-import { CalendarService } from '../../services/calendar.service';
+import { CalendarService } from '../../services/api/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
 import { WindowContainerComponent } from '../../windows/window-container/window-container.component';
 import { WindowsService } from '../../windows/windows.service';
@@ -32,7 +32,8 @@ import {
   animateChild,
 } from '@angular/animations';
 import { MobileUtilService } from '../../services/mobile.util.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../services/api/auth.service';
+import { UserService } from '../../services/api/user.service';
 
 @Component({
   selector: 'app-home',
@@ -78,7 +79,8 @@ export class HomeComponent {
     private settingsService: SettingsService,
     public windowsService: WindowsService,
     private utilService: UtilService,
-    private mobileUtilService: MobileUtilService
+    private mobileUtilService: MobileUtilService,
+    private userService: UserService
   ) {
     this.buildMonths();
   }
@@ -258,7 +260,7 @@ export class HomeComponent {
         colour: '#ff0000',
         eventType: 'default',
         creator: {
-          email: this.authService.socialUser?.email
+          email: this.userService.emailAddress,
         },
         calendarId: this.calendars[0].id,
 

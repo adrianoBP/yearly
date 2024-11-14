@@ -3,10 +3,10 @@ import {
   GoogleCalendar,
   GoogleCalendarEvent,
   GoogleCalendarService,
-} from './google/calendar.service';
-import { MockCalendarService } from './mock/calendar.service';
-import { Event } from '../interfaces/event.interface';
-import { UtilService } from './util.service';
+} from '../google/calendar.service';
+import { MockCalendarService } from '../mock/calendar.service';
+import { Event } from '../../interfaces/event.interface';
+import { UtilService } from '../util.service';
 
 @Injectable()
 export class CalendarService {

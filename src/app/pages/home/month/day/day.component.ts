@@ -3,7 +3,7 @@ import { Day } from '../../../../interfaces/month.interface';
 import { Event } from '../../../../interfaces/event.interface';
 import { CommonModule } from '@angular/common';
 import moment from 'moment';
-import { CalendarService } from '../../../../services/calendar.service';
+import { CalendarService } from '../../../../services/api/calendar.service';
 
 interface EventIcon {
   enabled: boolean;

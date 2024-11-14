@@ -8,10 +8,19 @@ import { Event } from '../interfaces/event.interface';
 export class UtilService {
   private _version: string;
   private _mockData: boolean;
+  private _googleClientId: string;
+  private _googleLoginScopes: string;
 
-  constructor(@Inject('version') version: string, @Inject('mockData') mockData: boolean) {
+  constructor(
+    @Inject('version') version: string,
+    @Inject('mockData') mockData: boolean,
+    @Inject('googleClientId') googleClientId: string,
+    @Inject('googleLoginScopes') googleLoginScopes: string
+  ) {
     this._version = version;
     this._mockData = mockData;
+    this._googleClientId = googleClientId;
+    this._googleLoginScopes = googleLoginScopes;
   }
 
   get version() {
@@ -20,6 +29,14 @@ export class UtilService {
 
   get mockData() {
     return this._mockData;
+  }
+
+  get googleClientId() {
+    return this._googleClientId;
+  }
+
+  get googleLoginScopes() {
+    return this._googleLoginScopes;
   }
 
   getFormattedDate(date: Date, format: string = 'ddd, Do MMMM YYYY'): string {

@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { GoogleCalendar, GoogleCalendarEvent } from '../google/calendar.service';
-import { SocialUser } from '@abacritt/angularx-social-login';
 import { Event } from '../../interfaces/event.interface';
 
 @Injectable({ providedIn: 'root' })
 export class MockCalendarService {
-  socialUser?: SocialUser;
   isLoggedIn?: boolean;
 
   constructor() {}
