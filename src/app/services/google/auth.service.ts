@@ -31,7 +31,11 @@ export class GoogleAuthService {
       onScriptLoadSuccess: () => console.log('onScriptLoadSuccess'),
     });
 
-    this.tokenDetails = JSON.parse(localStorage.getItem(this.ACCESS_TOKEN_KEY) as string);
+    try {
+      this.tokenDetails = JSON.parse(localStorage.getItem(this.ACCESS_TOKEN_KEY) as string);
+    } catch (e) {
+      this.tokenDetails = null;
+    }
 
     // Check there's a token
     if (this.tokenDetails == null) {
