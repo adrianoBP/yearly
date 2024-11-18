@@ -7,10 +7,15 @@ import {
 import { MockCalendarService } from '../mock/calendar.service';
 import { Event } from '../../interfaces/event.interface';
 import { UtilService } from '../util.service';
+import { UserService } from './user.service';
 
 @Injectable()
 export class CalendarService {
-  constructor(private injector: Injector, private utilService: UtilService) {
+  constructor(
+    private injector: Injector,
+    private utilService: UtilService,
+    private userService: UserService
+  ) {
     this.calendarAPIService = utilService.mockData
       ? this.injector.get(MockCalendarService)
       : this.injector.get(GoogleCalendarService);
@@ -27,9 +32,7 @@ export class CalendarService {
       this.calendars = calendars;
     }
 
-    this.calendars.sort((a, b) =>
-      this.utilService.getCalendarName(a).localeCompare(this.utilService.getCalendarName(b))
-    );
+    this.calendars.sort((a, b) => this.getCalendarName(a).localeCompare(this.getCalendarName(b)));
 
     return this.calendars;
   }
@@ -57,5 +60,11 @@ export class CalendarService {
 
   async moveEvent(event: Event, originalCalendarId: string) {
     return this.calendarAPIService.moveEvent(event, originalCalendarId);
+  }
+
+  // Util
+  getCalendarName(calendar: GoogleCalendar) {
+    const calendarName = calendar.summaryOverride || calendar.summary;
+    return calendarName == this.userService.emailAddress ? '⭐ Events' : calendarName;
   }
 }

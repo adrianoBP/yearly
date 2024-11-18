@@ -16,7 +16,7 @@ import { UserService } from '../../services/api/user.service';
 })
 export class SettingsComponent {
   constructor(
-    private calendarService: CalendarService,
+    public calendarService: CalendarService,
     private settingsService: SettingsService,
     public utilService: UtilService,
     public router: Router,

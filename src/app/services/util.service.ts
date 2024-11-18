@@ -3,6 +3,7 @@ import moment from 'moment';
 import { GoogleCalendar } from './google/calendar.service';
 import { GoogleCalendarEvent } from './google/calendar.service';
 import { Event } from '../interfaces/event.interface';
+import { UserService } from './api/user.service';
 
 @Injectable()
 export class UtilService {
@@ -41,10 +42,6 @@ export class UtilService {
 
   getFormattedDate(date: Date, format: string = 'ddd, Do MMMM YYYY'): string {
     return moment(date).format(format); // Format: 'Mon, 1 January 2021'
-  }
-
-  getCalendarName(calendar: GoogleCalendar) {
-    return calendar.summaryOverride || calendar.summary;
   }
 
   googleEventToEvent(

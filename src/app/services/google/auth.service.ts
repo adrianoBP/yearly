@@ -4,13 +4,19 @@ import { HTTPRequestType, HttpService } from '../api/http.service';
 
 import { GoogleOAuthProvider, SuccessTokenResponse } from 'google-oauth-gsi';
 import { UtilService } from '../util.service';
+import moment from 'moment';
+
+interface TokenDetails {
+  token: string;
+  expiryDate: Date;
+}
 
 @Injectable({ providedIn: 'root' })
 export class GoogleAuthService {
   isLoggedIn?: boolean = false;
 
   private ACCESS_TOKEN_KEY = 'googleAccessToken';
-  private accessToken = '';
+  private tokenDetails: TokenDetails | null = null;
 
   googleProvider: GoogleOAuthProvider;
 
@@ -25,15 +31,23 @@ export class GoogleAuthService {
       onScriptLoadSuccess: () => console.log('onScriptLoadSuccess'),
     });
 
-    this.accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY) as string;
+    this.tokenDetails = JSON.parse(localStorage.getItem(this.ACCESS_TOKEN_KEY) as string);
 
-    if (this.accessToken == null || this.accessToken == '') {
+    // Check there's a token
+    if (this.tokenDetails == null) {
       this.getAccessToken(() => this.router.navigate(['/']));
-    } else {
-      // TODO: check token expiry
-      this.isLoggedIn = true;
-      this.router.navigate(['/']);
+      return;
     }
+
+    // Check the token is valid
+    if (moment(this.tokenDetails.expiryDate).toDate() < new Date()) {
+      this.getAccessToken(() => this.router.navigate(['/']));
+      return;
+    }
+
+    // Login
+    this.isLoggedIn = true;
+    this.router.navigate(['/']);
   }
 
   async getAccessToken(onTokenRetrieved?: () => void): Promise<void> {
@@ -47,8 +61,11 @@ export class GoogleAuthService {
         flow: 'implicit',
         scope: this.utilService.googleLoginScopes,
         onSuccess: (res) => {
-          this.accessToken = res.access_token;
-          localStorage.setItem(this.ACCESS_TOKEN_KEY, this.accessToken);
+          this.tokenDetails = {
+            token: res.access_token,
+            expiryDate: new Date(Date.now() + res.expires_in * 1000),
+          };
+          localStorage.setItem(this.ACCESS_TOKEN_KEY, JSON.stringify(this.tokenDetails));
           this.isLoggedIn = true;
           if (onTokenRetrieved) onTokenRetrieved();
           resolve(res);
@@ -59,7 +76,7 @@ export class GoogleAuthService {
   }
 
   logOut(): void {
-    this.accessToken = '';
+    this.tokenDetails = null;
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
   }
 
@@ -74,7 +91,7 @@ export class GoogleAuthService {
         return await this.authWrapper<Promise<T>>(
           async (): Promise<T> =>
             await this.httpService.get<T>(url, {
-              Authorization: `Bearer ${this.accessToken}`,
+              Authorization: `Bearer ${this.tokenDetails?.token}`,
             }),
           reAuthorise
         );
@@ -84,7 +101,7 @@ export class GoogleAuthService {
             await this.httpService.post<T>(
               url,
               {
-                Authorization: `Bearer ${this.accessToken}`,
+                Authorization: `Bearer ${this.tokenDetails?.token}`,
               },
               body
             ),
@@ -96,7 +113,7 @@ export class GoogleAuthService {
             await this.httpService.patch<T>(
               url,
               {
-                Authorization: `Bearer ${this.accessToken}`,
+                Authorization: `Bearer ${this.tokenDetails?.token}`,
               },
               body
             ),
@@ -106,7 +123,7 @@ export class GoogleAuthService {
         return await this.authWrapper<Promise<T>>(
           async (): Promise<T> =>
             await this.httpService.delete<T>(url, {
-              Authorization: `Bearer ${this.accessToken}`,
+              Authorization: `Bearer ${this.tokenDetails?.token}`,
             }),
           reAuthorise
         );
