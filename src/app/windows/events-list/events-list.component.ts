@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { Event } from '../../interfaces/event.interface';
 import { faTrash, faFan, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { CalendarService } from '../../services/calendar.service';
+import { CalendarService } from '../../services/api/calendar.service';
 import { UtilService } from '../../services/util.service';
 import { EditEventParameters } from '../event-edit/event-edit.component';
 import { GoogleCalendar } from '../../services/google/calendar.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../services/api/auth.service';
+import { UserService } from '../../services/api/user.service';
 
 export interface EventsListParameters extends WindowParameters {
   events: Event[];
@@ -47,7 +48,8 @@ export class EventsListComponent {
     public utilService: UtilService,
     private windowsService: WindowsService,
     private calendarService: CalendarService,
-    public authService: AuthService
+    public authService: AuthService,
+    public userService: UserService
   ) {
     this.parameters = this.windowsService.getOpenedWindow()?.parameters as EventsListParameters;
   }

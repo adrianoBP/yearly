@@ -53,7 +53,7 @@
                       [(ngModel)]="this.selectedCalendar"
                       [disabled]="!canEdit">
                      <option *ngFor="let calendar of calendars"
-                             [ngValue]="calendar">{{utilService.getCalendarName(calendar)}}</option>
+                             [ngValue]="calendar">{{calendarService.getCalendarName(calendar)}}</option>
               </select>
               <div class="colour-indicator margin-sides"
                    [ngClass]="{'raised': selectedCalendar != null}"

@@ -1,10 +1,9 @@
 <div class="container">
-  <asl-google-signin-button id="login-button"
-                            type="standard"
-                            size="large"
-                            shape="pill"
-                            theme="filled_black"
-                            logo_alignment="left"
-                            text="continue_with">
-  </asl-google-signin-button>
+  <button (click)="login()"
+          class="bg-black raised margin-top-heavy">
+    <fa-icon [icon]="googleIcon"
+             [size]="'lg'">
+    </fa-icon>
+    Login
+  </button>
 </div>

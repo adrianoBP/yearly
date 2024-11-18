@@ -1,17 +1,17 @@
-import { Component } from '@angular/core';
-import { WindowParameters, WindowsService } from '../windows.service';
-import { Event } from '../../interfaces/event.interface';
-import { UtilService } from '../../services/util.service';
 import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { CalendarService } from '../../services/calendar.service';
-import { GoogleCalendar } from '../../services/google/calendar.service';
-import moment from 'moment';
-import { SettingsService } from '../../services/settings.service';
-import { EventDisplayDetails } from '../events-list/events-list.component';
 import { faFan } from '@fortawesome/free-solid-svg-icons';
-import { AuthService } from '../../services/auth.service';
+import moment from 'moment';
+import { Event } from '../../interfaces/event.interface';
+import { CalendarService } from '../../services/api/calendar.service';
+import { GoogleCalendar } from '../../services/google/calendar.service';
+import { SettingsService } from '../../services/settings.service';
+import { UserService } from '../../services/api/user.service';
+import { UtilService } from '../../services/util.service';
+import { EventDisplayDetails } from '../events-list/events-list.component';
+import { WindowParameters, WindowsService } from '../windows.service';
 
 export interface EditEventParameters extends WindowParameters {
   isNewEvent: boolean;
@@ -53,7 +53,7 @@ export class EventEditComponent {
     public calendarService: CalendarService,
     public windowsService: WindowsService,
     private settingsService: SettingsService,
-    private authService: AuthService
+    private userService: UserService
   ) {
     this.parameters = this.windowsService.getOpenedWindow()?.parameters as EditEventParameters;
     // Make a copy of the event to allow for cancelling changes
@@ -63,7 +63,7 @@ export class EventEditComponent {
   async ngOnInit() {
     this.canEdit =
       this.parameters.event.eventType == 'default' &&
-      this.parameters.event.creator.email == this.authService.socialUser?.email;
+      this.parameters.event.creator.email == this.userService.emailAddress;
 
     this.calendars = await this.getCalendars();
 

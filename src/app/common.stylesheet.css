@@ -10,11 +10,13 @@
   --yellow: #FFEB3B;
   --blue: #007bff;
 
+  --white: #FFFFFF;
   --grey-200: #EEEEEE;
   --grey-500: #E0E0E0;
   --grey-600: #BDBDBD;
   --grey-700: #9E9E9E;
   --grey-800: #424242;
+  --black: #000000;
 
   --padding-light: 0.2rem;
   --padding: 0.5rem;
@@ -401,6 +403,15 @@
   background-color: var(--blue);
 }
 
+.white {
+  color: var(--white);
+  --color: var(--white);
+}
+
+.bg-white {
+  background-color: var(--white);
+}
+
 .grey-200 {
   color: var(--grey-200);
   --color: var(--grey-200);
@@ -424,6 +435,15 @@
 .grey-800 {
   color: var(--grey-800);
   --color: var(--grey-800);
+}
+
+.black {
+  color: var(--black);
+  --color: var(--black);
+}
+
+.bg-black {
+  background-color: var(--black);
 }
 
 /* TEXT */

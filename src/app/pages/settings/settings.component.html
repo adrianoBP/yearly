@@ -1,25 +1,30 @@
 <main class="column padding-heavy row">
 
-  <p class="font-xl bold margin-ends-heavy">Settings</p>
-
-  <div *ngFor="let calendar of calendars"
-       class="row center-items-y margin-ends-light">
-
-    <input [id]="'calendar-' + calendar.id "
-           class="primary"
-           type="checkbox"
-           [checked]="isCalendarAllowed(calendar.id)"
-           (change)="toggleCalendar(calendar.id)">
-
-    <div class="colour-indicator raised margin-sides"
-         [ngStyle]="{'background-color': calendar.backgroundColor}"></div>
-
-    <label for="{{'calendar-' + calendar.id }}"
-           class="font-m pointer">{{utilService.getCalendarName(calendar)}}</label>
+  <header class="row center-items-y">
+    <p class="font-xl bold margin-ends-heavy">Settings</p>
+    <p class="margin-left-heavy">{{userService.emailAddress}}</p>
+  </header>
 
 
+  <section>
+    <p class="font-lg bold margin-ends">Calendars</p>
+    <div *ngFor="let calendar of calendars"
+         class="row center-items-y margin-ends-light padding-left">
 
-  </div>
+      <input [id]="'calendar-' + calendar.id "
+             class="primary"
+             type="checkbox"
+             [checked]="isCalendarAllowed(calendar.id)"
+             (change)="toggleCalendar(calendar.id)">
+
+      <div class="colour-indicator raised margin-sides"
+           [ngStyle]="{'background-color': calendar.backgroundColor}"></div>
+
+      <label for="{{'calendar-' + calendar.id }}"
+             class="font-m pointer">{{calendarService.getCalendarName(calendar)}}</label>
+
+    </div>
+  </section>
 
   <div>
     <button class="primary bg-light border margin-top-heavy"

@@ -3,15 +3,25 @@ import moment from 'moment';
 import { GoogleCalendar } from './google/calendar.service';
 import { GoogleCalendarEvent } from './google/calendar.service';
 import { Event } from '../interfaces/event.interface';
+import { UserService } from './api/user.service';
 
 @Injectable()
 export class UtilService {
   private _version: string;
   private _mockData: boolean;
+  private _googleClientId: string;
+  private _googleLoginScopes: string;
 
-  constructor(@Inject('version') version: string, @Inject('mockData') mockData: boolean) {
+  constructor(
+    @Inject('version') version: string,
+    @Inject('mockData') mockData: boolean,
+    @Inject('googleClientId') googleClientId: string,
+    @Inject('googleLoginScopes') googleLoginScopes: string
+  ) {
     this._version = version;
     this._mockData = mockData;
+    this._googleClientId = googleClientId;
+    this._googleLoginScopes = googleLoginScopes;
   }
 
   get version() {
@@ -22,12 +32,16 @@ export class UtilService {
     return this._mockData;
   }
 
-  getFormattedDate(date: Date, format: string = 'ddd, Do MMMM YYYY'): string {
-    return moment(date).format(format); // Format: 'Mon, 1 January 2021'
+  get googleClientId() {
+    return this._googleClientId;
   }
 
-  getCalendarName(calendar: GoogleCalendar) {
-    return calendar.summaryOverride || calendar.summary;
+  get googleLoginScopes() {
+    return this._googleLoginScopes;
+  }
+
+  getFormattedDate(date: Date, format: string = 'ddd, Do MMMM YYYY'): string {
+    return moment(date).format(format); // Format: 'Mon, 1 January 2021'
   }
 
   googleEventToEvent(

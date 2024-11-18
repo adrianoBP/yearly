@@ -1,75 +1,82 @@
 import { Injectable } from '@angular/core';
-import {
-  SocialAuthService,
-  GoogleLoginProvider,
-  SocialUser,
-} from '@abacritt/angularx-social-login';
 import { Router } from '@angular/router';
-import { HTTPRequestType, HttpService } from '../http.service';
+import { HTTPRequestType, HttpService } from '../api/http.service';
+
+import { GoogleOAuthProvider, SuccessTokenResponse } from 'google-oauth-gsi';
+import { UtilService } from '../util.service';
+import moment from 'moment';
+
+interface TokenDetails {
+  token: string;
+  expiryDate: Date;
+}
 
 @Injectable({ providedIn: 'root' })
 export class GoogleAuthService {
-  socialUser?: SocialUser;
-  isLoggedIn?: boolean;
+  isLoggedIn?: boolean = false;
 
   private ACCESS_TOKEN_KEY = 'googleAccessToken';
-  private accessToken = '';
+  private tokenDetails: TokenDetails | null = null;
+
+  googleProvider: GoogleOAuthProvider;
 
   constructor(
     private router: Router,
     private httpService: HttpService,
-    private socialAuthService: SocialAuthService
+    private utilService: UtilService
   ) {
-    this.socialAuthService.authState.subscribe((user) => {
-      this.socialUser = user;
-      this.isLoggedIn = user != null;
-
-      this.accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY) as string;
-
-      if (this.isLoggedIn) {
-        this.getAccessToken(false, () => this.router.navigate(['/']));
-      }
+    this.googleProvider = new GoogleOAuthProvider({
+      clientId: utilService.googleClientId,
+      onScriptLoadError: () => console.log('onScriptLoadError'),
+      onScriptLoadSuccess: () => console.log('onScriptLoadSuccess'),
     });
-  }
 
-  getAccessToken(forceReload?: boolean, onTokenRetrieved?: () => void): void {
-    if (this.accessToken != '' && !forceReload && onTokenRetrieved) {
-      onTokenRetrieved();
+    this.tokenDetails = JSON.parse(localStorage.getItem(this.ACCESS_TOKEN_KEY) as string);
+
+    // Check there's a token
+    if (this.tokenDetails == null) {
+      this.getAccessToken(() => this.router.navigate(['/']));
       return;
     }
 
-    this.socialAuthService.getAccessToken(GoogleLoginProvider.PROVIDER_ID).then((accessToken) => {
-      this.accessToken = accessToken;
-      localStorage.setItem(this.ACCESS_TOKEN_KEY, this.accessToken);
-      if (onTokenRetrieved) onTokenRetrieved();
-    });
+    // Check the token is valid
+    if (moment(this.tokenDetails.expiryDate).toDate() < new Date()) {
+      this.getAccessToken(() => this.router.navigate(['/']));
+      return;
+    }
+
+    // Login
+    this.isLoggedIn = true;
+    this.router.navigate(['/']);
   }
 
-  getAccessTokenAsync(forceReload?: boolean): Promise<void> {
+  async getAccessToken(onTokenRetrieved?: () => void): Promise<void> {
+    await this.getAccessTokenAsync();
+    if (onTokenRetrieved) onTokenRetrieved();
+  }
+
+  getAccessTokenAsync(onTokenRetrieved?: () => void): Promise<SuccessTokenResponse> {
     return new Promise((resolve, reject) => {
-      if (this.accessToken != '' && !forceReload) {
-        resolve();
-        return;
-      }
-
-      this.socialAuthService
-        .getAccessToken(GoogleLoginProvider.PROVIDER_ID)
-        .then((accessToken) => {
-          this.accessToken = accessToken;
-          localStorage.setItem(this.ACCESS_TOKEN_KEY, this.accessToken);
-          resolve();
-        })
-        .catch((err) => reject(err));
+      this.googleProvider.useGoogleLogin({
+        flow: 'implicit',
+        scope: this.utilService.googleLoginScopes,
+        onSuccess: (res) => {
+          this.tokenDetails = {
+            token: res.access_token,
+            expiryDate: new Date(Date.now() + res.expires_in * 1000),
+          };
+          localStorage.setItem(this.ACCESS_TOKEN_KEY, JSON.stringify(this.tokenDetails));
+          this.isLoggedIn = true;
+          if (onTokenRetrieved) onTokenRetrieved();
+          resolve(res);
+        },
+        onError: (err) => reject(err),
+      })();
     });
-  }
-
-  loginWithGoogle(): void {
-    this.socialAuthService.signIn(GoogleLoginProvider.PROVIDER_ID);
   }
 
   logOut(): void {
-    this.socialAuthService.signOut();
-    this.router.navigate(['/login']);
+    this.tokenDetails = null;
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
   }
 
@@ -84,7 +91,7 @@ export class GoogleAuthService {
         return await this.authWrapper<Promise<T>>(
           async (): Promise<T> =>
             await this.httpService.get<T>(url, {
-              Authorization: `Bearer ${this.accessToken}`,
+              Authorization: `Bearer ${this.tokenDetails?.token}`,
             }),
           reAuthorise
         );
@@ -94,7 +101,7 @@ export class GoogleAuthService {
             await this.httpService.post<T>(
               url,
               {
-                Authorization: `Bearer ${this.accessToken}`,
+                Authorization: `Bearer ${this.tokenDetails?.token}`,
               },
               body
             ),
@@ -106,7 +113,7 @@ export class GoogleAuthService {
             await this.httpService.patch<T>(
               url,
               {
-                Authorization: `Bearer ${this.accessToken}`,
+                Authorization: `Bearer ${this.tokenDetails?.token}`,
               },
               body
             ),
@@ -116,7 +123,7 @@ export class GoogleAuthService {
         return await this.authWrapper<Promise<T>>(
           async (): Promise<T> =>
             await this.httpService.delete<T>(url, {
-              Authorization: `Bearer ${this.accessToken}`,
+              Authorization: `Bearer ${this.tokenDetails?.token}`,
             }),
           reAuthorise
         );
@@ -134,7 +141,7 @@ export class GoogleAuthService {
     } catch (error) {
       console.log(error);
       if (error === 'Unauthorized' && reAuthorise) {
-        await this.getAccessTokenAsync(true);
+        await this.getAccessTokenAsync();
         return await callback();
       }
       throw error;

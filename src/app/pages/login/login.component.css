@@ -1,3 +1,5 @@
+@import url('../../common.stylesheet.css');
+
 .container {
   display: flex;
   justify-content: center;
