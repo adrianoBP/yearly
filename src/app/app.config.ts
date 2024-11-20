@@ -2,7 +2,6 @@ import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { HttpClientModule } from '@angular/common/http';
 import { CalendarService } from './services/api/calendar.service';
 import { SettingsService } from './services/settings.service';
 import { WindowsService } from './windows/windows.service';
@@ -12,6 +11,7 @@ import { UtilService } from './services/util.service';
 import { MobileUtilService } from './services/mobile.util.service';
 import { AuthService } from './services/api/auth.service';
 import { UserService } from './services/api/user.service';
+import { provideHttpClient } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -34,7 +34,7 @@ export const appConfig: ApplicationConfig = {
     },
     provideAnimationsAsync(),
     provideRouter(routes),
-    importProvidersFrom(HttpClientModule),
+    provideHttpClient(),
     AuthService,
     UserService,
     CalendarService,
