@@ -24,7 +24,6 @@ export interface EventDisplayDetails extends Event {
 
 @Component({
   selector: 'app-events-list',
-  standalone: true,
   imports: [CommonModule, FormsModule, FontAwesomeModule],
   templateUrl: './events-list.component.html',
   styleUrl: './events-list.component.css',

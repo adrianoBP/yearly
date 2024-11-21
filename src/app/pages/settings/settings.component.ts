@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { CalendarService } from '../../services/api/calendar.service';
 import { CommonModule } from '@angular/common';
 import { GoogleCalendar } from '../../services/google/calendar.service';
@@ -9,7 +9,6 @@ import { UserService } from '../../services/api/user.service';
 
 @Component({
   selector: 'app-settings',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
@@ -19,7 +18,7 @@ export class SettingsComponent {
     public calendarService: CalendarService,
     private settingsService: SettingsService,
     public utilService: UtilService,
-    public router: Router,
+    @Inject(Router) public router: Router,
     public userService: UserService
   ) {}
 

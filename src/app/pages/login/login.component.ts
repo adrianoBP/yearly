@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { AuthService } from '../../services/api/auth.service';
 import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -7,7 +7,6 @@ import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
   imports: [FontAwesomeModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
@@ -15,7 +14,7 @@ import { IconProp } from '@fortawesome/fontawesome-svg-core';
 export class LoginComponent {
   googleIcon = faGoogle as IconProp;
 
-  constructor(public authService: AuthService, private router: Router) {}
+  constructor(public authService: AuthService, @Inject(Router) private router: Router) {}
 
   async login() {
     await this.authService.getAccessTokenAsync();

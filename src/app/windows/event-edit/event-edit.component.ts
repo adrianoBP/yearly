@@ -24,7 +24,6 @@ export interface EditEventParameters extends WindowParameters {
 
 @Component({
   selector: 'app-event-edit',
-  standalone: true,
   imports: [CommonModule, FormsModule, FontAwesomeModule],
   templateUrl: './event-edit.component.html',
   styleUrl: './event-edit.component.css',

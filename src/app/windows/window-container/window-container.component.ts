@@ -9,7 +9,6 @@ import { MobileUtilService } from '../../services/mobile.util.service';
 
 @Component({
   selector: 'app-window-container',
-  standalone: true,
   imports: [CommonModule, FormsModule, EventsListComponent, EventEditComponent],
   templateUrl: './window-container.component.html',
   styleUrl: './window-container.component.css',
