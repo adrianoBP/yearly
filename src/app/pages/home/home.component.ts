@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { Day, Month, WeekDay } from '../../interfaces/month.interface';
 import { CommonModule, KeyValue } from '@angular/common';
 import { MonthComponent } from './month/month.component';
@@ -37,7 +37,6 @@ import { UserService } from '../../services/api/user.service';
 
 @Component({
   selector: 'app-home',
-  standalone: true,
   imports: [CommonModule, FontAwesomeModule, MonthComponent, WindowContainerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
@@ -73,7 +72,7 @@ export class HomeComponent {
   calendars: GoogleCalendar[] = [];
 
   constructor(
-    public router: Router,
+    @Inject(Router) public router: Router,
     public authService: AuthService,
     public calendarService: CalendarService,
     private settingsService: SettingsService,

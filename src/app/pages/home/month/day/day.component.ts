@@ -12,7 +12,6 @@ interface EventIcon {
 
 @Component({
   selector: 'app-day',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './day.component.html',
   styleUrl: './day.component.css',

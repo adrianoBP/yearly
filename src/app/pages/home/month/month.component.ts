@@ -7,7 +7,6 @@ import { Event } from '../../../interfaces/event.interface';
 
 @Component({
   selector: 'app-month',
-  standalone: true,
   imports: [CommonModule, DayComponent],
   templateUrl: './month.component.html',
   styleUrl: './month.component.css',
