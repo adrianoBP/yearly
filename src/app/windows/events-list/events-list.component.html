@@ -6,7 +6,7 @@
 
      <div class="colour-indicator raised"
           [ngStyle]="{'background-color': event.colour}"
-          (click)="tryOpenEvent(event)"></div>
+          (click)="$event.stopPropagation(); tryOpenEvent(event)"></div>
 
      <p class="margin-sides">{{event.title}}</p>
 
