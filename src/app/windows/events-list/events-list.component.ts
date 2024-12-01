@@ -121,6 +121,10 @@ export class EventsListComponent {
     );
   }
 
+  tryOpenEvent(event: EventDisplayDetails): void {
+    if (event.htmlLink) window.open(event.htmlLink, '_blank');
+  }
+
   removeEvent(event: Event): void {
     this.eventsToDelete.push(event);
     this.events = this.events!.filter((e) => e.id !== event.id);

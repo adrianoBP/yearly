@@ -5,7 +5,8 @@
      (click)="openEvent(event)">
 
      <div class="colour-indicator raised"
-          [ngStyle]="{'background-color': event.colour}"></div>
+          [ngStyle]="{'background-color': event.colour}"
+          (click)="tryOpenEvent(event)"></div>
 
      <p class="margin-sides">{{event.title}}</p>
 

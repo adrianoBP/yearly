@@ -10,6 +10,7 @@ export interface Event {
   eventType: 'birthday' | 'default' | 'focusTime' | 'fromGmail' | 'outOfOffice' | 'workingLocation';
   creator: GoogleCalendarEventPerson;
   organizer: GoogleCalendarEventPerson;
+  htmlLink: string;
 
   startMoment: Moment;
   endMoment: Moment;

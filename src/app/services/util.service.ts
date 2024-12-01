@@ -57,6 +57,7 @@ export class UtilService {
       eventType: event.eventType,
       creator: event.creator,
       organizer: event.organizer,
+      htmlLink: event.htmlLink,
 
       calendarId: calendarId,
 
