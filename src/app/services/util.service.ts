@@ -56,6 +56,7 @@ export class UtilService {
       colour: backgroundColor,
       eventType: event.eventType,
       creator: event.creator,
+      organizer: event.organizer,
 
       calendarId: calendarId,
 

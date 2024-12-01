@@ -26,7 +26,7 @@ export class CalendarService {
 
   public isAddingEvent = false;
 
-  async getCalendars() {
+  async getCalendars(): Promise<GoogleCalendar[]> {
     if (this.calendars.length == 0) {
       const calendars = await this.calendarAPIService.getCalendars();
       this.calendars = calendars;
@@ -41,7 +41,7 @@ export class CalendarService {
     return this.calendarAPIService.getEvents(start, end, calendarId);
   }
 
-  async deleteEvents(events: Event[]) {
+  async deleteEvents(events: Event[]): Promise<void> {
     return this.calendarAPIService.deleteEvents(events);
   }
 
@@ -54,16 +54,16 @@ export class CalendarService {
     await this.calendarAPIService.updateEvent(event);
   }
 
-  async updateEvents(events: Event[]) {
+  async updateEvents(events: Event[]): Promise<void> {
     return this.calendarAPIService.updateEvents(events);
   }
 
-  async moveEvent(event: Event, originalCalendarId: string) {
+  async moveEvent(event: Event, originalCalendarId: string): Promise<GoogleCalendarEvent | void> {
     return this.calendarAPIService.moveEvent(event, originalCalendarId);
   }
 
   // Util
-  getCalendarName(calendar: GoogleCalendar) {
+  getCalendarName(calendar: GoogleCalendar): string {
     const calendarName = calendar.summaryOverride || calendar.summary;
     return calendarName == this.userService.emailAddress ? '⭐ Events' : calendarName;
   }

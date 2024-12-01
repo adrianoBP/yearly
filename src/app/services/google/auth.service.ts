@@ -81,6 +81,7 @@ export class GoogleAuthService {
 
   logOut(): void {
     this.tokenDetails = null;
+    this.isLoggedIn = false;
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
   }
 

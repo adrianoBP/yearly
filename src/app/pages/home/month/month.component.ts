@@ -80,6 +80,7 @@ export class MonthComponent {
           isFirstDay: momentDay.isSame(eventStartDateTime, 'day'),
           isLastDay: momentDay.format('YYYY-MM-DD') === eventRealEndDate,
           duration: eventEndDateTime.diff(eventStartDateTime, 'days') + 1,
+          isGroupCalendar: event.organizer?.email.endsWith('@group.calendar.google.com') || false,
         } as Event);
       }
     }

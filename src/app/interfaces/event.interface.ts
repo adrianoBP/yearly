@@ -9,13 +9,24 @@ export interface Event {
   colour: string;
   eventType: 'birthday' | 'default' | 'focusTime' | 'fromGmail' | 'outOfOffice' | 'workingLocation';
   creator: GoogleCalendarEventPerson;
+  organizer: GoogleCalendarEventPerson;
 
   startMoment: Moment;
   endMoment: Moment;
 
   calendarId: string;
 
+  // Custom properties
   isFirstDay: boolean;
   isLastDay: boolean;
   duration: number;
+  isGroupCalendar: boolean;
+}
+
+export interface EventDisplayDetails extends Event {
+  isAllDay: boolean;
+  startsBefore: boolean;
+  endsAfter: boolean;
+
+  canEdit: boolean;
 }

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { WindowParameters, WindowsService } from '../windows.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Event } from '../../interfaces/event.interface';
+import { Event, EventDisplayDetails } from '../../interfaces/event.interface';
 import { faTrash, faFan, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarService } from '../../services/api/calendar.service';
@@ -14,12 +14,6 @@ import { UserService } from '../../services/api/user.service';
 
 export interface EventsListParameters extends WindowParameters {
   events: Event[];
-}
-
-export interface EventDisplayDetails extends Event {
-  isAllDay: boolean;
-  startsBefore: boolean;
-  endsAfter: boolean;
 }
 
 @Component({
@@ -76,6 +70,9 @@ export class EventsListComponent {
       isAllDay,
       startsBefore: startsBeforeDate,
       endsAfter: endsAfterDate,
+      canEdit:
+        event.eventType === 'default' &&
+        (event.creator.email === this.userService.emailAddress || event.isGroupCalendar),
     };
   }
 

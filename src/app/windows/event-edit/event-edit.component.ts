@@ -4,13 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faFan } from '@fortawesome/free-solid-svg-icons';
 import moment from 'moment';
-import { Event } from '../../interfaces/event.interface';
+import { Event, EventDisplayDetails } from '../../interfaces/event.interface';
 import { CalendarService } from '../../services/api/calendar.service';
 import { GoogleCalendar } from '../../services/google/calendar.service';
 import { SettingsService } from '../../services/settings.service';
 import { UserService } from '../../services/api/user.service';
 import { UtilService } from '../../services/util.service';
-import { EventDisplayDetails } from '../events-list/events-list.component';
 import { WindowParameters, WindowsService } from '../windows.service';
 
 export interface EditEventParameters extends WindowParameters {

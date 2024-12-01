@@ -19,7 +19,13 @@ export class AuthService {
 
   private authService: GoogleAuthService | MockAuthService;
 
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn || false;
+  }
+
   async getAccessTokenAsync(): Promise<void> {
+    if (this.authService.isLoggedIn) return;
+
     await this.authService.getAccessTokenAsync();
     this.userService.loadUserInfo();
   }

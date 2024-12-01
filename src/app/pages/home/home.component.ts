@@ -89,12 +89,9 @@ export class HomeComponent {
 
     this.settings = this.settingsService.getSettings();
 
-    Promise.all([this.calendarService.getCalendars()]).then(async (values) => {
-      this.calendars = values[0];
-
-      this.loadEventsIntoCalendars();
-      this.mobileUtilService.scrollTodayIntoView();
-    });
+    this.calendars = await this.calendarService.getCalendars();
+    this.loadEventsIntoCalendars();
+    this.mobileUtilService.scrollTodayIntoView();
   }
 
   buildMonths() {
@@ -207,9 +204,10 @@ export class HomeComponent {
     }
   }
 
-  changeYear(newYear: number) {
+  async changeYear(newYear: number) {
     this.year = newYear;
     this.buildMonths();
+    this.calendars = await this.calendarService.getCalendars();
     this.loadEventsIntoCalendars();
   }
 
