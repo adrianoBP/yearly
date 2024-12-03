@@ -60,8 +60,9 @@ export class EventEditComponent {
 
   async ngOnInit() {
     this.canEdit =
-      this.parameters.event.eventType == 'default' &&
-      this.parameters.event.creator.email == this.userService.emailAddress;
+      this.parameters.isNewEvent ||
+      (this.parameters.event.eventType == 'default' &&
+        this.parameters.event.creator.email == this.userService.emailAddress);
 
     this.calendars = await this.getCalendars();
 
