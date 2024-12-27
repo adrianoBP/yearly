@@ -87,7 +87,12 @@ export class MonthComponent {
   }
 
   onDayClickEvent({ day, mouseEvent }: { day: Day; mouseEvent: MouseEvent }) {
-    const date = new Date(`${this.year}-${this.month.number + 1}-${day.number}`);
+    const date = moment()
+      .set('year', this.year)
+      .set('month', this.month.number + 1)
+      .set('date', day.number)
+      .toDate();
+
     this.onDayClick.emit({
       date,
       events: this.eventsByDay[day.number],

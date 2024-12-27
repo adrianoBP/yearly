@@ -1,9 +1,8 @@
 import { Inject, Injectable } from '@angular/core';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import { GoogleCalendar } from './google/calendar.service';
 import { GoogleCalendarEvent } from './google/calendar.service';
 import { Event } from '../interfaces/event.interface';
-import { UserService } from './api/user.service';
 
 @Injectable()
 export class UtilService {
@@ -49,6 +48,13 @@ export class UtilService {
     backgroundColor: string,
     calendarId: string
   ): Event {
+    let startMoment = moment(event.start.date ?? event.start.dateTime);
+    let endMoment = moment(event.end.date ?? event.end.dateTime);
+
+    if (event.start.timeZone) startMoment = startMoment.tz(event.start.timeZone);
+
+    if (event.end.timeZone) endMoment = endMoment.tz(event.end.timeZone);
+
     return {
       id: event.id,
       title: event.summary,
@@ -61,8 +67,8 @@ export class UtilService {
 
       calendarId: calendarId,
 
-      startMoment: moment(event.start.date ?? event.start.dateTime),
-      endMoment: moment(event.end.date ?? event.end.dateTime),
+      startMoment,
+      endMoment,
     } as Event;
   }
 

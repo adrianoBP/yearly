@@ -38,6 +38,7 @@ export interface GoogleCalendarEventPerson {
 export interface GoogleCalendarEventDate {
   date: string;
   dateTime: string;
+  timeZone: string;
 }
 
 export interface GoogleCalendarListResponse {

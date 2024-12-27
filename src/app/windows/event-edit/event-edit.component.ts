@@ -37,7 +37,6 @@ export class EventEditComponent {
   calendars: GoogleCalendar[] = [];
   originalEvent: Event;
   isSaving: boolean = false;
-  canEdit: boolean = false;
 
   // Selection values
   eventStartDate: string | null = null;
@@ -59,11 +58,6 @@ export class EventEditComponent {
   }
 
   async ngOnInit() {
-    this.canEdit =
-      this.parameters.isNewEvent ||
-      (this.parameters.event.eventType == 'default' &&
-        this.parameters.event.creator.email == this.userService.emailAddress);
-
     this.calendars = await this.getCalendars();
 
     this.eventStartDate = this.parameters.event.startMoment.format('YYYY-MM-DD');

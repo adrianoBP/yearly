@@ -3,7 +3,7 @@ import { Day, Month, WeekDay } from '../../interfaces/month.interface';
 import { CommonModule, KeyValue } from '@angular/common';
 import { MonthComponent } from './month/month.component';
 import { GoogleCalendarEvent, GoogleCalendar } from '../../services/google/calendar.service';
-import { Event } from '../../interfaces/event.interface';
+import { Event, EventDisplayDetails } from '../../interfaces/event.interface';
 import moment from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -97,7 +97,7 @@ export class HomeComponent {
   buildMonths() {
     this.months = {};
 
-    const date = new Date(`${this.year}-01-01`);
+    const date = moment().set('year', this.year).set('month', 0).set('date', 1).toDate();
 
     while (date.getFullYear() === this.year) {
       const monthName = this.getMonthName(date);
@@ -161,7 +161,12 @@ export class HomeComponent {
 
       // Loop through the months
       for (let monthNumber = statMonthNumber; monthNumber <= endMonthNumber; monthNumber++) {
-        const monthName = this.getMonthName(new Date(`${this.year}-${monthNumber + 1}-01`));
+        const date = moment()
+          .set('year', this.year)
+          .set('month', monthNumber)
+          .set('date', 1)
+          .toDate();
+        const monthName = this.getMonthName(date);
         this.months[monthName].events.push(event);
         this.months[monthName].events = [...this.months[monthName].events];
       }
@@ -171,7 +176,12 @@ export class HomeComponent {
   removeEventsFromCalendar(eventsId: string[]): void {
     // Remove the event from all the months
     for (let monthNumber = 0; monthNumber <= 11; monthNumber++) {
-      const monthName = this.getMonthName(new Date(`${this.year}-${monthNumber + 1}-01`));
+      const date = moment()
+        .set('year', this.year)
+        .set('month', monthNumber)
+        .set('date', 1)
+        .toDate();
+      const monthName = this.getMonthName(date);
       this.months[monthName].events = this.months[monthName].events.filter(
         (event) => !eventsId.includes(event.id)
       );
@@ -179,8 +189,22 @@ export class HomeComponent {
   }
 
   async loadEventsIntoCalendars() {
-    const yearStart = new Date(`${this.year}-01-01T00:00:00Z`);
-    const yearEnd = new Date(`${this.year}-12-31T23:59:59Z`);
+    const yearStart = moment()
+      .set('year', this.year)
+      .set('month', 0)
+      .set('date', 1)
+      .set('hour', 0)
+      .set('minute', 0)
+      .set('second', 0)
+      .toDate();
+    const yearEnd = moment()
+      .set('year', this.year)
+      .set('month', 11)
+      .set('date', 31)
+      .set('hour', 23)
+      .set('minute', 59)
+      .set('second', 59)
+      .toDate();
 
     this.calendars
       .filter((calendar) => this.settings.allowedCalendars.includes(calendar.id)) // Only calendars that are enabled
@@ -263,7 +287,8 @@ export class HomeComponent {
 
         startMoment: moment(this.newEventStart),
         endMoment: moment(this.newEventEnd),
-      } as Event;
+        canEdit: true,
+      } as EventDisplayDetails;
 
       this.addEventsToCalendar([newEvent]);
 
