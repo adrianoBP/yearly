@@ -72,7 +72,9 @@ export class MonthComponent {
       }
 
       for (let dayNumber = startDay; dayNumber <= endDay; dayNumber++) {
-        const momentDay = moment(new Date(`${this.year}-${this.month.number + 1}-${dayNumber}`));
+        const momentDay = moment.utc(
+          new Date(`${this.year}-${this.month.number + 1}-${dayNumber}`)
+        );
 
         // add the event to the dictionary
         this.eventsByDay[dayNumber].push({
@@ -89,7 +91,7 @@ export class MonthComponent {
   onDayClickEvent({ day, mouseEvent }: { day: Day; mouseEvent: MouseEvent }) {
     const date = moment()
       .set('year', this.year)
-      .set('month', this.month.number + 1)
+      .set('month', this.month.number)
       .set('date', day.number)
       .toDate();
 
