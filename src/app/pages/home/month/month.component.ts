@@ -72,8 +72,9 @@ export class MonthComponent {
       }
 
       for (let dayNumber = startDay; dayNumber <= endDay; dayNumber++) {
-        const momentDay = moment.utc(
-          new Date(`${this.year}-${this.month.number + 1}-${dayNumber}`)
+        const momentDay = moment(
+          `${this.year}-${this.month.number + 1}-${dayNumber}`,
+          'YYYY-MM-DD'
         );
 
         // add the event to the dictionary

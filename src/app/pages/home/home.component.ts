@@ -272,7 +272,11 @@ export class HomeComponent {
         }
 
         // Add an extra day to the end date to make it inclusive (full day events reset at midnight of the next day)
-        // this.newEventEnd.setDate(this.newEventEnd.getDate() + 1);
+        if (this.newEventStart.getDate() != this.newEventEnd.getDate()) {
+          this.newEventStart.setHours(0, 0, 0, 0);
+          this.newEventEnd.setHours(0, 0, 0, 0);
+          this.newEventEnd.setDate(this.newEventEnd.getDate() + 1);
+        }
       }
 
       const newEvent = {

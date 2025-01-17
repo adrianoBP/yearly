@@ -48,12 +48,12 @@ export class UtilService {
     backgroundColor: string,
     calendarId: string
   ): Event {
-    let startMoment = moment.utc(event.start.date ?? event.start.dateTime);
-    let endMoment = moment.utc(event.end.date ?? event.end.dateTime);
+    let startMoment = moment(event.start.date ?? event.start.dateTime);
+    let endMoment = moment(event.end.date ?? event.end.dateTime);
 
-    if (event.start.timeZone) startMoment = startMoment.tz(event.start.timeZone);
+    if (event.start.timeZone) startMoment = startMoment.tz(event.start.timeZone).local();
 
-    if (event.end.timeZone) endMoment = endMoment.tz(event.end.timeZone);
+    if (event.end.timeZone) endMoment = endMoment.tz(event.end.timeZone).local();
 
     return {
       id: event.id,
