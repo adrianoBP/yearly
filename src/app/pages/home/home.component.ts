@@ -215,7 +215,7 @@ export class HomeComponent {
     try {
       let events = (await this.calendarService.getEvents(start, end, calendar.id))
         // remove recurring and declined events
-        // TODO: settings #1
+        // TODO: settings #1 (NOTE: birthdays are included in recurring events)
         // TODO: settings #2
         .filter((event) => event.recurringEventId == null && !this.isEventDeclined(event))
         .map((event) =>
