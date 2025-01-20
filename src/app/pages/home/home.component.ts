@@ -206,6 +206,9 @@ export class HomeComponent {
       .set('second', 59)
       .toDate();
 
+    // for now used only to ensure that the user is logged in
+    await this.calendarService.getSettings();
+
     this.calendars
       .filter((calendar) => this.settings.allowedCalendars.includes(calendar.id)) // Only calendars that are enabled
       .forEach((calendar) => this.loadEventsIntoCalendar(calendar, yearStart, yearEnd)); // Load events for each calendar in parallel
@@ -276,6 +279,9 @@ export class HomeComponent {
           this.newEventStart.setHours(0, 0, 0, 0);
           this.newEventEnd.setHours(0, 0, 0, 0);
           this.newEventEnd.setDate(this.newEventEnd.getDate() + 1);
+        } else {
+          // Add one hour to the end time for practicality
+          this.newEventEnd.setHours(this.newEventEnd.getHours() + 1);
         }
       }
 

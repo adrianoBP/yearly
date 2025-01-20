@@ -3,6 +3,18 @@ import { GoogleAuthService } from './auth.service';
 import moment from 'moment';
 import { Event } from '../../interfaces/event.interface';
 
+export interface GenericGoogleItemsResponse<T> {
+  items: T[];
+  nextPageToken?: string;
+}
+
+export interface GoogleCalendarSetting {
+  etag: string;
+  id: string;
+  kind: string;
+  value: string;
+}
+
 export interface GoogleCalendar {
   id: string;
   summary: string;
@@ -45,11 +57,6 @@ export interface GoogleCalendarListResponse {
   items: GoogleCalendar[];
 }
 
-export interface GoogleCalendarEventListResponse {
-  items: GoogleCalendarEvent[];
-  nextPageToken?: string;
-}
-
 export interface GoogleCalendarColorsResponse {
   event: { [key: string]: GoogleCalendarColor };
 }
@@ -64,6 +71,13 @@ export class GoogleCalendarService {
   constructor(private googleAuthService: GoogleAuthService) {}
 
   private baseUrl = 'https://www.googleapis.com/calendar/v3';
+
+  async getSettings() {
+    const url = `${this.baseUrl}/users/me/settings`;
+    const response = await this.googleAuthService.makeRequest<
+      GenericGoogleItemsResponse<GoogleCalendarSetting>
+    >(url, 'get');
+  }
 
   async getCalendars(): Promise<GoogleCalendar[]> {
     const url = `${this.baseUrl}/users/me/calendarList`;
@@ -94,10 +108,9 @@ export class GoogleCalendarService {
 
       const url = `${this.baseUrl}/calendars/${calendarId}/events?${query}`;
 
-      const response = await this.googleAuthService.makeRequest<GoogleCalendarEventListResponse>(
-        url,
-        'get'
-      );
+      const response = await this.googleAuthService.makeRequest<
+        GenericGoogleItemsResponse<GoogleCalendarEvent>
+      >(url, 'get');
       results.push(...response.items);
 
       queryParameters['pageToken'] = response.nextPageToken || '';

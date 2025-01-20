@@ -8,7 +8,8 @@
               id="event-title"
               placeholder="Event title"
               [(ngModel)]="this.parameters.event.title"
-              [disabled]="!this.parameters.event.canEdit">
+              [disabled]="!this.parameters.event.canEdit"
+              (keyup.enter)="saveChanges()">
 </div>
 
 <div class="column padding margin-sides">

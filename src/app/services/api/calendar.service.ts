@@ -26,6 +26,10 @@ export class CalendarService {
 
   public isAddingEvent = false;
 
+  async getSettings() {
+    return this.calendarAPIService.getSettings();
+  }
+
   async getCalendars(): Promise<GoogleCalendar[]> {
     if (this.calendars.length == 0) {
       const calendars = await this.calendarAPIService.getCalendars();
