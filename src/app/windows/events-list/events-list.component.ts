@@ -49,7 +49,17 @@ export class EventsListComponent {
 
   async ngOnInit(): Promise<void> {
     this.events = this.parameters.events.map(this.eventToDisplayEvent.bind(this));
+    this.sortEvents();
     this.availableCalendars = await this.calendarService.getCalendars();
+  }
+
+  sortEvents(): void {
+    // Sort by event start time, if same, sort by end time
+    this.events.sort((a, b) => {
+      const startDiff = a.startMoment.diff(b.startMoment);
+      if (startDiff == 0) return a.endMoment.diff(b.endMoment) || a.startMoment.diff(b.startMoment);
+      return startDiff;
+    });
   }
 
   eventToDisplayEvent(event: Event): EventDisplayDetails {
@@ -112,6 +122,8 @@ export class EventsListComponent {
           // Remove the old event from the list
           this.eventsToUpdate = this.eventsToUpdate.filter((e) => e.id !== updatedEvent.id);
           this.eventsToUpdate.push(updatedEvent);
+
+          this.sortEvents();
         }
       },
       () => {
