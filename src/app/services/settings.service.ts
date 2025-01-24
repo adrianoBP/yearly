@@ -1,7 +1,14 @@
 import { Injectable } from '@angular/core';
 
+export interface CalendarSettings {
+  id: string;
+  allowed: boolean;
+  allowRecurring: boolean;
+  allowBirthdays: boolean;
+}
+
 export interface Settings {
-  allowedCalendars: string[]; // List of calendar IDs that the user wants to display
+  calendars: CalendarSettings[];
 }
 
 @Injectable()
@@ -9,12 +16,15 @@ export class SettingsService {
   constructor() {}
 
   private settings: Settings = {
-    allowedCalendars: [],
+    calendars: [],
   };
 
   getSettings(): Settings {
     const settings = localStorage.getItem('settings');
-    if (settings) this.settings = JSON.parse(settings);
+    if (settings) {
+      this.settings = JSON.parse(settings);
+      if (!this.settings.calendars) this.settings.calendars = [];
+    }
     return this.settings;
   }
 

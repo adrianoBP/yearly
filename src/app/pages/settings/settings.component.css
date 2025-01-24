@@ -6,6 +6,30 @@
   height: 100%;
 }
 
+/* Mobile */
+@media (max-width: 768px) {
+  #calendars>div>label:nth-of-type(1) {
+    width: auto;
+  }
+
+  #calendars>div>input:nth-of-type(2) {
+    margin-left: auto !important;
+  }
+}
+
+#calendars>div>input:nth-of-type(2) {
+  margin-left: 2rem;
+}
+
+#calendars>div>label:nth-of-type(1) {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+
+  width: 10rem;
+}
+
+
 main {
   flex: 1;
 }

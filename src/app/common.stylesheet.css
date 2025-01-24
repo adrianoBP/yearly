@@ -513,7 +513,6 @@ select:focus {
 input[type="checkbox"] {
   appearance: none;
   background-color: #fff;
-  margin: 0 0.2rem;
 
   font: inherit;
   color: black;
@@ -526,6 +525,11 @@ input[type="checkbox"] {
   place-content: center;
 
   cursor: pointer;
+}
+
+input[type="checkbox"]:disabled {
+  border: 0.15em solid rgb(117, 117, 117);
+  background-color: #d3d3d3;
 }
 
 input[type="checkbox"]::before {

@@ -74,7 +74,9 @@ export class EventEditComponent {
   }
 
   async getCalendars(): Promise<GoogleCalendar[]> {
-    const allowedCalendars = this.settingsService.getSettings().allowedCalendars;
+    const allowedCalendars = this.settingsService
+      .getSettings()
+      .calendars.filter((cal) => cal.allowed);
     return (await this.calendarService.getCalendars()).filter(
       (calendar) =>
         // TODO: settings #3

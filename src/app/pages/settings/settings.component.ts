@@ -6,10 +6,14 @@ import { Settings, SettingsService } from '../../services/settings.service';
 import { UtilService } from '../../services/util.service';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/api/user.service';
+import { faCake, faInfinity } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+
+type toggleSettingType = 'allowed' | 'recurring' | 'birthdays';
 
 @Component({
   selector: 'app-settings',
-  imports: [CommonModule],
+  imports: [CommonModule, FontAwesomeModule],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -22,27 +26,53 @@ export class SettingsComponent {
     public userService: UserService
   ) {}
 
+  infinityIcon = faInfinity;
+  cakeIcon = faCake;
+
   calendars: GoogleCalendar[] = [];
   settings: Settings = {
-    allowedCalendars: [],
+    calendars: [],
   };
 
   async ngOnInit() {
-    this.settings = this.settingsService.getSettings();
     this.calendars = await this.calendarService.getCalendars();
+    this.settings = this.settingsService.getSettings();
+
+    // Add calendar to settings if missing
+    for (const calendar of this.calendars) {
+      const calendarSettings = this.settings.calendars.find((cal) => cal.id === calendar.id);
+      if (calendarSettings == null)
+        this.settings.calendars.push({
+          id: calendar.id,
+          allowed: false,
+          allowRecurring: false,
+          allowBirthdays: false,
+        });
+    }
   }
 
   isCalendarAllowed(calendarId: string) {
-    return this.settings.allowedCalendars.includes(calendarId);
+    return this.settings.calendars.find((cal) => cal.id === calendarId)?.allowed ?? false;
   }
 
-  toggleCalendar(calendarId: string) {
-    if (this.isCalendarAllowed(calendarId)) {
-      this.settings.allowedCalendars = this.settings.allowedCalendars.filter(
-        (id) => id !== calendarId
-      );
-    } else {
-      this.settings.allowedCalendars.push(calendarId);
+  getCalendarSettings(calendarId: string) {
+    return this.settings.calendars.find((cal) => cal.id === calendarId);
+  }
+
+  toggleSetting(calendarId: string, setting: toggleSettingType) {
+    const calendar = this.settings.calendars.find((cal) => cal.id === calendarId);
+    if (calendar == null) return;
+
+    switch (setting) {
+      case 'allowed':
+        calendar.allowed = !calendar.allowed;
+        break;
+      case 'recurring':
+        calendar.allowRecurring = !calendar.allowRecurring;
+        break;
+      case 'birthdays':
+        calendar.allowBirthdays = !calendar.allowBirthdays;
+        break;
     }
 
     this.settingsService.setSettings(this.settings);

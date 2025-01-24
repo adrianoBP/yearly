@@ -61,7 +61,7 @@ export class HomeComponent {
   addEventIcon = faCalendarPlus;
 
   settings: Settings = {
-    allowedCalendars: [],
+    calendars: [],
   };
 
   currentYear = new Date().getFullYear();
@@ -210,17 +210,27 @@ export class HomeComponent {
     await this.calendarService.getSettings();
 
     this.calendars
-      .filter((calendar) => this.settings.allowedCalendars.includes(calendar.id)) // Only calendars that are enabled
+      .filter(
+        (calendar) =>
+          this.settings.calendars.find((cal) => cal.id === calendar.id)?.allowed ?? false
+      ) // Only calendars that are enabled
       .forEach((calendar) => this.loadEventsIntoCalendar(calendar, yearStart, yearEnd)); // Load events for each calendar in parallel
   }
 
   async loadEventsIntoCalendar(calendar: GoogleCalendar, start: Date, end: Date) {
     try {
+      const calendarSettings = this.settings.calendars.find((cal) => cal.id === calendar.id);
+
       let events = (await this.calendarService.getEvents(start, end, calendar.id))
         // remove recurring and declined events
-        // TODO: settings #1 (NOTE: birthdays are included in recurring events)
-        // TODO: settings #2
-        .filter((event) => event.recurringEventId == null && !this.isEventDeclined(event))
+        // TODO: settings #1
+        .filter(
+          (event) =>
+            (event.recurringEventId == null ||
+              (calendarSettings?.allowRecurring && // Show recurring if enabled
+                (event.eventType != 'birthday' || calendarSettings?.allowBirthdays))) && // Show birthdays if enabled (birthdays are recurring)
+            !this.isEventDeclined(event)
+        )
         .map((event) =>
           this.utilService.googleEventToEvent(event, calendar.backgroundColor, calendar.id)
         );

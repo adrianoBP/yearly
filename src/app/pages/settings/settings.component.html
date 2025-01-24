@@ -6,7 +6,7 @@
   </header>
 
 
-  <section>
+  <section id="calendars">
     <p class="font-lg bold margin-ends">Calendars</p>
     <div *ngFor="let calendar of calendars"
          class="row center-items-y margin-ends-light padding-left">
@@ -14,14 +14,39 @@
       <input [id]="'calendar-' + calendar.id "
              class="primary"
              type="checkbox"
-             [checked]="isCalendarAllowed(calendar.id)"
-             (change)="toggleCalendar(calendar.id)">
+             [checked]="getCalendarSettings(calendar.id)?.allowed"
+             (change)="toggleSetting(calendar.id, 'allowed')">
 
       <div class="colour-indicator raised margin-sides"
            [ngStyle]="{'background-color': calendar.backgroundColor}"></div>
 
       <label for="{{'calendar-' + calendar.id }}"
              class="font-m pointer">{{calendarService.getCalendarName(calendar)}}</label>
+
+      <!-- Show Recurring events -->
+      <input [id]="'calendar-' + calendar.id + '-recurring'"
+             class="primary"
+             type="checkbox"
+             [checked]="getCalendarSettings(calendar.id)?.allowRecurring"
+             (change)="toggleSetting(calendar.id, 'recurring')">
+
+      <label for="{{'calendar-' + calendar.id + '-recurring' }}"
+             class="font-m margin-left-light pointer primary">
+        <fa-icon [icon]="infinityIcon"
+                 [size]="'sm'"></fa-icon></label>
+
+      <!-- Show birthdays -->
+      <input [id]="'calendar-' + calendar.id + '-birthdays'"
+             class="primary margin-left-light"
+             type="checkbox"
+             [checked]="getCalendarSettings(calendar.id)?.allowBirthdays"
+             (change)="toggleSetting(calendar.id, 'birthdays')"
+             [disabled]="!getCalendarSettings(calendar.id)?.allowRecurring">
+
+      <label for="{{'calendar-' + calendar.id + '-birthdays' }}"
+             class="font-m pointer margin-left-light primary">
+        <fa-icon [icon]="cakeIcon"
+                 [size]="'sm'"></fa-icon></label>
 
     </div>
   </section>
