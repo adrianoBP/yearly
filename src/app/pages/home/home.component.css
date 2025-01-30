@@ -112,4 +112,6 @@ app-window-container {
 .editing-mode {
   animation: pulse 1s infinite;
   transition: all 0.2s;
+  border: 1px double var(--white);
+  color: var(--font-color);
 }
