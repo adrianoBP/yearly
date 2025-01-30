@@ -7,9 +7,10 @@ import { UtilService } from '../../services/util.service';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/api/user.service';
 import { faCake, faInfinity } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarXmark } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
-type toggleSettingType = 'allowed' | 'recurring' | 'birthdays';
+type toggleSettingType = 'allowed' | 'recurring' | 'birthdays' | 'declined-events';
 
 @Component({
   selector: 'app-settings',
@@ -20,12 +21,13 @@ type toggleSettingType = 'allowed' | 'recurring' | 'birthdays';
 export class SettingsComponent {
   constructor(
     public calendarService: CalendarService,
-    private settingsService: SettingsService,
+    public settingsService: SettingsService,
     public utilService: UtilService,
     @Inject(Router) public router: Router,
     public userService: UserService
   ) {}
 
+  declineEventIcon = faCalendarXmark;
   infinityIcon = faInfinity;
   cakeIcon = faCake;
 
@@ -47,6 +49,7 @@ export class SettingsComponent {
           allowed: false,
           allowRecurring: false,
           allowBirthdays: false,
+          showDeclinedEvents: false,
         });
     }
   }
@@ -72,6 +75,9 @@ export class SettingsComponent {
         break;
       case 'birthdays':
         calendar.allowBirthdays = !calendar.allowBirthdays;
+        break;
+      case 'declined-events':
+        calendar.showDeclinedEvents = !calendar.showDeclinedEvents;
         break;
     }
 

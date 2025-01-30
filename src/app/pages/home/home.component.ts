@@ -232,13 +232,12 @@ export class HomeComponent {
 
       let events = (await this.calendarService.getEvents(start, end, calendar.id))
         // remove recurring and declined events
-        // TODO: settings #1
         .filter(
           (event) =>
             (event.recurringEventId == null ||
               (calendarSettings?.allowRecurring && // Show recurring if enabled
                 (event.eventType != 'birthday' || calendarSettings?.allowBirthdays))) && // Show birthdays if enabled (birthdays are recurring)
-            !this.isEventDeclined(event)
+            (calendarSettings?.showDeclinedEvents || !this.isEventDeclined(event))
         )
         .map((event) =>
           this.utilService.googleEventToEvent(event, calendar.backgroundColor, calendar.id)

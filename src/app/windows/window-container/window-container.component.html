@@ -1,7 +1,5 @@
-<!-- TODO: settings #4 -->
-<!-- TODO: settings #5: windowsService.back() or windowsService.backAllWindows()-->
 <div id="backdrop"
-     (click)="windowsService.back()"
+     (click)="settingService.getSettings().closeAllWindows ? windowsService.backAllWindows() : windowsService.back()"
      [ngClass]="{'from-left': openingSide == 'left', 'from-right': openingSide == 'right'}">
 
   <div id="window"
