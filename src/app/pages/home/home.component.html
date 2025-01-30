@@ -8,14 +8,16 @@
     <div id="year-selection"
          class="bg-primary-light">
       <button (click)="changeYear(year - 1)"
-              class="primary bg-primary-light">
+              class="primary bg-primary-light"
+              [disabled]="this.isLoading">
         <fa-icon [icon]="chevronLeftIcon"
                  [size]="'lg'"></fa-icon>
       </button>
       <p (click)="changeYear(currentYear)"
          class="pointer">{{ year }}</p>
       <button (click)="changeYear(year + 1)"
-              class="primary bg-primary-light">
+              class="primary bg-primary-light"
+              [disabled]="this.isLoading">
         <fa-icon [icon]="chevronRightIcon"
                  [size]="'lg'"></fa-icon>
       </button>

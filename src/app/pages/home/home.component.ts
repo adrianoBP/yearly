@@ -60,6 +60,8 @@ export class HomeComponent {
   exitIcon = faSignOutAlt;
   addEventIcon = faCalendarPlus;
 
+  isLoading = true;
+
   settings: Settings = {
     calendars: [],
   };
@@ -209,15 +211,22 @@ export class HomeComponent {
     // for now used only to ensure that the user is logged in
     await this.calendarService.getSettings();
 
-    this.calendars
-      .filter(
-        (calendar) =>
-          this.settings.calendars.find((cal) => cal.id === calendar.id)?.allowed ?? false
-      ) // Only calendars that are enabled
-      .forEach((calendar) => this.loadEventsIntoCalendar(calendar, yearStart, yearEnd)); // Load events for each calendar in parallel
+    try {
+      this.isLoading = true;
+      const promises = this.calendars
+        .filter(
+          (calendar) =>
+            this.settings.calendars.find((cal) => cal.id === calendar.id)?.allowed ?? false
+        ) // Only calendars that are enabled
+        .map((calendar) => this.loadEventsIntoCalendar(calendar, yearStart, yearEnd)); // Load events for each calendar in parallel
+
+      await Promise.all(promises);
+    } finally {
+      this.isLoading = false;
+    }
   }
 
-  async loadEventsIntoCalendar(calendar: GoogleCalendar, start: Date, end: Date) {
+  async loadEventsIntoCalendar(calendar: GoogleCalendar, start: Date, end: Date): Promise<void> {
     try {
       const calendarSettings = this.settings.calendars.find((cal) => cal.id === calendar.id);
 
@@ -242,6 +251,8 @@ export class HomeComponent {
   }
 
   async changeYear(newYear: number) {
+    if (this.isLoading) return;
+
     this.year = newYear;
     this.buildMonths();
     this.calendars = await this.calendarService.getCalendars();
