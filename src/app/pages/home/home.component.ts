@@ -87,6 +87,8 @@ export class HomeComponent {
   }
 
   async ngOnInit() {
+    this.settingsService.setStyle();
+
     this.addPageEventListeners();
 
     this.settings = this.settingsService.getSettings();

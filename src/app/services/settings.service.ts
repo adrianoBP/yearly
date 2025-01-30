@@ -11,6 +11,7 @@ export interface Settings {
   calendars: CalendarSettings[];
   showDisabledCalendars?: boolean;
   closeAllWindows?: boolean;
+  darkMode?: boolean;
 }
 
 @Injectable()
@@ -31,6 +32,8 @@ export class SettingsService {
         this.settings.showDisabledCalendars = false;
 
       if (!this.settings.hasOwnProperty('closeAllWindows')) this.settings.closeAllWindows = false;
+
+      if (!this.settings.hasOwnProperty('darkMode')) this.settings.darkMode = false;
     }
     return this.settings;
   }
@@ -38,5 +41,22 @@ export class SettingsService {
   setSettings(settings: Settings) {
     this.settings = settings;
     localStorage.setItem('settings', JSON.stringify(this.settings));
+  }
+
+  setStyle() {
+    this.getSettings();
+
+    if (this.settings.darkMode) {
+      document.documentElement.style.setProperty('--background-color', 'var(--grey-1000)');
+      document.documentElement.style.setProperty('--font-color', 'var(--grey-200)');
+      document.documentElement.style.setProperty(
+        '--primary',
+        'color-mix(in srgb, var(--blue) 50%, var(--white))'
+      );
+    } else {
+      document.documentElement.style.setProperty('--background-color', 'white');
+      document.documentElement.style.setProperty('--font-color', 'black');
+      document.documentElement.style.setProperty('--primary', 'var(--blue)');
+    }
   }
 }
