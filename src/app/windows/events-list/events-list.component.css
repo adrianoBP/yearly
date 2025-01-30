@@ -11,7 +11,7 @@
 
 @media (hover: hover) {
   .event-details:hover {
-    background-color: #f0f0f0;
+    background-color: color-mix(in srgb, var(--font-color) 5%, var(--background-color));
     cursor: pointer;
   }
 }

@@ -1,6 +1,6 @@
-* {
-  --primary: #0045db;
-  --light: #EBF3FF;
+:root {
+  --primary: var(--blue);
+  --light: color-mix(in srgb, var(--primary) 5%, var(--background-color));
   --dark: #0036aa;
 
   /* defaults */
@@ -8,7 +8,7 @@
   --green: #28a745;
   --orange: #ff9c07;
   --yellow: #FFEB3B;
-  --blue: #007bff;
+  --blue: #0045db;
 
   --white: #FFFFFF;
   --grey-200: #EEEEEE;
@@ -16,6 +16,7 @@
   --grey-600: #BDBDBD;
   --grey-700: #9E9E9E;
   --grey-800: #424242;
+  --grey-1000: #222222;
   --black: #000000;
 
   --padding-light: 0.2rem;
@@ -25,6 +26,9 @@
   --margin-light: 0.2rem;
   --margin: 0.5rem;
   --margin-heavy: 1rem;
+
+  --background-color: var(--white);
+  --font-color: var(--black);
 
   padding: 0;
   margin: 0;
@@ -40,6 +44,11 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--grey-700);
   }
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--font-color);
 }
 
 /* -- STRUCTURE -- */
@@ -324,7 +333,7 @@
 }
 
 .bg-light {
-  background-color: color-mix(in srgb, var(--color) 5%, white);
+  background-color: color-mix(in srgb, var(--color) 5%, var(--background-color));
 }
 
 .border {
@@ -472,8 +481,8 @@
 *:disabled {
   cursor: not-allowed !important;
   border: none;
-  background-color: var(--grey-200);
-  color: var(--grey-600);
+  background-color: color-mix(in srgb, var(--background-color) 90%, var(--font-color));
+  color: var(--background-color);
 }
 
 /* -- BUTTON -- */
@@ -501,6 +510,8 @@ select {
   border-radius: 0.5rem;
   border: 1px solid #b3b3b3;
   transition: all 0.3s;
+  background-color: var(--background-color);
+  color: var(--font-color);
 }
 
 input:focus,
@@ -512,13 +523,13 @@ select:focus {
 /* -- CHECKBOX -- */
 input[type="checkbox"] {
   appearance: none;
-  background-color: #fff;
+  background-color: var(--background-color);
 
   font: inherit;
-  color: black;
+  color: var(--font-color);
   width: 1.15em;
   height: 1.15em;
-  border: 0.15em solid black;
+  border: 0.15em solid var(--font-color);
   border-radius: 0.15em;
 
   display: grid;
@@ -528,8 +539,8 @@ input[type="checkbox"] {
 }
 
 input[type="checkbox"]:disabled {
-  border: 0.15em solid rgb(117, 117, 117);
-  background-color: #e1e1e1;
+  border: 0.15em solid color-mix(in srgb, var(--background-color) 50%, var(--font-color));
+  background-color: color-mix(in srgb, var(--font-color) 5%, var(--background-color));
 }
 
 input[type="checkbox"]::before {

@@ -1,3 +1,5 @@
+@import url('../../common.stylesheet.css');
+
 * {
   --window-width: 30%;
   --window-margin: 0 1rem 0 1rem;
@@ -36,7 +38,7 @@
 }
 
 #window {
-  background-color: white;
+  background-color: var(--background-color);
 
   display: flex;
   width: var(--window-width);

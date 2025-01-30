@@ -83,4 +83,10 @@ export class SettingsComponent {
 
     this.settingsService.setSettings(this.settings);
   }
+
+  toggleDarkMode() {
+    this.settings.darkMode = !this.settings.darkMode;
+    this.settingsService.setSettings(this.settings);
+    this.settingsService.setStyle();
+  }
 }
