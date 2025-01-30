@@ -5,10 +5,12 @@ export interface CalendarSettings {
   allowed: boolean;
   allowRecurring: boolean;
   allowBirthdays: boolean;
+  showDeclinedEvents: boolean;
 }
-
 export interface Settings {
   calendars: CalendarSettings[];
+  showDisabledCalendars?: boolean;
+  closeAllWindows?: boolean;
 }
 
 @Injectable()
@@ -20,10 +22,15 @@ export class SettingsService {
   };
 
   getSettings(): Settings {
-    const settings = localStorage.getItem('settings');
-    if (settings) {
-      this.settings = JSON.parse(settings);
+    const storedSettings = localStorage.getItem('settings');
+    if (storedSettings) {
+      this.settings = JSON.parse(storedSettings);
       if (!this.settings.calendars) this.settings.calendars = [];
+
+      if (!this.settings.hasOwnProperty('showDisabledCalendars'))
+        this.settings.showDisabledCalendars = false;
+
+      if (!this.settings.hasOwnProperty('closeAllWindows')) this.settings.closeAllWindows = false;
     }
     return this.settings;
   }

@@ -9,16 +9,23 @@
 /* Mobile */
 @media (max-width: 768px) {
   #calendars>div>label:nth-of-type(1) {
-    width: auto;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: auto !important;
   }
 
   #calendars>div>input:nth-of-type(2) {
     margin-left: auto !important;
   }
+
+  main {
+    width: auto !important;
+  }
 }
 
 #calendars>div>input:nth-of-type(2) {
-  margin-left: 2rem;
+  margin-left: auto;
 }
 
 #calendars>div>label:nth-of-type(1) {
@@ -26,10 +33,10 @@
   white-space: nowrap;
   overflow: hidden;
 
-  width: 10rem;
+  width: 20rem;
 }
-
 
 main {
   flex: 1;
+  width: 30vw;
 }

@@ -74,14 +74,14 @@ export class EventEditComponent {
   }
 
   async getCalendars(): Promise<GoogleCalendar[]> {
-    const allowedCalendars = this.settingsService
-      .getSettings()
-      .calendars.filter((cal) => cal.allowed);
+    const settings = this.settingsService.getSettings();
+    const allowedCalendars = settings.showDisabledCalendars
+      ? []
+      : settings.calendars.filter((cal) => cal.allowed).map((cal) => cal.id);
     return (await this.calendarService.getCalendars()).filter(
       (calendar) =>
-        // TODO: settings #3
-        // allowedCalendars.includes(calendar.id)
-        calendar.accessRole === 'owner' || calendar.accessRole === 'writer'
+        (allowedCalendars.length == 0 || allowedCalendars.includes(calendar.id)) &&
+        (calendar.accessRole === 'owner' || calendar.accessRole === 'writer')
     );
   }
 

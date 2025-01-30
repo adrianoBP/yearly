@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { style, animate, transition, trigger } from '@angular/animations';
 import { EventEditComponent } from '../event-edit/event-edit.component';
 import { MobileUtilService } from '../../services/mobile.util.service';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'app-window-container',
@@ -27,7 +28,11 @@ import { MobileUtilService } from '../../services/mobile.util.service';
 export class WindowContainerComponent {
   openingSide: string | null;
 
-  constructor(public windowsService: WindowsService, private mobileUtilService: MobileUtilService) {
+  constructor(
+    public windowsService: WindowsService,
+    private mobileUtilService: MobileUtilService,
+    public settingService: SettingsService
+  ) {
     this.openingSide = this.mobileUtilService.isMobile()
       ? null
       : this.windowsService.getOpenedWindow()!.side;
