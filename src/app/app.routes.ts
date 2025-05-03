@@ -4,6 +4,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { inject } from '@angular/core';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { AuthService } from './services/api/auth.service';
+import { PolicyComponent } from './pages/additional/policy/policy.component';
 
 const isLoggedIn: CanActivateFn = () => {
   const authService = inject(AuthService);
@@ -19,4 +20,5 @@ export const routes: Routes = [
     canActivate: [isLoggedIn],
   },
   { path: 'login', component: LoginComponent },
+  { path: 'privacy-policy', component: PolicyComponent },
 ];
