@@ -6,22 +6,20 @@ import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-landing',
   imports: [FontAwesomeModule],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.css',
+  templateUrl: './landing.component.html',
+  styleUrl: './landing.component.css',
 })
-export class LoginComponent {
+export class LandingComponent {
   googleIcon = faGoogle as IconProp;
 
   constructor(public authService: AuthService, @Inject(Router) private router: Router) {}
 
-  ngOnInit() {
-    if (this.authService.isLoggedIn) this.router.navigate(['/']);
-  }
+  ngOnInit() {}
 
   async login() {
     await this.authService.getAccessTokenAsync();
-    this.router.navigate(['/']);
+    this.router.navigate(['/home']);
   }
 }

@@ -33,6 +33,6 @@ export class AuthService {
   logOut(): void {
     this.userService.emailAddress = '';
     this.authService.logOut();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
   }
 }
