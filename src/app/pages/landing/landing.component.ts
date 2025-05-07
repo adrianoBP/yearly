@@ -16,7 +16,9 @@ export class LandingComponent {
 
   constructor(public authService: AuthService, @Inject(Router) private router: Router) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    if (this.authService.isLoggedIn) this.router.navigate(['/']);
+  }
 
   async login() {
     await this.authService.getAccessTokenAsync();

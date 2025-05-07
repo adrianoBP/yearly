@@ -18,7 +18,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: 'version',
-      useValue: '0.6.1',
+      useValue: '0.7.2',
     },
     {
       provide: 'mockData',
