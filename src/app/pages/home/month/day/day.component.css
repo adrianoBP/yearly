@@ -40,7 +40,8 @@
   .is-adding-new-event:hover {
     cursor: pointer;
     border-radius: 2rem;
-    border: 1px solid black;
+    /* Border with no width */
+    box-shadow: 0 0 0 1px black;
   }
 }
 

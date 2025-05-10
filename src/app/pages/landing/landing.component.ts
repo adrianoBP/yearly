@@ -17,7 +17,7 @@ export class LandingComponent {
   constructor(public authService: AuthService, @Inject(Router) private router: Router) {}
 
   ngOnInit() {
-    if (this.authService.isLoggedIn) this.router.navigate(['/']);
+    if (this.authService.isLoggedIn) this.router.navigate(['/home']);
   }
 
   async login() {
