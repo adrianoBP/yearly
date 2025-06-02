@@ -40,8 +40,12 @@ export class DayComponent {
 
   eventColours: string[] = [];
 
+  // List of icons for the events
   eventIcons: { [key: string]: EventIcon } = {
     flight: { enabled: false, icon: '✈️' } as EventIcon,
+    ferry: { enabled: false, icon: '🚢' } as EventIcon,
+    train: { enabled: false, icon: '🚅' } as EventIcon,
+    bus: { enabled: false, icon: '🚌' } as EventIcon,
   };
 
   ngOnChanges(changes: {
@@ -62,9 +66,19 @@ export class DayComponent {
         this.eventColours.push(event.colour);
       }
 
-      // Enable custom icons for specific events
-      if (event.title.toLowerCase().includes('flight')) {
-        this.eventIcons['flight'].enabled = true;
+      const availableIcons = Object.keys(this.eventIcons)
+        .map((key) => ({
+          type: key,
+          index: event.title.toLowerCase().indexOf(key),
+        }))
+        .filter((index) => index.index > -1);
+
+      // Enable the icon with the first index
+      if (availableIcons.length > 0) {
+        const highestPriorityIndex = availableIcons.reduce((prev, current) =>
+          current.index > prev.index ? prev : current
+        );
+        this.eventIcons[highestPriorityIndex.type].enabled = true;
       }
     }
 
@@ -75,9 +89,13 @@ export class DayComponent {
     this.isToday = this.today.isSame(this.day.date, 'day');
     this.isPast = this.today.isAfter(this.day.date, 'day');
     this.sortedEvents = this.events.sort((a, b) => b.duration - a.duration);
-    this.enabledIcons = Object.keys(this.eventIcons)
-      .filter((key) => this.eventIcons[key].enabled)
-      .map((key) => this.eventIcons[key].icon);
+
+    // ? Currently only supporting one icon per day due to space constraints
+    this.enabledIcons = [
+      Object.keys(this.eventIcons)
+        .filter((key) => this.eventIcons[key].enabled)
+        .map((key) => this.eventIcons[key].icon)[0],
+    ];
   }
 
   onClick(mouseEvent: MouseEvent): void {
