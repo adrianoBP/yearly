@@ -21,6 +21,8 @@ export class SyncService {
   ) {}
 
   status: SyncStatus = 'off';
+  /** Google's reason for the last failure, first sentence only */
+  error = '';
   private started = false;
   private fileId: string | null = null;
   /** Syncs run one after another so two never write the file at once */
@@ -54,9 +56,11 @@ export class SyncService {
       }
       await auth.makeRequest(`${UPLOAD}/${this.fileId}?uploadType=media`, 'patch', merged, false);
       this.status = 'synced';
+      this.error = '';
     } catch (e) {
-      // Usually a sign-in from before Drive access was asked for; keys keep working on this device
+      // e.g. a sign-in from before Drive access was asked for, or the Drive API is off in the Google Cloud project
       console.warn('Sync failed', e);
+      this.error = typeof e === 'string' ? e.split(/(?<=\.)\s/)[0] : '';
       this.status = 'error';
     }
   }

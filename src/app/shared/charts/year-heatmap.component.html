@@ -1,5 +1,7 @@
 <figure #figure>
   <figcaption>Busy days <span class="hint">Click a day to open it</span></figcaption>
+  <div class="scroll"
+       [style.--weeks]="weekCount">
   <div class="months"
        aria-hidden="true"
        [style.grid-template-columns]="'repeat(' + weekCount + ', 1fr)'">
@@ -22,6 +24,7 @@
             (mouseenter)="show(cell, $event)"
             (click)="pick.emit(cell.date)"></span>
     }
+  </div>
   </div>
   @if (hover) {
     <!-- One tooltip for the whole grid, kept inside the figure so it never makes the panel scroll -->

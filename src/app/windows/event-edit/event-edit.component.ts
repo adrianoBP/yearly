@@ -32,6 +32,8 @@ export interface EditEventParameters extends WindowParameters {
   endDate?: Date;
   /** Opened from "Type it": start in the plain-text box */
   focusQuickAdd?: boolean;
+  /** The other events of that day, for travel times between them */
+  neighbours?: Event[];
 }
 
 @Component({

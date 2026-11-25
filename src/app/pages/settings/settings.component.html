@@ -130,6 +130,18 @@
                  (change)="toggleFeature(feature)">
         </li>
       }
+      <li class="home">
+        <div class="text">
+          <label for="home-address">Home address</label>
+          <span class="muted">Used for travel times to your events. Stays on this device.</span>
+        </div>
+        <input id="home-address"
+               type="text"
+               autocomplete="street-address"
+               placeholder="e.g. 10 High Street, Southsea"
+               [value]="settings.homeAddress ?? ''"
+               (change)="saveHomeAddress($any($event.target).value)">
+      </li>
     </ul>
   </section>
 
@@ -142,7 +154,7 @@
         @switch (sync.status) {
           @case ('synced') { Synced through your Google Drive. }
           @case ('syncing') { Syncing… }
-          @case ('error') { Stored on this device only: sign out and in again to sync. }
+          @case ('error') { Not syncing, so keys stay on this device{{ sync.error ? ': ' + sync.error : '.' }} }
           @default { Stored on this device only. }
         }
       </span>
@@ -191,8 +203,8 @@
                     (click)="removeKey(provider.id); keyInput.value = ''">Remove</button>
           </div>
 
-          @if (!provider.test && provider.testNote) {
-            <span class="muted">{{ provider.testNote }}</span>
+          @if (integrations.serverMissing(provider.id)) {
+            <span class="muted">Browsers can't reach this service directly. It works once the Yearly server is set up.</span>
           }
           @if (result) {
             <span class="result"

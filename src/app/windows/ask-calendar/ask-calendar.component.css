@@ -1,0 +1,162 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+}
+
+/* Keeps Clear and Close together on the right */
+.sheet-header > div {
+  flex: 1;
+}
+
+.ask {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.25rem 1rem 1rem;
+  font-size: 0.9rem;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 999px;
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    transform 0.2s var(--spring);
+}
+
+.chip-btn:hover {
+  color: #fff;
+  background: var(--primary);
+  transform: translateY(-1px);
+}
+
+.chip-btn:active {
+  transform: scale(0.95);
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+}
+
+.thread li {
+  max-width: 88%;
+  padding: 0.55rem 0.8rem;
+  line-height: 1.45;
+  white-space: pre-line;
+  border-radius: 14px;
+  animation: bubble-in 0.3s var(--spring) both;
+}
+
+.question {
+  align-self: flex-end;
+  color: #fff;
+  background: var(--primary);
+  border-bottom-right-radius: 4px;
+  transform-origin: bottom right;
+}
+
+.answer {
+  align-self: flex-start;
+  background: var(--surface-2);
+  border-bottom-left-radius: 4px;
+  transform-origin: bottom left;
+}
+
+.answer.error {
+  color: var(--danger);
+  background: rgb(220 38 38 / 0.08);
+}
+
+/* Three dots bouncing while Gemini thinks */
+.typing {
+  display: inline-flex;
+  gap: 3px;
+  padding: 0.2rem 0;
+}
+
+.typing span {
+  width: 6px;
+  aspect-ratio: 1;
+  background: var(--text-muted);
+  border-radius: 50%;
+  animation: typing 1s ease-in-out infinite;
+}
+
+.typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.privacy {
+  margin-top: auto;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.ask-form {
+  gap: 0.5rem;
+}
+
+.ask-form input {
+  flex: 1;
+  height: 2.25rem;
+}
+
+.ask-form .btn {
+  height: 2.25rem;
+}
+
+/* Paper plane takes off on hover */
+.ask-form button:hover:not(:disabled) fa-icon.i-send {
+  animation: send 0.5s ease-in-out;
+}
+
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(6px);
+  }
+}
+
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+@keyframes send {
+  45% {
+    opacity: 0;
+    transform: translate(10px, -10px);
+  }
+  46% {
+    opacity: 0;
+    transform: translate(-10px, 10px);
+  }
+}

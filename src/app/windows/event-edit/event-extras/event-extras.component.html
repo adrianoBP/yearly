@@ -11,12 +11,98 @@
           {{ flight.to ? flight.to.code + ' ' + flight.to.name : '?' }}
         </p>
       }
+
+      @if (flightStatus) {
+        @let dep = flightStatus.status.departure;
+        @let arr = flightStatus.status.arrival;
+        <div class="live">
+          <span class="status"
+                [attr.data-tone]="flightStatus.status.tone">{{ flightStatus.status.label }}</span>
+          <p>
+            Departs <strong>{{ dep.actual ?? dep.estimated ?? dep.scheduled }}</strong>
+            @if ((dep.actual ?? dep.estimated) && (dep.actual ?? dep.estimated) !== dep.scheduled) {
+              <s class="muted">{{ dep.scheduled }}</s>
+            }
+            @if (dep.terminal) { · Terminal {{ dep.terminal }} }
+            @if (dep.gate) { · Gate <strong>{{ dep.gate }}</strong> }
+          </p>
+          <p>
+            Arrives <strong>{{ arr.actual ?? arr.estimated ?? arr.scheduled }}</strong>
+            @if (arr.terminal) { · Terminal {{ arr.terminal }} }
+            @if (arr.gate) { · Gate {{ arr.gate }} }
+            @if (arr.baggage) { · Baggage belt {{ arr.baggage }} }
+          </p>
+          <button type="button"
+                  class="refresh"
+                  [disabled]="isRefreshing"
+                  (click)="refreshFlight()">
+            <fa-icon class="i-turn"
+                     [class.spinning]="isRefreshing"
+                     [icon]="refreshIcon" />
+            Updated {{ updatedAgo }}
+          </button>
+        </div>
+      } @else if (flightError) {
+        <p class="muted">Live status: {{ flightError }}</p>
+      }
+
       <a class="link"
          [href]="flight.trackUrl"
          target="_blank"
          rel="noopener noreferrer">Track on Flightradar24
-        <fa-icon class="i-pop" [icon]="externalIcon"
+        <fa-icon class="i-pop"
+                 [icon]="externalIcon"
                  size="xs" /></a>
+    </div>
+  </section>
+}
+
+@if (travel.before || travel.after) {
+  <section class="group">
+    <fa-icon class="group-icon"
+             [icon]="travelIcon" />
+    <div class="group-body">
+      @for (leg of [travel.before, travel.after]; track $index) {
+        @if (leg) {
+          <div class="leg">
+            <p>
+              {{ $index === 0 ? 'From' : 'To' }} <strong>{{ leg.event.title || '(No title)' }}</strong>:
+              {{ leg.minutes }} min drive, {{ leg.gap }} min between events
+            </p>
+            <span class="verdict"
+                  [attr.data-verdict]="leg.verdict">{{ leg.verdict === 'late' ? 'Not enough time' : leg.verdict === 'tight' ? 'Tight' : 'Enough time' }}</span>
+          </div>
+        }
+      }
+      <p class="credit">Driving times with traffic by TomTom</p>
+    </div>
+  </section>
+}
+
+@if (crowds.length || home) {
+  <section class="group">
+    <fa-icon class="group-icon"
+             [icon]="crowdIcon" />
+    <div class="group-body">
+      @if (crowds.length) {
+        <p class="heading">Busy nearby</p>
+        <ul class="crowds">
+          @for (crowd of crowds; track crowd.name + crowd.start) {
+            <li>
+              <span class="time">{{ time(crowd.start) }}</span>
+              <span>{{ crowd.name }}
+                <span class="muted">· {{ crowd.venue }}@if (crowd.distanceKm != null) { · {{ crowd.distanceKm }} km}</span>
+              </span>
+            </li>
+          }
+        </ul>
+      }
+      @if (home) {
+        <p>
+          Leave home by <strong>{{ time(home.leaveBy) }}</strong>
+          <span class="muted">· {{ home.minutes }} min drive{{ crowds.length ? ', plus 20 min for the crowds' : '' }}</span>
+        </p>
+      }
     </div>
   </section>
 }
@@ -53,4 +139,3 @@
     </div>
   </section>
 }
-

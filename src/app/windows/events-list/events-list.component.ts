@@ -101,8 +101,10 @@ export class EventsListComponent {
     this.windowsService.openWindow(
       'edit-event',
       {
+        date: this.parameters.date,
         event,
         isNewEvent: false,
+        neighbours: this.events,
       } as EditEventParameters,
       null,
       (updatedEvent: EventDisplayDetails) => {

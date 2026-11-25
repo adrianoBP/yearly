@@ -1,5 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
+import { ASK_THREAD_KEY } from '../../features/ask';
 import { HTTPRequestType, HttpService } from '../api/http.service';
 
 import { GoogleOAuthProvider, SuccessTokenResponse } from 'google-oauth-gsi';
@@ -93,6 +94,8 @@ export class GoogleAuthService {
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
     // A deliberate log out shows the account picker next time, to allow switching accounts
     localStorage.removeItem(GoogleAuthService.LOGIN_HINT_KEY);
+    // The chat holds calendar details, so it doesn't outlive the account
+    localStorage.removeItem(ASK_THREAD_KEY);
   }
 
   async makeRequest<T>(

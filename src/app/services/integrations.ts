@@ -1,4 +1,4 @@
-export type ProviderId = 'gemini' | 'tomtom' | 'ticketmaster' | 'aviationstack' | 'aeroapi';
+export type ProviderId = 'gemini' | 'tomtom' | 'ticketmaster' | 'aviationstack' | 'footballdata';
 export type UsagePeriod = 'day' | 'month';
 
 export interface Provider {
@@ -10,9 +10,13 @@ export interface Provider {
   limit?: number;
   limitNote?: string;
   period: UsagePeriod;
-  /** Cheap request that proves the key works; undefined when the browser can't reach the provider */
+  /** Cheap request that proves the key works */
   test?: (key: string) => { url: string; headers?: Record<string, string> };
-  testNote?: string;
+  /**
+   * Browsers can't call some APIs directly (no CORS). 'always' goes through the Yearly server
+   * (see server/proxy.mjs); 'fallback' tries the browser first.
+   */
+  server?: 'always' | 'fallback';
 }
 
 export const PROVIDERS: Provider[] = [
@@ -44,27 +48,30 @@ export const PROVIDERS: Provider[] = [
     steps: 'Sign up, open My Apps, then copy the Consumer Key.',
     limit: 5000,
     period: 'day',
+    server: 'fallback',
     test: (key) => ({
       url: `https://app.ticketmaster.com/discovery/v2/events.json?size=1&apikey=${encodeURIComponent(key)}`,
     }),
+  },
+  {
+    id: 'footballdata',
+    name: 'football-data.org',
+    keyUrl: 'https://www.football-data.org/client/register',
+    steps: 'Register for the free plan. The API token arrives by email.',
+    limitNote: 'Free plan: 10 requests a minute; covers the Premier League, Championship and other top leagues.',
+    period: 'day',
+    server: 'always',
+    test: (key) => ({ url: 'https://api.football-data.org/v4/competitions/PL', headers: { 'X-Auth-Token': key } }),
   },
   {
     id: 'aviationstack',
     name: 'Aviationstack',
     keyUrl: 'https://aviationstack.com',
     steps: 'Choose "Sign up free". The Access Key is on your dashboard.',
+    limitNote: 'Testing the key uses 1 of the 100 free monthly requests.',
     limit: 100,
     period: 'month',
-    testNote: "The free plan is HTTP-only, so browsers block it. It can't be tested from here yet.",
-  },
-  {
-    id: 'aeroapi',
-    name: 'FlightAware AeroAPI',
-    keyUrl: 'https://www.flightaware.com/aeroapi/portal',
-    steps: 'Sign in, choose the Personal tier, then open API Keys.',
-    period: 'month',
-    limitNote: 'Free allowance is shown in the AeroAPI portal.',
-    test: (key) => ({ url: 'https://aeroapi.flightaware.com/aeroapi/account/usage', headers: { 'x-apikey': key } }),
+    test: (key) => ({ url: `https://api.aviationstack.com/v1/flights?limit=1&access_key=${encodeURIComponent(key)}` }),
   },
 ];
 
@@ -74,50 +81,67 @@ export interface Feature {
   description: string;
   /** Every group must have at least one key set; empty means no key needed */
   keys: ProviderId[][];
-  /** Works in a reduced form when keys are missing */
+  /** Keys that add to the feature; without them it runs in its basic form (see basic) */
+  optionalKeys?: ProviderId[][];
+  /** What's missing in the basic form */
   basic?: string;
   /** false until the feature is built */
   available: boolean;
 }
 
 export const FEATURES: Feature[] = [
-  { id: 'text-events', name: 'Create events from text', description: 'Type "dinner Friday 8pm at Rosie\'s" to fill in a new event.', keys: [], available: true },
+  { id: 'text-events', name: 'Create events from text', description: `Type "dinner Friday 8pm at Rosie's" to fill in a new event.`, keys: [], available: true },
   {
     id: 'flights',
     name: 'Flight details',
     description: 'Airline, airports and times for events with a flight number.',
-    keys: [['aviationstack', 'aeroapi']],
-    basic: 'Live gate, delay and status need a free Aviationstack or AeroAPI key.',
+    keys: [],
+    optionalKeys: [['aviationstack']],
+    basic: 'Live gate, delay and status need a free Aviationstack key.',
     available: true,
   },
   { id: 'weather', name: 'Weather warnings', description: 'Forecast warnings for events with a location.', keys: [], available: true },
   { id: 'leave-planner', name: 'Leave planner', description: 'Bank holidays and the best days to take off.', keys: [], available: true },
-  { id: 'year-review', name: 'Year in review', description: 'Trips, busiest month and places visited.', keys: [], available: true },
-  { id: 'travel-buffers', name: 'Travel buffers', description: 'Warns when back-to-back events are too far apart.', keys: [['tomtom']], available: false },
+  { id: 'year-review', name: 'Year in review', description: 'Charts of your year: busy days, months, places and more.', keys: [], available: true },
+  {
+    id: 'travel-buffers',
+    name: 'Travel buffers',
+    description: `Warns when there isn't enough time to get from one event to the next.`,
+    keys: [['tomtom']],
+    available: true,
+  },
   {
     id: 'crowd-alerts',
     name: 'Crowd and traffic alerts',
-    description: 'Warns when a big event near your venue may slow you down.',
-    keys: [['ticketmaster'], ['tomtom']],
-    available: false,
+    description: 'Warns when a concert or match near your venue may slow you down.',
+    keys: [['ticketmaster', 'footballdata']],
+    optionalKeys: [['tomtom']],
+    basic: 'Travel time from home needs a free TomTom key and your home address.',
+    available: true,
   },
-  { id: 'ask-calendar', name: 'Ask your calendar', description: 'Ask questions like "when is my next free weekend?".', keys: [['gemini']], available: false },
+  {
+    id: 'ask-calendar',
+    name: 'Ask your calendar',
+    description: 'Ask questions like "when is my next free weekend?".',
+    keys: [['gemini']],
+    available: true,
+  },
 ];
 
 export type FeatureStatus = 'soon' | 'off' | 'ready' | 'basic' | 'needs-key';
 
-/** Key groups that still have no key set */
+/** Required key groups that still have no usable key */
 export function missingKeys(feature: Feature, hasKey: (id: ProviderId) => boolean): ProviderId[][] {
   return feature.keys.filter((group) => !group.some(hasKey));
 }
 
 export function featureStatus(feature: Feature, enabled: boolean, hasKey: (id: ProviderId) => boolean): FeatureStatus {
   if (!feature.available) return 'soon';
-  const missing = missingKeys(feature, hasKey).length > 0;
   // A missing key outranks "off": the switch is locked, so the badge must say why
-  if (missing && !feature.basic) return 'needs-key';
+  if (missingKeys(feature, hasKey).length > 0) return 'needs-key';
   if (!enabled) return 'off';
-  return missing ? 'basic' : 'ready';
+  const optionalMissing = (feature.optionalKeys ?? []).some((group) => !group.some(hasKey));
+  return optionalMissing ? 'basic' : 'ready';
 }
 
 /** Only features that can actually run may be switched on */

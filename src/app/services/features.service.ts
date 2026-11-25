@@ -14,7 +14,7 @@ export class FeaturesService {
   status(id: string) {
     const feature = FEATURES.find((f) => f.id === id)!;
     const enabled = this.settingsService.getSettings().features?.[id] ?? true;
-    return featureStatus(feature, enabled, this.integrations.hasKey);
+    return featureStatus(feature, enabled, this.integrations.canUse);
   }
 
   isOn(id: string) {

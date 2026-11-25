@@ -14,7 +14,8 @@ export class HttpService {
     } catch (err: any) {
       if (err.name == 'HttpErrorResponse') {
         if (err.status == 401) throw 'Unauthorized';
-        throw err.error.Message;
+        // Google APIs put the reason under error.message
+        throw err.error?.Message ?? err.error?.error?.message ?? `Request failed (${err.status})`;
       }
       throw err;
     }

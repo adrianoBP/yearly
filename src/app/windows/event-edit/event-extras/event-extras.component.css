@@ -75,3 +75,103 @@
 .credit a {
   color: inherit;
 }
+
+/* Live flight status */
+.live {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.7rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  animation: rise-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.status,
+.verdict {
+  width: fit-content;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+}
+
+.status[data-tone='ok'],
+.verdict[data-verdict='ok'] {
+  color: #067647;
+  background: #dcfae6;
+}
+
+.status[data-tone='warn'],
+.verdict[data-verdict='tight'] {
+  color: #b54708;
+  background: #fef0c7;
+}
+
+.status[data-tone='bad'],
+.verdict[data-verdict='late'] {
+  color: var(--danger);
+  background: rgb(220 38 38 / 0.08);
+}
+
+.refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.refresh:hover:not(:disabled) {
+  color: var(--primary);
+}
+
+/* Turning while it fetches, a quarter-turn nudge on hover */
+.refresh:hover:not(:disabled) fa-icon.i-turn {
+  animation: icon-turn 0.4s var(--spring);
+}
+
+fa-icon.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes icon-turn {
+  50% {
+    transform: rotate(90deg);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Travel between events */
+.leg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.5rem;
+}
+
+/* Crowds near the venue */
+.crowds {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  list-style: none;
+}
+
+.crowds li {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.time {
+  min-width: 2.6rem;
+  font-weight: 600;
+}

@@ -5,10 +5,11 @@ import { EventEditComponent } from '../event-edit/event-edit.component';
 import { SettingsService } from '../../services/settings.service';
 import { LeavePlannerComponent } from '../leave-planner/leave-planner.component';
 import { YearReviewComponent } from '../year-review/year-review.component';
+import { AskCalendarComponent } from '../ask-calendar/ask-calendar.component';
 
 @Component({
   selector: 'app-window-container',
-  imports: [EventsListComponent, EventEditComponent, LeavePlannerComponent, YearReviewComponent],
+  imports: [EventsListComponent, EventEditComponent, LeavePlannerComponent, YearReviewComponent, AskCalendarComponent],
   templateUrl: './window-container.component.html',
   styleUrl: './window-container.component.css',
 })

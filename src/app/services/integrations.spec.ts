@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Feature, ProviderId, canToggle, featureStatus, missingKeys, periodKey, periodResetDate } from './integrations';
 import { IntegrationsService } from './integrations.service';
+import { UtilService } from './util.service';
 
 const feature = (keys: ProviderId[][], extra: Partial<Feature> = {}): Feature => ({
   id: 'f',
@@ -21,12 +22,16 @@ describe('featureStatus', () => {
     expect(featureStatus(crowd, true, has('tomtom'))).toBe('needs-key');
     expect(missingKeys(crowd, has('tomtom'))).toEqual([['ticketmaster']]);
     expect(featureStatus(crowd, true, has('tomtom', 'ticketmaster'))).toBe('ready');
-    expect(featureStatus(feature([['aviationstack', 'aeroapi']]), true, has('aeroapi'))).toBe('ready');
+    expect(featureStatus(feature([['ticketmaster', 'footballdata']]), true, has('footballdata'))).toBe('ready');
   });
 
-  it('falls back to basic, and reports off and coming soon first', () => {
-    const flights = feature([['aviationstack']], { basic: 'basic' });
+  it('runs in basic form without optional keys, and reports off and coming soon first', () => {
+    const flights = feature([], { optionalKeys: [['aviationstack']], basic: 'basic' });
     expect(featureStatus(flights, true, has())).toBe('basic');
+    expect(featureStatus(flights, true, has('aviationstack'))).toBe('ready');
+    const crowd = feature([['ticketmaster']], { optionalKeys: [['tomtom']], basic: 'basic' });
+    expect(featureStatus(crowd, true, has('tomtom'))).toBe('needs-key');
+    expect(featureStatus(crowd, true, has('ticketmaster'))).toBe('basic');
     expect(featureStatus(flights, false, has('aviationstack'))).toBe('off');
     expect(featureStatus({ ...flights, available: false }, true, has('aviationstack'))).toBe('soon');
     expect(featureStatus(feature([]), true, has())).toBe('ready');
@@ -59,10 +64,18 @@ describe('IntegrationsService', () => {
   let http: HttpTestingController;
   let now: Date;
 
+  let proxyUrl = '';
+
   beforeEach(() => {
     localStorage.clear();
+    proxyUrl = '';
     TestBed.configureTestingModule({
-      providers: [IntegrationsService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        IntegrationsService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: UtilService, useValue: { get proxyUrl() { return proxyUrl; } } },
+      ],
     });
     service = TestBed.inject(IntegrationsService);
     http = TestBed.inject(HttpTestingController);
@@ -134,9 +147,42 @@ describe('IntegrationsService', () => {
     const test = service.test('ticketmaster');
     http.expectOne((r) => r.url.includes('apikey=bad')).flush({}, { status: 401, statusText: 'Unauthorized' });
     await expectAsync(test).toBeRejectedWith('The key was rejected.');
-
-    service.setKey('aviationstack', 'k');
-    await expectAsync(service.test('aviationstack')).toBeRejectedWith(jasmine.stringContaining('HTTP-only'));
     await expectAsync(service.test('gemini')).toBeRejectedWith('Add a key first.');
+
+    const gemini = service.request('gemini', '/models');
+    http.expectOne('/models').flush({ error: { message: 'API key not valid.' } }, { status: 400, statusText: 'Bad Request' });
+    await expectAsync(gemini).toBeRejectedWith('API key not valid. (400)');
+  });
+
+  it('sends server-only services through the pass-through, and only when it is set up', async () => {
+    service.setKey('footballdata', 't');
+    expect(service.canUse('footballdata')).toBeFalse();
+    await expectAsync(service.request('footballdata', 'https://api.football-data.org/v4/matches')).toBeRejectedWith(
+      jasmine.stringContaining('Yearly server')
+    );
+
+    proxyUrl = 'https://proxy.example';
+    expect(service.canUse('footballdata')).toBeTrue();
+    const viaServer = service.request('footballdata', 'https://api.football-data.org/v4/matches', { headers: { 'X-Auth-Token': 't' } });
+    const req = http.expectOne('https://proxy.example/api.football-data.org/v4/matches');
+    expect(req.request.headers.get('X-Auth-Token')).toBe('t');
+    req.flush({ matches: [] });
+    expect(await viaServer).toEqual({ matches: [] });
+  });
+
+  it('retries blocked fallback services through the pass-through, and POSTs bodies', async () => {
+    proxyUrl = 'https://proxy.example';
+    const tm = service.request('ticketmaster', 'https://app.ticketmaster.com/discovery/v2/events.json?apikey=k');
+    http.expectOne('https://app.ticketmaster.com/discovery/v2/events.json?apikey=k').error(new ProgressEvent('error'), { status: 0 });
+    await new Promise((resolve) => setTimeout(resolve));
+    http.expectOne('https://proxy.example/app.ticketmaster.com/discovery/v2/events.json?apikey=k').flush({ ok: true });
+    expect(await tm).toEqual({ ok: true });
+
+    const post = service.request('gemini', '/generate', { body: { q: 1 } });
+    const req = http.expectOne('/generate');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ q: 1 });
+    req.flush({});
+    await post;
   });
 });

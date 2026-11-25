@@ -139,7 +139,9 @@
     </div>
   </section>
 
-  <app-event-extras [title]="parameters.event.title"
+  <app-event-extras [eventId]="parameters.event.id"
+                    [neighbours]="parameters.neighbours ?? []"
+                    [title]="parameters.event.title"
                     [description]="parameters.event.description"
                     [location]="parameters.event.location"
                     [start]="rangeStart"

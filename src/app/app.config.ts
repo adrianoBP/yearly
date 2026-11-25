@@ -13,6 +13,7 @@ import { IntegrationsService } from './services/integrations.service';
 import { SyncService } from './services/sync.service';
 import { FeaturesService } from './services/features.service';
 import { WeatherService } from './services/weather.service';
+import { LiveService } from './services/live.service';
 import { WindowsService } from './windows/windows.service';
 
 import { UtilService } from './services/util.service';
@@ -30,6 +31,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: 'mockData',
       useValue: false,
+    },
+    {
+      // Yearly pass-through on your VPS (server/proxy.mjs), e.g. 'https://yearly-api.example.com'; empty turns off the features that need it
+      provide: 'proxyUrl',
+      useValue: '',
     },
     {
       provide: 'googleClientId',
@@ -50,6 +56,7 @@ export const appConfig: ApplicationConfig = {
     SyncService,
     FeaturesService,
     WeatherService,
+    LiveService,
     WindowsService,
     UtilService,
     provideServiceWorker('ngsw-worker.js', {

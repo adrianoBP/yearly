@@ -83,6 +83,27 @@ figcaption {
   animation: tip-in 0.12s ease-out;
 }
 
+/* Phones: a year of weeks would make days ~5px wide, so they keep a tappable size and the year scrolls sideways */
+.scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+@media (max-width: 36rem) {
+  .scroll {
+    overflow-x: auto;
+    /* Room for a pressed day to grow without being clipped */
+    margin: -6px -4px;
+    padding: 6px 4px;
+  }
+
+  .months,
+  .grid {
+    min-width: calc(var(--weeks) * 14px);
+  }
+}
+
 .legend {
   display: flex;
   align-items: center;

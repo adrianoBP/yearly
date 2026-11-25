@@ -106,6 +106,8 @@ export class GoogleCalendarService {
       timeMax: moment(end).toISOString(),
       orderBy: 'startTime',
       singleEvents: 'true',
+      // Google's largest page: long ranges (Ask your calendar) need far fewer requests
+      maxResults: '2500',
       pageToken: '',
     };
 

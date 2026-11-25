@@ -6,6 +6,10 @@ import { findBridges, holidaysFor } from './leave-planner';
 import { parseEventText } from './text-event';
 import { weatherWarnings } from './weather';
 import { isTrip, tripNights, yearStats } from './year-review';
+import { parseAviationstack } from './flight-status';
+import { bufferVerdict, distanceKm, geohash, neighbours, routeSummary } from './travel';
+import { footballCandidates, leaveBy, ticketmasterNearby } from './crowd';
+import { FALLBACK_MODEL, answerText, buildRequest, describeEvents, nearestEvents, pickModel } from './ask';
 
 const ref = new Date(2026, 10, 25, 10); // Wed 25 Nov 2026
 
@@ -167,5 +171,154 @@ describe('mergeSync', () => {
     expect(merged.usage['phone'].tomtom!.count).toBe(3);
     expect(merged.usage['laptop'].tomtom!.count).toBe(7);
     expect(mergeSync(local, null, 'phone').keys).toEqual(local.keys);
+  });
+});
+
+describe('flight status', () => {
+  const response = {
+    data: [
+      { flight_date: '2026-11-27', flight_status: 'landed', departure: { scheduled: '2026-11-27T07:00:00+00:00' }, arrival: {} },
+      {
+        flight_date: '2026-11-28',
+        flight_status: 'scheduled',
+        departure: { iata: 'STN', terminal: '1', gate: '42', delay: 25, scheduled: '2026-11-28T07:00:00+00:00', estimated: '2026-11-28T07:25:00+00:00' },
+        arrival: { iata: 'CIA', baggage: '3', scheduled: '2026-11-28T10:30:00+00:00' },
+      },
+    ],
+  };
+
+  it('picks the right day and reads local times as written', () => {
+    const status = parseAviationstack(response, '2026-11-28')!;
+    expect(status.label).toBe('Delayed 25 min');
+    expect(status.tone).toBe('warn');
+    expect(status.departure).toEqual(jasmine.objectContaining({ gate: '42', terminal: '1', scheduled: '07:00', estimated: '07:25' }));
+    expect(status.arrival.baggage).toBe('3');
+    expect(parseAviationstack(response, '2026-11-27')!.label).toBe('Landed');
+  });
+
+  it("never shows another day's flight, and surfaces API errors", () => {
+    expect(parseAviationstack(response, '2026-11-29')).toBeNull();
+    expect(() => parseAviationstack({ error: { message: 'Monthly limit reached.' } }, '2026-11-28')).toThrow('Monthly limit reached.');
+  });
+});
+
+describe('travel', () => {
+  it('measures distance and encodes geohashes', () => {
+    expect(distanceKm({ lat: 51.5074, lon: -0.1278 }, { lat: 48.8566, lon: 2.3522 })).toBeCloseTo(344, -1);
+    expect(geohash(57.64911, 10.40744, 11)).toBe('u4pruydqqvj');
+  });
+
+  it('finds the timed events with a place before and after, on the same day', () => {
+    const others = [
+      event('Lunch', '2026-11-28T12:00', '2026-11-28T13:00', { location: 'Cafe' }),
+      event('Coffee', '2026-11-28T09:00', '2026-11-28T10:00', { location: 'Bar' }),
+      event('Call', '2026-11-28T14:00', '2026-11-28T14:30'),
+      event('Dinner', '2026-11-28T19:00', '2026-11-28T21:00', { location: 'Rosie' }),
+      event('Holiday', '2026-11-28', '2026-11-29', { location: 'Rome' }),
+      event('Tomorrow', '2026-11-29T09:00', '2026-11-29T10:00', { location: 'Office' }),
+    ];
+    const { before, after } = neighbours(event('Gym', '2026-11-28T15:00', '2026-11-28T16:00'), others);
+    expect(before?.title).toBe('Lunch');
+    expect(after?.title).toBe('Dinner');
+  });
+
+  it('judges the gap against the drive', () => {
+    expect(bufferVerdict(20, 35)).toBe('late');
+    expect(bufferVerdict(40, 35)).toBe('tight');
+    expect(bufferVerdict(60, 35)).toBe('ok');
+    expect(routeSummary({ routes: [{ summary: { travelTimeInSeconds: 1530, trafficDelayInSeconds: 300, lengthInMeters: 12345 } }] })).toEqual({
+      minutes: 26,
+      trafficMinutes: 5,
+      km: 12.3,
+    });
+    expect(routeSummary({})).toBeNull();
+  });
+});
+
+describe('crowds', () => {
+  const eventStart = new Date('2026-11-28T19:30:00Z');
+
+  it("keeps nearby Ticketmaster events in the window, minus the user's own show", () => {
+    const tm = {
+      _embedded: {
+        events: [
+          { name: 'Hamlet', dates: { start: { dateTime: '2026-11-28T19:30:00Z' } }, _embedded: { venues: [{ name: 'Kings Theatre' }] } },
+          {
+            name: 'Big Concert',
+            dates: { start: { dateTime: '2026-11-28T20:00:00Z' } },
+            classifications: [{ segment: { name: 'Music' } }],
+            _embedded: { venues: [{ name: 'Guildhall' }] },
+          },
+          { name: 'Matinee', dates: { start: { dateTime: '2026-11-28T14:00:00Z' } }, _embedded: { venues: [{ name: 'Guildhall' }] } },
+        ],
+      },
+    };
+    const found = ticketmasterNearby(tm, eventStart, 'Kings Theatre, Southsea Theatre night');
+    expect(found.map((e) => [e.name, e.kind])).toEqual([['Big Concert', 'Music']]);
+  });
+
+  it('keeps matches in the country and window that have a venue', () => {
+    const fd = {
+      matches: [
+        {
+          utcDate: '2026-11-28T19:45:00Z',
+          venue: 'Fratton Park',
+          area: { code: 'ENG' },
+          competition: { name: 'Championship' },
+          homeTeam: { shortName: 'Portsmouth' },
+          awayTeam: { shortName: 'Leeds' },
+        },
+        { utcDate: '2026-11-28T19:45:00Z', venue: 'San Siro', area: { code: 'ITA' }, homeTeam: { name: 'Milan' }, awayTeam: { name: 'Inter' } },
+        { utcDate: '2026-11-28T12:30:00Z', venue: 'Anfield', area: { code: 'ENG' }, homeTeam: { name: 'Liverpool' }, awayTeam: { name: 'Everton' } },
+        { utcDate: '2026-11-28T20:00:00Z', venue: null, area: { code: 'ENG' }, homeTeam: { name: 'A' }, awayTeam: { name: 'B' } },
+      ],
+    };
+    expect(footballCandidates(fd, eventStart, 'GB').map((m) => m.name)).toEqual(['Portsmouth v Leeds']);
+  });
+
+  it('adds time for crowds when saying when to leave', () => {
+    expect(leaveBy(eventStart, 25, false).toISOString()).toBe('2026-11-28T18:55:00.000Z');
+    expect(leaveBy(eventStart, 25, true).toISOString()).toBe('2026-11-28T18:35:00.000Z');
+  });
+});
+
+describe('ask your calendar', () => {
+  it('picks the newest stable flash-lite model', () => {
+    const models = [
+      { name: 'models/gemini-3.1-flash-lite', supportedGenerationMethods: ['generateContent'] },
+      { name: 'models/gemini-3.5-flash-lite', supportedGenerationMethods: ['generateContent'] },
+      { name: 'models/gemini-3.8-flash', supportedGenerationMethods: ['generateContent'] },
+      { name: 'models/gemini-4.0-flash-lite-preview', supportedGenerationMethods: ['generateContent'] },
+      { name: 'models/text-embedding-004', supportedGenerationMethods: ['embedContent'] },
+    ];
+    expect(pickModel(models)).toBe('models/gemini-3.5-flash-lite');
+    expect(pickModel([models[2]])).toBe('models/gemini-3.8-flash');
+    expect(pickModel([])).toBe(FALLBACK_MODEL);
+  });
+
+  it('keeps the events nearest to today when there are too many', () => {
+    const today = moment('2026-11-25');
+    const events = [
+      event('Long ago', '2001-01-01T10:00', '2001-01-01T11:00'),
+      event('Last week', '2026-11-18T10:00', '2026-11-18T11:00'),
+      event('Far ahead', '2028-06-01T10:00', '2028-06-01T11:00'),
+      event('Next week', '2026-12-02T10:00', '2026-12-02T11:00'),
+    ];
+    expect(nearestEvents(events, 2, today).map((e) => e.title).sort()).toEqual(['Last week', 'Next week']);
+    expect(nearestEvents(events, 10, today).length).toBe(4);
+  });
+
+  it('describes events one per line and reads the answer', () => {
+    const events = [event('Rome', '2026-12-20', '2026-12-29', { location: 'Rome' }), event('Dentist', '2026-03-06T09:00', '2026-03-06T09:30')];
+    const lines = describeEvents(events, [{ id: 'me', name: 'Events', colour: '' }]).split('\n');
+    expect(lines[0]).toBe('2026-03-06 Fri 09:00–09:30 | Dentist |  | Events');
+    expect(lines[1]).toBe('2026-12-20 Sun to 2026-12-28 Mon (all day) | Rome | Rome | Events');
+    const request = buildRequest('When am I in Rome?', events, [], moment('2026-11-25'));
+    expect(request.systemInstruction.parts[0].text).toContain('Today is Wednesday 25 November 2026');
+    expect(request.contents[0].parts[0].text).toBe('When am I in Rome?');
+    const followUp = buildRequest('And after?', events, [], moment('2026-11-25'), [{ question: 'When am I in Rome?', answer: 'From Sun 20 Dec.' }]);
+    expect(followUp.contents.map((c) => `${c.role}: ${c.parts[0].text}`)).toEqual(['user: When am I in Rome?', 'model: From Sun 20 Dec.', 'user: And after?']);
+    expect(answerText({ candidates: [{ content: { parts: [{ text: 'From ' }, { text: 'Sun 20 Dec.' }] } }] })).toBe('From Sun 20 Dec.');
+    expect(() => answerText({ promptFeedback: { blockReason: 'SAFETY' } })).toThrow('Gemini declined to answer that question.');
   });
 });

@@ -7,6 +7,7 @@ import {
   faChevronLeft,
   faChevronRight,
   faChartSimple,
+  faComments,
   faCog,
   faEllipsis,
   faKeyboard,
@@ -32,6 +33,7 @@ import { DatePickerComponent } from '../../shared/date-picker/date-picker.compon
 import { SyncService } from '../../services/sync.service';
 import { FeaturesService } from '../../services/features.service';
 import { YearReviewParameters } from '../../windows/year-review/year-review.component';
+import { AskCalendarParameters } from '../../windows/ask-calendar/ask-calendar.component';
 
 const TEMP_EVENT_ID = 'temp-id';
 // Per browser tab: a reload (or coming back from settings) keeps the year, a new tab starts at today
@@ -59,6 +61,7 @@ export class HomeComponent {
   reviewIcon = faChartSimple;
   typeIcon = faKeyboard;
   moreIcon = faEllipsis;
+  askIcon = faComments;
 
   isLoading = true;
 
@@ -236,9 +239,12 @@ export class HomeComponent {
   }
 
   /** Fetches every enabled calendar's events for a year, in parallel */
-  private async fetchYear(year: number): Promise<Event[]> {
-    const start = new Date(year, 0, 1);
-    const end = new Date(year, 11, 31, 23, 59, 59);
+  private fetchYear(year: number): Promise<Event[]> {
+    return this.fetchRange(new Date(year, 0, 1), new Date(year, 11, 31, 23, 59, 59));
+  }
+
+  /** Fetches every enabled calendar's events in a date range, in parallel, with the same filters as the calendar */
+  private async fetchRange(start: Date, end: Date): Promise<Event[]> {
     const perCalendar = await Promise.all(
       this.calendars
         .filter(
@@ -454,6 +460,17 @@ export class HomeComponent {
 
   openLeavePlanner() {
     this.windowsService.openWindow('leave-planner', { date: new Date(this.year, 0, 1) }, 'right');
+  }
+
+  openAskCalendar() {
+    const parameters: AskCalendarParameters = {
+      date: new Date(this.year, 0, 1),
+      events: this.events.filter((e) => e.id !== TEMP_EVENT_ID),
+      // The whole history: from 2000 until two years ahead (repeating events need an end to be listed)
+      loadAllEvents: () => this.fetchRange(new Date(2000, 0, 1), new Date(new Date().getFullYear() + 2, 11, 31, 23, 59, 59)),
+      calendars: this.calendars.map((c) => ({ id: c.id, name: this.calendarService.getCalendarName(c), colour: c.backgroundColor })),
+    };
+    this.windowsService.openWindow('ask-calendar', parameters, 'right');
   }
 
   openYearReview() {

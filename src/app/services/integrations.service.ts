@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Subject, lastValueFrom } from 'rxjs';
 import { PROVIDERS, ProviderId, periodKey, periodResetDate } from './integrations';
 import { KeyMap, SyncFile, UsageEntry, UsageMap } from './sync';
+import { UtilService } from './util.service';
 
 interface CacheEntry {
   at: number;
@@ -23,6 +24,8 @@ export interface RequestOptions {
   ttlMs?: number;
   /** Sends the request even after the provider reported its limit; a success clears the flag */
   ignoreLimit?: boolean;
+  /** Sends a JSON POST with this body instead of a GET */
+  body?: unknown;
 }
 
 // Kept apart from 'settings' so keys never travel with other settings
@@ -47,15 +50,21 @@ function save(name: string, value: object) {
 }
 
 function errorMessage(err: unknown): string {
+  if (typeof err === 'string') return err;
   if (!(err instanceof HttpErrorResponse)) return 'Request failed.';
   if (err.status === 0) return 'The browser could not reach this service (blocked or offline).';
-  if (err.status === 401 || err.status === 403) return 'The key was rejected.';
-  return `Request failed (${err.status}).`;
+  // The services word their own errors: Google and Aviationstack under error.message, football-data under message
+  const detail = err.error?.error?.message ?? err.error?.message ?? err.error?.fault?.faultstring;
+  if (err.status === 401 || err.status === 403) return detail ? `The key was rejected: ${detail}` : 'The key was rejected.';
+  return detail ? `${detail} (${err.status})` : `Request failed (${err.status}).`;
 }
 
 @Injectable()
 export class IntegrationsService {
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private utilService: UtilService
+  ) {}
 
   /** Overridable in tests */
   now = () => new Date();
@@ -77,6 +86,14 @@ export class IntegrationsService {
   }
 
   hasKey = (id: ProviderId) => this.getKey(id) != null;
+
+  /** Key set, and the service is reachable: some need the Yearly pass-through server */
+  canUse = (id: ProviderId) => this.hasKey(id) && (this.provider(id).server !== 'always' || !!this.utilService.proxyUrl);
+
+  /** Why a provider with a key still can't be used, if so */
+  serverMissing(id: ProviderId) {
+    return this.provider(id).server === 'always' && !this.utilService.proxyUrl;
+  }
 
   setKey(id: ProviderId, key: string) {
     const keys = load<KeyMap[ProviderId]>(KEYS);
@@ -100,7 +117,7 @@ export class IntegrationsService {
     };
   }
 
-  /** GET through the shared cache and usage counter; falls back to a stale cached copy when the request fails */
+  /** GET (or POST with body) through the shared cache and usage counter; falls back to a stale cached copy when it fails */
   async request<T>(id: ProviderId, url: string, options: RequestOptions = {}): Promise<T> {
     const cached = this.cached(options.cacheKey);
     if (cached && options.ttlMs != null && this.now().getTime() - cached.at < options.ttlMs) return cached.data as T;
@@ -112,7 +129,7 @@ export class IntegrationsService {
 
     this.updateUsage(id, (entry) => entry.count++);
     try {
-      const data = await lastValueFrom(this.http.get<T>(url, { headers: options.headers }));
+      const data = await this.send<T>(id, url, options);
       if (this.usageEntry(id, this.now()).limitReached) this.updateUsage(id, (entry) => delete entry.limitReached);
       this.store(options.cacheKey, data);
       return data;
@@ -121,6 +138,29 @@ export class IntegrationsService {
       if (limited) this.updateUsage(id, (entry) => (entry.limitReached = true));
       if (cached) return cached.data as T;
       throw limited ? 'Free limit reached for this period.' : errorMessage(err);
+    }
+  }
+
+  /** Goes straight to the service, or through the Yearly pass-through when the browser can't reach it */
+  private async send<T>(id: ProviderId, url: string, options: RequestOptions): Promise<T> {
+    const request = (target: string) =>
+      lastValueFrom(
+        options.body === undefined
+          ? this.http.get<T>(target, { headers: options.headers })
+          : this.http.post<T>(target, options.body, { headers: options.headers })
+      );
+    const viaServer = () => request(`${this.utilService.proxyUrl}/${url.replace(/^https:\/\//, '')}`);
+    const server = this.provider(id).server;
+    if (server === 'always') {
+      if (!this.utilService.proxyUrl) throw "Needs the Yearly server, which isn't set up.";
+      return viaServer();
+    }
+    try {
+      return await request(url);
+    } catch (err) {
+      // status 0: the browser refused (CORS) or the network failed
+      if (server === 'fallback' && this.utilService.proxyUrl && err instanceof HttpErrorResponse && err.status === 0) return viaServer();
+      throw err;
     }
   }
 
@@ -138,12 +178,17 @@ export class IntegrationsService {
     }
   }
 
+  /** When the cached copy was saved (ms), to show "updated 5 min ago" */
+  cachedAt(cacheKey: string): number | undefined {
+    return this.cached(cacheKey)?.at;
+  }
+
   /** Sends the provider's test request; throws a readable message on failure */
   async test(id: ProviderId): Promise<void> {
     const key = this.getKey(id);
     const provider = this.provider(id);
     if (key == null) throw 'Add a key first.';
-    if (provider.test == null) throw provider.testNote ?? "This key can't be tested from the browser.";
+    if (provider.test == null) throw "This key can't be tested from the browser.";
     const { url, headers } = provider.test(key);
     await this.request(id, url, { headers, ignoreLimit: true });
   }

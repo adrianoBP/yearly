@@ -70,13 +70,13 @@ export class SettingsComponent {
   }
 
   getFeatureStatus(feature: Feature) {
-    return featureStatus(feature, this.isFeatureOn(feature), this.integrations.hasKey);
+    return featureStatus(feature, this.isFeatureOn(feature), this.integrations.canUse);
   }
 
   getStatusLabel(feature: Feature) {
     const status = this.getFeatureStatus(feature);
     if (status !== 'needs-key') return STATUS_LABELS[status];
-    const names = missingKeys(feature, this.integrations.hasKey).map((group) =>
+    const names = missingKeys(feature, this.integrations.canUse).map((group) =>
       group.map((id) => this.providers.find((p) => p.id === id)!.name).join(' or ')
     );
     return `Needs ${names.join(' and ')} key`;
@@ -84,7 +84,15 @@ export class SettingsComponent {
 
   /** Features that use this provider's key, for the "Used for" line */
   usedFor(id: ProviderId) {
-    return this.features.filter((f) => f.keys.some((group) => group.includes(id))).map((f) => f.name).join(', ');
+    return this.features
+      .filter((f) => [...f.keys, ...(f.optionalKeys ?? [])].some((group) => group.includes(id)))
+      .map((f) => f.name)
+      .join(', ');
+  }
+
+  saveHomeAddress(value: string) {
+    this.settings.homeAddress = value.trim() || undefined;
+    this.settingsService.setSettings(this.settings);
   }
 
   saveKey(id: ProviderId, value: string) {

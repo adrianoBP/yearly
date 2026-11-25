@@ -54,7 +54,7 @@
       <fa-icon class="i-jelly" [icon]="addEventIcon" />
       <span class="label">{{ calendarService.isAddingEvent ? 'Cancel' : 'New event' }}</span>
     </button>
-    @if (features.isOn('leave-planner') || features.isOn('year-review')) {
+    @if (features.isOn('leave-planner') || features.isOn('year-review') || features.isOn('ask-calendar')) {
       <button class="icon-btn"
               popovertarget="more-menu"
               aria-label="More"
@@ -66,6 +66,15 @@
            class="menu"
            popover
            role="menu">
+        @if (features.isOn('ask-calendar')) {
+          <button role="menuitem"
+                  (click)="moreMenu.hidePopover(); openAskCalendar()">
+            <fa-icon class="i-jelly"
+                     [icon]="askIcon"
+                     [fixedWidth]="true" />
+            Ask your calendar
+          </button>
+        }
         @if (features.isOn('leave-planner')) {
           <button role="menuitem"
                   (click)="moreMenu.hidePopover(); openLeavePlanner()">

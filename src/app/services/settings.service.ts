@@ -17,6 +17,8 @@ export interface Settings {
   /** Leave planner: ISO country code (e.g. GB) and optional region (e.g. GB-SCT); also "home" for trip prep */
   holidayCountry?: string;
   holidayRegion?: string | null;
+  /** Start point for travel times (crowd alerts) */
+  homeAddress?: string;
 }
 
 /** Country from the browser's locale (en-GB → GB), used until the user picks one */

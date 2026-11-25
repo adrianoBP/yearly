@@ -233,3 +233,33 @@ progress {
 .version a {
   color: inherit;
 }
+
+.features .home {
+  flex-wrap: wrap;
+}
+
+/* The text keeps a readable width; the input drops below it on narrow screens */
+.features .home .text {
+  flex: 1 1 14rem;
+}
+
+.features .home input {
+  flex: 1 1 14rem;
+}
+
+/* On phones the status badge goes under the text, the switch stays beside it */
+@media (max-width: 36rem) {
+  .features li {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .features .text {
+    flex-basis: calc(100% - 4rem);
+  }
+
+  .features .badge {
+    order: 1;
+    margin-bottom: 0.5rem;
+  }
+}

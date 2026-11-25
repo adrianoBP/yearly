@@ -10,13 +10,16 @@ export class UtilService {
   private _mockData: boolean;
   private _googleClientId: string;
   private _googleLoginScopes: string;
+  private _proxyUrl: string;
 
   constructor(
     @Inject('version') version: string,
     @Inject('mockData') mockData: boolean,
     @Inject('googleClientId') googleClientId: string,
-    @Inject('googleLoginScopes') googleLoginScopes: string
+    @Inject('googleLoginScopes') googleLoginScopes: string,
+    @Inject('proxyUrl') proxyUrl: string
   ) {
+    this._proxyUrl = proxyUrl.replace(/\/$/, '');
     this._version = version;
     this._mockData = mockData;
     this._googleClientId = googleClientId;
@@ -37,6 +40,11 @@ export class UtilService {
 
   get googleLoginScopes() {
     return this._googleLoginScopes;
+  }
+
+  /** Yearly pass-through server (server/proxy.mjs), without a trailing slash; empty when not set up */
+  get proxyUrl() {
+    return this._proxyUrl;
   }
 
   getFormattedDate(date: Date, format: string = 'ddd, Do MMMM YYYY'): string {

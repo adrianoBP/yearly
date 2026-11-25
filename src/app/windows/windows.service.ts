@@ -4,8 +4,9 @@ import { EventsListParameters } from './events-list/events-list.component';
 import { EditEventParameters } from './event-edit/event-edit.component';
 import { LeavePlannerParameters } from './leave-planner/leave-planner.component';
 import { YearReviewParameters } from './year-review/year-review.component';
+import { AskCalendarParameters } from './ask-calendar/ask-calendar.component';
 
-type WindowType = 'list-events' | 'edit-event' | 'leave-planner' | 'year-review';
+type WindowType = 'list-events' | 'edit-event' | 'leave-planner' | 'year-review' | 'ask-calendar';
 
 export interface WindowParameters {
   date: Date;
@@ -15,7 +16,8 @@ export type WindowParametersType =
   | EventsListParameters
   | EditEventParameters
   | LeavePlannerParameters
-  | YearReviewParameters;
+  | YearReviewParameters
+  | AskCalendarParameters;
 
 interface Window {
   type: WindowType;
