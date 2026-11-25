@@ -10,8 +10,8 @@
     </div>
     <span class="divider"></span>
     <button class="btn today-btn"
-            [disabled]="year === currentYear"
-            (click)="changeYear(currentYear)">Today</button>
+            [disabled]="year === currentYear && todayInView"
+            (click)="goToToday()">Today</button>
     <div class="arrows">
       <button class="icon-btn"
               aria-label="Previous year"

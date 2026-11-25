@@ -175,6 +175,41 @@ export class HomeComponent {
     // Phones scroll through the months: start at today
     if (matchMedia('(max-width: 768px), (max-height: 500px)').matches)
       document.querySelector('app-day .today')?.scrollIntoView({ block: 'center' });
+
+    // Scrolls come from whichever element scrolls, so listen in the capture phase; outside Angular so scrolling doesn't re-render
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => this.checkToday());
+    };
+    this.ngZone.runOutsideAngular(() => {
+      addEventListener('scroll', onScroll, { capture: true, passive: true });
+      addEventListener('resize', onScroll);
+    });
+    this.stopWatchingToday = () => {
+      removeEventListener('scroll', onScroll, { capture: true });
+      removeEventListener('resize', onScroll);
+    };
+    this.checkToday();
+  }
+
+  ngOnDestroy() {
+    this.stopWatchingToday?.();
+  }
+
+  /** Whether today's square is on screen (below the top bar); the Today button turns on when it isn't */
+  todayInView = true;
+  private stopWatchingToday?: () => void;
+
+  goToToday() {
+    this.jumpTo(moment().format('YYYY-MM-DD'));
+  }
+
+  private checkToday() {
+    const rect = document.querySelector('app-day .today')?.getBoundingClientRect();
+    const top = document.querySelector('app-home .topbar')?.getBoundingClientRect().bottom ?? 0;
+    const inView = rect != null && rect.bottom > top && rect.top < innerHeight;
+    if (inView !== this.todayInView) this.ngZone.run(() => (this.todayInView = inView));
   }
 
   @HostListener('document:keydown.escape', ['$event'])
@@ -327,7 +362,7 @@ export class HomeComponent {
         this.cdr.detectChanges();
       },
       direction
-    );
+    ).then(() => this.checkToday());
   }
 
   toggleAddEvent() {
