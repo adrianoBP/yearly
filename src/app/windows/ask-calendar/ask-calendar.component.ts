@@ -3,7 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPaperPlane, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons';
 import moment from 'moment';
-import { ASK_EVENT_LIMIT, ASK_THREAD_KEY, AskTurn, nearestEvents } from '../../features/ask';
+import { ASK_EVENT_LIMIT, ASK_THREAD_KEY, AskTurn, answerLocally, nearestEvents, pickEvents } from '../../features/ask';
+import { IntegrationsService } from '../../services/integrations.service';
 import { CalendarInfo } from '../../features/year-review';
 import { Event } from '../../interfaces/event.interface';
 import { LiveService } from '../../services/live.service';
@@ -35,14 +36,20 @@ export class AskCalendarComponent {
   coverage = '';
   question = '';
   /** Questions and answers so far, newest last; answered ones are kept between visits */
-  thread: { question: string; answer?: string; error?: string }[] = this.loadThread();
+  thread: { question: string; answer?: string; error?: string; note?: string }[] = this.loadThread();
+
+  /** Set after Gemini reports its daily free limit; the chat stays readable but nothing more is sent */
+  get limitReached() {
+    return this.integrations.usage('gemini').limitReached;
+  }
   isAsking = false;
 
   suggestions = ['When is my next free weekend?', 'When did I last go to the dentist?', "What's on next week?"];
 
   constructor(
     public windowsService: WindowsService,
-    private live: LiveService
+    private live: LiveService,
+    private integrations: IntegrationsService
   ) {
     this.parameters = this.windowsService.getOpenedWindow()?.parameters as AskCalendarParameters;
   }
@@ -71,7 +78,17 @@ export class AskCalendarComponent {
     this.thread.push(entry);
     this.isAsking = true;
     try {
-      entry.answer = await this.live.ask(question, this.events, this.parameters.calendars, history);
+      const local = answerLocally(question, this.events);
+      if (local != null) {
+        entry.answer = local;
+        entry.note = 'Answered on this device';
+      } else if (this.limitReached) {
+        throw `Gemini's free limit is used up for today, so this question wasn't sent.`;
+      } else {
+        const picked = pickEvents(question, this.events);
+        entry.answer = await this.live.ask(question, picked, this.parameters.calendars, history);
+        entry.note = `Sent ${picked.length.toLocaleString()} ${picked.length === 1 ? 'event' : 'events'} to Gemini`;
+      }
       localStorage.setItem(ASK_THREAD_KEY, JSON.stringify(this.answered()));
     } catch (message) {
       entry.error = String(message);
@@ -108,7 +125,7 @@ export class AskCalendarComponent {
     if (!events.length) return 'No events to ask about.';
     const times = events.map((e) => e.startMoment.valueOf());
     const range = `${moment(Math.min(...times)).format('MMM YYYY')} – ${moment(Math.max(...times)).format('MMM YYYY')}`;
-    const count = `${events.length.toLocaleString()} events, ${range}`;
+    const count = `Searches ${events.length.toLocaleString()} events, ${range}`;
     if (fallback) return `${count} (only the year on screen: the full calendar couldn't be loaded)`;
     return total > ASK_EVENT_LIMIT ? `${count}: the ${ASK_EVENT_LIMIT.toLocaleString()} nearest to today, out of ${total.toLocaleString()}` : count;
   }

@@ -153,7 +153,8 @@
         <span>Organised by {{ organiser }}</span>
       }
       @if (parameters.event.htmlLink) {
-        <a [href]="parameters.event.htmlLink"
+        <a class="ext-link"
+           [href]="parameters.event.htmlLink"
            target="_blank"
            rel="noopener noreferrer">Open in Google Calendar
           <fa-icon class="i-pop" [icon]="externalIcon"

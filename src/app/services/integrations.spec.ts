@@ -130,6 +130,14 @@ describe('IntegrationsService', () => {
     expect(service.usage('aviationstack').count).toBe(2);
   });
 
+  it('treats a per-minute 429 as a wait, not a used-up day', async () => {
+    const request = service.request('gemini', '/ask');
+    const body = { error: { details: [{ violations: [{ quotaId: 'GenerateContentInputTokensPerModelPerMinute-FreeTier' }] }, { retryDelay: '37s' }] } };
+    http.expectOne('/ask').flush(body, { status: 429, statusText: 'Too Many Requests' });
+    await expectAsync(request).toBeRejectedWith('Too many requests this minute. Try again in 37 seconds.');
+    expect(service.usage('gemini').limitReached).toBeFalse();
+  });
+
   it('lets a test through after the limit and clears it on success', async () => {
     service.setKey('tomtom', 'k1');
     const limited = service.request('tomtom', '/route');

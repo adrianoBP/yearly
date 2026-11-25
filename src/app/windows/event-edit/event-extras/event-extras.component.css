@@ -31,13 +31,6 @@
   font-weight: 400;
 }
 
-.link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  width: fit-content;
-  color: var(--primary);
-}
 
 .days {
   display: flex;
@@ -65,15 +58,6 @@
   color: var(--danger);
   background: rgb(220 38 38 / 0.08);
   border-radius: 999px;
-}
-
-.credit {
-  font-size: 0.72rem;
-  color: var(--text-faint);
-}
-
-.credit a {
-  color: inherit;
 }
 
 /* Live flight status */

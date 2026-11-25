@@ -135,8 +135,12 @@ export class IntegrationsService {
       return data;
     } catch (err) {
       const limited = err instanceof HttpErrorResponse && err.status === 429;
-      if (limited) this.updateUsage(id, (entry) => (entry.limitReached = true));
+      // Google names the quota it hit; a per-minute one clears by itself, so it mustn't pause the service all day
+      const body = limited ? JSON.stringify(err.error ?? '') : '';
+      const perMinute = /PerMinute/.test(body) && !/PerDay/.test(body);
+      if (limited && !perMinute) this.updateUsage(id, (entry) => (entry.limitReached = true));
       if (cached) return cached.data as T;
+      if (perMinute) throw `Too many requests this minute. Try again in ${body.match(/"retryDelay":"(\d+)/)?.[1] ?? 60} seconds.`;
       throw limited ? 'Free limit reached for this period.' : errorMessage(err);
     }
   }

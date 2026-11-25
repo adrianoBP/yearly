@@ -106,6 +106,23 @@
   animation-delay: 0.3s;
 }
 
+/* Where an answer came from: this device, or how many events went to Gemini */
+.note {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
+.limit {
+  margin: 0 1rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--danger);
+  background: rgb(220 38 38 / 0.08);
+  border-radius: 10px;
+}
+
 .privacy {
   margin-top: auto;
   font-size: 0.72rem;

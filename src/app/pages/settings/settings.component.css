@@ -165,32 +165,6 @@ li + li {
   font-weight: 600;
 }
 
-.get-key {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 0.35rem;
-  height: 1.75rem;
-  padding: 0 0.7rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--primary);
-  text-decoration: none;
-  background: var(--primary-soft);
-  border-radius: 999px;
-  transition: background-color 0.15s, color 0.15s, transform 0.2s var(--spring);
-}
-
-.get-key:hover {
-  color: #fff;
-  background: var(--primary);
-}
-
-.get-key:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
 .key-input {
   display: flex;
   align-items: center;
@@ -231,6 +205,15 @@ progress {
 }
 
 .version a {
+  color: inherit;
+}
+
+.credits {
+  padding: 0 0.25rem;
+  font-size: 0.75rem;
+}
+
+.credits a {
   color: inherit;
 }
 

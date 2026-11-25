@@ -9,7 +9,7 @@ import { isTrip, tripNights, yearStats } from './year-review';
 import { parseAviationstack } from './flight-status';
 import { bufferVerdict, distanceKm, geohash, neighbours, routeSummary } from './travel';
 import { footballCandidates, leaveBy, ticketmasterNearby } from './crowd';
-import { FALLBACK_MODEL, answerText, buildRequest, describeEvents, nearestEvents, pickModel } from './ask';
+import { FALLBACK_MODEL, answerLocally, answerText, buildRequest, describeEvents, keywords, nearestEvents, pickEvents, pickModel } from './ask';
 
 const ref = new Date(2026, 10, 25, 10); // Wed 25 Nov 2026
 
@@ -306,6 +306,39 @@ describe('ask your calendar', () => {
     ];
     expect(nearestEvents(events, 2, today).map((e) => e.title).sort()).toEqual(['Last week', 'Next week']);
     expect(nearestEvents(events, 10, today).length).toBe(4);
+  });
+
+  it('sends only the events a question is about', () => {
+    const today = moment('2026-11-25T12:00'); // a Wednesday
+    const events = [
+      event('Dentist', '2021-03-06T09:00', '2021-03-06T09:30'),
+      event('Rome', '2026-12-20', '2026-12-29', { location: 'Rome' }),
+      event('Football', '2026-12-01T19:00', '2026-12-01T21:00'),
+      event('Lunch', '2026-11-25T13:00', '2026-11-25T14:00'),
+    ];
+    const titles = (question: string) => pickEvents(question, events, today).map((e) => e.title).sort();
+    expect(keywords("When did I last go to the dentist's?")).toEqual(['dentist']);
+    expect(titles('How often have I been to the dentist?')).toEqual(['Dentist']);
+    expect(titles('Anything next week?')).toEqual(['Football']);
+    expect(titles('What did I do in March 2021?')).toEqual(['Dentist']);
+    expect(titles('Who am I going to Rome with in December?')).toEqual(['Football', 'Rome']);
+    expect(titles('Am I a busy person?').length).toBe(4);
+  });
+
+  it('answers simple questions without Gemini', () => {
+    const today = moment('2026-11-25T12:00');
+    const events = [
+      event('Dentist', '2026-03-06T09:00', '2026-03-06T09:30'),
+      event('Party', '2026-11-28T20:00', '2026-11-28T23:00'),
+      event('Football', '2026-12-01T19:00', '2026-12-01T21:00'),
+      event('Mum', '2026-12-05', '2026-12-06', { eventType: 'birthday' }),
+    ];
+    expect(answerLocally('When is my next free weekend?', events, today)).toBe('Sat 5 Dec – Sun 6 Dec has nothing on.');
+    expect(answerLocally('When did I last go to the dentist?', events, today)).toBe('Dentist: Fri 6 Mar 2026, 09:00–09:30.');
+    expect(answerLocally("What's on next week?", events, today)).toBe('Tue 1 Dec, 19:00–21:00: Football\nSat 5 Dec, all day: Mum');
+    expect(answerLocally("What's on tomorrow?", events, today)).toBe('Nothing on tomorrow.');
+    expect(answerLocally('When is my next haircut?', events, today)).toBeNull();
+    expect(answerLocally('Who is coming to the party?', events, today)).toBeNull();
   });
 
   it('describes events one per line and reads the answer', () => {

@@ -41,6 +41,9 @@
           aria-live="polite">
         @if (entry.answer) {
           {{ entry.answer }}
+          @if (entry.note) {
+            <span class="note">{{ entry.note }}</span>
+          }
         } @else if (entry.error) {
           {{ entry.error }}
         } @else {
@@ -51,9 +54,15 @@
     }
   </ol>
 
-  <p class="privacy">Your question, the chat so far and these events (titles, dates, places) go to Google Gemini with your own key.
+  <p class="privacy">Questions about free weekends, what's on, and when you last or next had something are answered on this device.
+    Others go to Google Gemini with your own key, along with the last few messages and only the events they seem to be about (titles, dates, places).
     On the free tier, Google may use them to improve its models. The chat stays on this device until you clear it or sign out.</p>
 </div>
+
+@if (limitReached) {
+  <p class="limit"
+     role="status">Gemini's free limit is used up for today. You can still read this chat; asking works again tomorrow.</p>
+}
 
 <form class="sheet-footer ask-form"
       (ngSubmit)="ask()">
@@ -61,13 +70,14 @@
          type="text"
          name="question"
          autocomplete="off"
-         placeholder="Ask about your calendar…"
          aria-label="Your question"
+         [placeholder]="limitReached ? 'Asking is paused until tomorrow' : 'Ask about your calendar…'"
+         [disabled]="limitReached"
          [(ngModel)]="question">
   <button class="btn btn-primary"
           type="submit"
           aria-label="Ask"
-          [disabled]="isAsking || !events || !question.trim()">
+          [disabled]="limitReached || isAsking || !events || !question.trim()">
     <fa-icon class="i-send"
              [icon]="sendIcon" />
   </button>

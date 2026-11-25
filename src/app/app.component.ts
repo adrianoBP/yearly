@@ -20,7 +20,7 @@ export class AppComponent {
   /** A ripple spreads from where any button is pressed (styles in styles.css) */
   @HostListener('document:pointerdown', ['$event'])
   ripple(event: PointerEvent) {
-    const target = (event.target as Element)?.closest?.<HTMLElement>('.btn, .icon-btn, .chip, .get-key, .menu button');
+    const target = (event.target as Element)?.closest?.<HTMLElement>('.btn, .icon-btn, .chip, .ext-link, .menu button');
     if (target == null || target.matches(':disabled') || this.reduceMotion.matches) return;
     const rect = target.getBoundingClientRect();
     const size = Math.max(rect.width, rect.height) * 2;
@@ -31,7 +31,29 @@ export class AppComponent {
     target.appendChild(ripple);
   }
 
+  /** Height of the on-screen keyboard as --keyboard, for bottom sheets (window-container.component.css).
+   *  Android resizes the page for the keyboard (viewport meta interactive-widget), so it stays 0 there; iOS doesn't. */
+  private trackKeyboard() {
+    const viewport = window.visualViewport;
+    if (viewport == null) return;
+    let scrollTimer: ReturnType<typeof setTimeout> | undefined;
+    const update = () => {
+      const keyboard = Math.max(0, Math.round(innerHeight - viewport.height - viewport.offsetTop));
+      document.documentElement.style.setProperty('--keyboard', `${keyboard}px`);
+    };
+    viewport.addEventListener('scroll', update);
+    viewport.addEventListener('resize', () => {
+      update();
+      // Keyboard opened: once the sheet has moved up (its transition is 0.25s), bring the focused field back into view.
+      // Only on resize, never on scroll, so it can't fight the user scrolling.
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => document.activeElement?.closest('[role="dialog"]') &&
+        document.activeElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 260);
+    });
+  }
+
   constructor(swUpdate: SwUpdate, windowsService: WindowsService) {
+    this.trackKeyboard();
     // Apply a freshly downloaded deploy now instead of on the next visit.
     swUpdate.versionUpdates.pipe(filter((e) => e.type === 'VERSION_READY')).subscribe(() => {
       // Never reload over an open event window: it could drop an unsaved edit. The update then applies next visit.

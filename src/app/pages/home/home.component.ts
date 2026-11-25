@@ -354,7 +354,7 @@ export class HomeComponent {
       this.ngZone,
       () => {
         this.preview = null;
-        this.cancelNewEvent();
+        // A picked start day survives the year change, so events can span years (the end is picked in the new year)
         this.year = newYear;
         sessionStorage.setItem(YEAR_KEY, String(newYear));
         this.buildMonths();

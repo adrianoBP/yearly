@@ -84,17 +84,24 @@
     padding: 0;
   }
 
+  /* --keyboard (set by AppComponent) lifts the sheet above the on-screen keyboard and keeps it within
+     the visible area, on browsers that don't resize the page for the keyboard (iOS) */
   .window,
   .from-left .window,
   .from-right .window {
     top: auto;
-    bottom: 0;
+    bottom: var(--keyboard, 0px);
     left: 0;
     right: 0;
     width: 100%;
-    max-height: 85dvh;
+    min-height: min(78dvh, calc(100dvh - var(--keyboard, 0px) - 2rem));
+    max-height: calc(100dvh - var(--keyboard, 0px) - 2rem);
     border-radius: 20px 20px 0 0;
     animation: slide-in-up 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition:
+      bottom 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+      min-height 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+      max-height 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 }
 

@@ -63,25 +63,30 @@ export class WindowsService {
     return this.windowQueue[this.windowQueue.length - 1] || null;
   }
 
+  /** Panels sit on the first window's side (window-container), so they slide out that way (styles.css) */
+  private get closeTransition(): string {
+    return `panel-${this.windowQueue[0]?.side ?? 'left'}`;
+  }
+
   closeWindow(closingParameters?: any): void {
-    withViewTransition(this.ngZone, () => this.pop(true, closingParameters), 'panel');
+    withViewTransition(this.ngZone, () => this.pop(true, closingParameters), this.closeTransition);
   }
 
   closeAllWindows(): void {
     withViewTransition(this.ngZone, () => {
       while (this.anyWindowOpen()) this.pop(true);
-    }, 'panel');
+    }, this.closeTransition);
   }
 
   back(): void {
-    withViewTransition(this.ngZone, () => this.pop(false), 'panel');
+    withViewTransition(this.ngZone, () => this.pop(false), this.closeTransition);
   }
 
   backAllWindows(): void {
     if (!this.anyWindowOpen()) return;
     withViewTransition(this.ngZone, () => {
       while (this.anyWindowOpen()) this.pop(false);
-    }, 'panel');
+    }, this.closeTransition);
   }
 
   // Pops the top window synchronously; the public methods animate it out

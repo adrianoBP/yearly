@@ -46,7 +46,7 @@
         <p class="muted">Live status: {{ flightError }}</p>
       }
 
-      <a class="link"
+      <a class="ext-link"
          [href]="flight.trackUrl"
          target="_blank"
          rel="noopener noreferrer">Track on Flightradar24
@@ -74,7 +74,6 @@
           </div>
         }
       }
-      <p class="credit">Driving times with traffic by TomTom</p>
     </div>
   </section>
 }
@@ -130,12 +129,6 @@
       @if ((forecast?.length ?? 0) > shownForecast.length) {
         <p class="muted">+{{ forecast!.length - shownForecast.length }} more days</p>
       }
-      <!-- Required credits: Open-Meteo data is CC BY 4.0, place search uses OpenStreetMap (ODbL) -->
-      <p class="credit">Weather by <a href="https://open-meteo.com"
-           target="_blank"
-           rel="noopener noreferrer">Open-Meteo</a> · places © <a href="https://www.openstreetmap.org/copyright"
-           target="_blank"
-           rel="noopener noreferrer">OpenStreetMap</a></p>
     </div>
   </section>
 }

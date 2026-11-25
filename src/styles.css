@@ -72,8 +72,52 @@ button:disabled {
   opacity: 0.5;
 }
 
+/* Links in text: a soft underline that fills in on hover */
 a {
   color: var(--primary);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.15s;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Text links that leave the app carry an arrow (inline-block keeps the underline off it) */
+a[target='_blank']:not(.ext-link)::after {
+  content: '↗';
+  display: inline-block;
+  margin-left: 0.15em;
+  font-size: 0.85em;
+}
+
+/* Standalone links that leave the app ("Open in Google Calendar", "Get free key"): a soft pill */
+.ext-link {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  height: 1.75rem;
+  padding: 0 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+  background: var(--primary-soft);
+  border-radius: 999px;
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    transform 0.2s var(--spring);
+}
+
+.ext-link:hover {
+  color: #fff;
+  background: var(--primary);
 }
 
 :focus-visible {
@@ -109,7 +153,7 @@ a {
 }
 
 /* Every button gives a little under the finger */
-:is(.btn, .icon-btn, .chip, .get-key):active:not(:disabled) {
+:is(.btn, .icon-btn, .chip, .ext-link):active:not(:disabled) {
   transform: scale(0.94);
   transition-duration: 0.08s;
 }
@@ -163,6 +207,14 @@ select {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* iOS zooms the page into any focused field under 16px; the zoom leaves a sideways scroll and a jumpy
+   keyboard. !important beats the components' own smaller sizes; the event title is already larger. */
+@media (pointer: coarse) {
+  :is(input:not([type='checkbox'], [type='radio'], [type='range'], .title-input), select, textarea) {
+    font-size: 16px !important;
+  }
 }
 
 :is(input, select):focus {
@@ -324,8 +376,19 @@ input[type='checkbox'].switch:checked::before {
   animation: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both slide-in-left;
 }
 
-:root[data-transition='panel']::view-transition-old(panel) {
-  animation: 0.18s ease-in both panel-out;
+/* Panels leave the way they came in: towards their side, or down on phones (bottom sheets) */
+:root[data-transition='panel-left']::view-transition-old(panel) {
+  animation: 0.2s ease-in both slide-out-left;
+}
+
+:root[data-transition='panel-right']::view-transition-old(panel) {
+  animation: 0.2s ease-in both slide-out-right;
+}
+
+@media (max-width: 768px) {
+  :root[data-transition^='panel-']::view-transition-old(panel) {
+    animation: 0.22s ease-in both panel-out-down;
+  }
 }
 
 @keyframes slide-out-left {
@@ -356,10 +419,9 @@ input[type='checkbox'].switch:checked::before {
   }
 }
 
-@keyframes panel-out {
+@keyframes panel-out-down {
   to {
-    opacity: 0;
-    transform: scale(0.97) translateY(0.5rem);
+    transform: translateY(100%);
   }
 }
 
@@ -400,7 +462,7 @@ input[type='checkbox'].switch:checked::before {
 .stagger > :nth-child(n + 8) { animation-delay: 210ms; }
 
 /* -- CLICK RIPPLE (added by AppComponent on pointerdown) -- */
-:is(.btn, .icon-btn, .chip, .get-key) {
+:is(.btn, .icon-btn, .chip, .ext-link) {
   position: relative;
   overflow: hidden;
 }

@@ -190,17 +190,6 @@
   border-top: 1px solid var(--border);
 }
 
-.details a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.details a:hover {
-  text-decoration: underline;
-}
 
 /* Customisable select (Chromium today): styled popup with colour dots. Other browsers keep the native dropdown. */
 @supports (appearance: base-select) {

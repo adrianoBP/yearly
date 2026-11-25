@@ -167,7 +167,7 @@
           <div class="key-head">
             <label class="key-name"
                    [for]="'key-' + provider.id">{{ provider.name }}</label>
-            <a class="get-key"
+            <a class="ext-link"
                [href]="provider.keyUrl"
                target="_blank"
                rel="noopener noreferrer"
@@ -242,4 +242,10 @@
     <a routerLink="/privacy-policy">Privacy policy</a>
     <span>v{{ utilService.version }}</span>
   </footer>
+  <!-- Required credits, moved here from the event panel: Open-Meteo data is CC BY 4.0, place search uses OpenStreetMap (ODbL) -->
+  <p class="muted credits">
+    Weather by <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a> ·
+    places © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors ·
+    traffic by TomTom
+  </p>
 </main>
