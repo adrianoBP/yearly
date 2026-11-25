@@ -10,6 +10,9 @@ import { routes } from './app.routes';
 import { CalendarService } from './services/api/calendar.service';
 import { SettingsService } from './services/settings.service';
 import { IntegrationsService } from './services/integrations.service';
+import { SyncService } from './services/sync.service';
+import { FeaturesService } from './services/features.service';
+import { WeatherService } from './services/weather.service';
 import { WindowsService } from './windows/windows.service';
 
 import { UtilService } from './services/util.service';
@@ -35,7 +38,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: 'googleLoginScopes',
       useValue:
-        'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/drive.appdata',
     },
     provideRouter(routes, withPreloading(PreloadAllModules), withViewTransitions()),
     provideHttpClient(),
@@ -44,6 +47,9 @@ export const appConfig: ApplicationConfig = {
     CalendarService,
     SettingsService,
     IntegrationsService,
+    SyncService,
+    FeaturesService,
+    WeatherService,
     WindowsService,
     UtilService,
     provideServiceWorker('ngsw-worker.js', {

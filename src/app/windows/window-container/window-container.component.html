@@ -6,6 +6,7 @@
     <div class="window"
          role="dialog"
          aria-modal="true"
+         [class.wide]="window.type === 'year-review'"
          [style.view-transition-name]="$last ? 'panel' : null"
          (click)="$event.stopPropagation()">
       @if (window.type === 'list-events') {
@@ -13,6 +14,12 @@
       }
       @if (window.type === 'edit-event') {
         <app-event-edit />
+      }
+      @if (window.type === 'leave-planner') {
+        <app-leave-planner />
+      }
+      @if (window.type === 'year-review') {
+        <app-year-review />
       }
     </div>
   }

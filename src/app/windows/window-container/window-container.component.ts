@@ -3,10 +3,12 @@ import { EventsListComponent } from '../events-list/events-list.component';
 import { WindowsService } from '../windows.service';
 import { EventEditComponent } from '../event-edit/event-edit.component';
 import { SettingsService } from '../../services/settings.service';
+import { LeavePlannerComponent } from '../leave-planner/leave-planner.component';
+import { YearReviewComponent } from '../year-review/year-review.component';
 
 @Component({
   selector: 'app-window-container',
-  imports: [EventsListComponent, EventEditComponent],
+  imports: [EventsListComponent, EventEditComponent, LeavePlannerComponent, YearReviewComponent],
   templateUrl: './window-container.component.html',
   styleUrl: './window-container.component.css',
 })

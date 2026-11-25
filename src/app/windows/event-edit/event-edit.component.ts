@@ -19,6 +19,9 @@ import { UserService } from '../../services/api/user.service';
 import { UtilService } from '../../services/util.service';
 import { WindowParameters, WindowsService } from '../windows.service';
 import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
+import { EventExtrasComponent } from './event-extras/event-extras.component';
+import { FeaturesService } from '../../services/features.service';
+import { parseEventText } from '../../features/text-event';
 
 export interface EditEventParameters extends WindowParameters {
   isNewEvent: boolean;
@@ -27,11 +30,13 @@ export interface EditEventParameters extends WindowParameters {
   // Options for new events
   startDate?: Date;
   endDate?: Date;
+  /** Opened from "Type it": start in the plain-text box */
+  focusQuickAdd?: boolean;
 }
 
 @Component({
   selector: 'app-event-edit',
-  imports: [FormsModule, FontAwesomeModule, DatePickerComponent],
+  imports: [FormsModule, FontAwesomeModule, DatePickerComponent, EventExtrasComponent],
   templateUrl: './event-edit.component.html',
   styleUrl: './event-edit.component.css',
 })
@@ -66,7 +71,8 @@ export class EventEditComponent {
     public calendarService: CalendarService,
     public windowsService: WindowsService,
     private settingsService: SettingsService,
-    private userService: UserService
+    private userService: UserService,
+    public features: FeaturesService
   ) {
     this.parameters = this.windowsService.getOpenedWindow()?.parameters as EditEventParameters;
     // Make a copy of the event to allow for cancelling changes
@@ -94,7 +100,7 @@ export class EventEditComponent {
       : this.calendars.find((calendar) => calendar.id === this.parameters.event.calendarId) || null;
 
     // Focus on the title input
-    document.getElementById('event-title')?.focus();
+    document.getElementById(this.parameters.focusQuickAdd ? 'quick-add' : 'event-title')?.focus();
   }
 
   async getCalendars(): Promise<GoogleCalendar[]> {
@@ -136,6 +142,45 @@ export class EventEditComponent {
       start: moment(`${this.eventStartDate} ${this.eventStartTime}`, 'YYYY-MM-DD HH:mm', true),
       end: moment(`${this.eventEndDate} ${this.eventEndTime}`, 'YYYY-MM-DD HH:mm', true),
     };
+  }
+
+  quickText = '';
+  quickNote = '';
+
+  /** Fills the fields from text like "dinner Friday 8pm at Rosie's" */
+  applyQuickAdd() {
+    const text = this.quickText.trim();
+    if (!text) return;
+    const parsed = parseEventText(text);
+    if (parsed == null) {
+      this.parameters.event.title = text;
+      this.quickNote = "Couldn't find a date in that. Set it below.";
+      return;
+    }
+    const start = moment(parsed.start);
+    const end = moment(parsed.end);
+    this.parameters.event.title = parsed.title || this.parameters.event.title;
+    if (parsed.location) this.parameters.event.location = parsed.location;
+    this.isAllDay = parsed.allDay;
+    this.eventStartDate = start.format('YYYY-MM-DD');
+    this.eventEndDate = (parsed.allDay ? end.clone().subtract(1, 'day') : end).format('YYYY-MM-DD');
+    if (!parsed.allDay) {
+      this.eventStartTime = start.format('HH:mm');
+      this.eventEndTime = end.format('HH:mm');
+    }
+    this.quickText = '';
+    this.quickNote = 'Filled in below. Check it, then save.';
+  }
+
+  /** For the extras section: plain strings so change detection sees no change until the dates do */
+  get rangeStart(): string {
+    const { start, end } = this.getRange();
+    return start.isValid() && end.isValid() ? start.format() : '';
+  }
+
+  get rangeEnd(): string {
+    const { start, end } = this.getRange();
+    return start.isValid() && end.isValid() ? end.format() : '';
   }
 
   async saveChanges(): Promise<void> {

@@ -91,7 +91,7 @@ li + li {
   border-radius: var(--radius-sm);
   color: var(--text-faint);
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition: background-color 0.15s, color 0.15s, transform 0.2s var(--spring);
 }
 
 .chip:hover {
@@ -178,7 +178,7 @@ li + li {
   text-decoration: none;
   background: var(--primary-soft);
   border-radius: 999px;
-  transition: background-color 0.15s, color 0.15s;
+  transition: background-color 0.15s, color 0.15s, transform 0.2s var(--spring);
 }
 
 .get-key:hover {

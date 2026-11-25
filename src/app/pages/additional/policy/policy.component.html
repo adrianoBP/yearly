@@ -75,6 +75,13 @@
           <li>View and edit events across all Google Calendars associated with the account</li>
         </ul>
       </div>
+      <div>
+        <h3>Drive app data</h3>
+        <ul>
+          <li>A hidden folder in your Google Drive that only the Application can see, used to sync settings between
+            your devices. The Application cannot see your other Drive files.</li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -83,7 +90,8 @@
     <p>Some features can use third-party services with an API key that you create and add in Settings. All of them are
       optional, and the Application works without them.</p>
     <ul>
-      <li>Keys are stored only on your device, in your browser's storage. They are not sent to the Service Provider.</li>
+      <li>Keys and request counts are stored in your browser and synced through a hidden app folder in your own Google
+        Drive, so they work on all your devices. They are not sent to the Service Provider.</li>
       <li>Requests go directly from your device to the service the key belongs to, and may include event details such as
         a location, a date or a flight number.</li>
       <li>Each service handles that data under its own privacy policy:

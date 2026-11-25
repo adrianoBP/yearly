@@ -1,0 +1,71 @@
+<header class="sheet-header">
+  <div>
+    <h2>Leave planner</h2>
+    <p class="sheet-sub">Best days to take off in {{ year }}</p>
+  </div>
+  <button class="icon-btn"
+          aria-label="Close"
+          (click)="windowsService.back()">
+    <fa-icon class="i-jelly" [icon]="closeIcon" />
+  </button>
+</header>
+
+<div class="sheet-body planner">
+  <div class="filters">
+    <select aria-label="Country"
+            [ngModel]="country"
+            (ngModelChange)="changeCountry($event)">
+      @for (c of countries; track c.countryCode) {
+        <option [value]="c.countryCode">{{ c.name }}</option>
+      } @empty {
+        <option [value]="country">{{ country }}</option>
+      }
+    </select>
+    @if (regions.length) {
+      <select aria-label="Region"
+              [ngModel]="region ?? ''"
+              (ngModelChange)="changeRegion($event)">
+        <option value="">Choose your region</option>
+        @for (r of regions; track r) {
+          <option [value]="r">{{ regionName(r) }}</option>
+        }
+      </select>
+    }
+  </div>
+  @if (regions.length && !region) {
+    <p class="muted">Some holidays only apply to part of the country. Choose your region to see them all.</p>
+  }
+
+  @if (isLoading) {
+    <p class="muted">Loading holidays…</p>
+  } @else if (error) {
+    <p class="muted"
+       role="alert">{{ error }}</p>
+  } @else {
+    <h3>Make the most of your leave</h3>
+    <ul class="bridges stagger">
+      @for (bridge of bridges; track bridge.start) {
+        <li [class.past]="isPast(bridge.end)">
+          <p class="headline">
+            <strong>{{ bridge.totalDays }} days off</strong>
+            for {{ bridge.leaveDays.length }} {{ bridge.leaveDays.length === 1 ? 'day' : 'days' }} of leave
+          </p>
+          <p class="muted">Book {{ leaveRange(bridge) }} · off {{ format(bridge.start, false) }} – {{ format(bridge.end, false) }}</p>
+          <p class="muted">Around {{ holidayNames(bridge) }}</p>
+        </li>
+      } @empty {
+        <li class="muted">No holidays to build on this year.</li>
+      }
+    </ul>
+
+    <h3>Public holidays</h3>
+    <ul class="holidays stagger">
+      @for (holiday of holidays; track holiday.date) {
+        <li [class.past]="isPast(holiday.date)">
+          <span class="date">{{ format(holiday.date) }}</span>
+          <span>{{ holiday.name }}</span>
+        </li>
+      }
+    </ul>
+  }
+</div>

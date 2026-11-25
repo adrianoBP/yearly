@@ -14,6 +14,8 @@ import { UserService } from '../../services/api/user.service';
 
 export interface EventsListParameters extends WindowParameters {
   events: Event[];
+  /** Called as soon as an edited event is saved, so the calendar updates without another Save */
+  onEventUpdated?: (event: Event) => void;
 }
 
 @Component({
@@ -32,7 +34,6 @@ export class EventsListComponent {
   parameters: EventsListParameters;
   events: EventDisplayDetails[] = [];
   eventsToDelete: Event[] = [];
-  eventsToUpdate: Event[] = [];
   isSaving: boolean = false;
 
   availableCalendars: GoogleCalendar[] = [];
@@ -120,10 +121,8 @@ export class EventsListComponent {
           updatedEvent.startsBefore = startsBefore;
           updatedEvent.endsAfter = endsAfter;
 
-          // Remove the old event from the list
-          this.eventsToUpdate = this.eventsToUpdate.filter((e) => e.id !== updatedEvent.id);
-          this.eventsToUpdate.push(updatedEvent);
-
+          // Already saved to Google by the editor; show it in the calendar now
+          this.parameters.onEventUpdated?.(updatedEvent);
           this.sortEvents();
         }
       },
@@ -155,7 +154,7 @@ export class EventsListComponent {
 
     this.windowsService.closeWindow({
       deletedEvents: this.eventsToDelete,
-      updatedEvents: this.eventsToUpdate,
+      updatedEvents: [],
     });
   }
 }

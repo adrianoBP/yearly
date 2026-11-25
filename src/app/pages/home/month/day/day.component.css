@@ -54,7 +54,14 @@
 /* Hover: a soft tint of the day's main event colour, lines grow slightly */
 .day {
   border-radius: 8px;
-  transition: background-color 0.15s;
+  transition:
+    background-color 0.15s,
+    transform 0.2s var(--spring);
+}
+
+.day.clickable:active {
+  transform: scale(0.9);
+  transition-duration: 0.08s;
 }
 
 .line {

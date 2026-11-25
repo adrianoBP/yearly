@@ -1,0 +1,51 @@
+import { Injectable } from '@angular/core';
+import moment from 'moment';
+import { DailyForecast, OpenMeteoDaily, toForecast } from '../features/weather';
+import { IntegrationsService } from './integrations.service';
+
+export interface Place {
+  lat: number;
+  lon: number;
+  /** ISO 3166-1 alpha-2, upper case */
+  country: string;
+}
+
+/** Open-Meteo forecasts reach 16 days ahead */
+export const FORECAST_DAYS = 16;
+const DAY = 24 * 60 * 60 * 1000;
+
+/** Places (OpenStreetMap Nominatim) and forecasts (Open-Meteo): both free, no key */
+@Injectable()
+export class WeatherService {
+  constructor(private integrations: IntegrationsService) {}
+
+  async geocode(location: string): Promise<Place | null> {
+    const query = location.trim();
+    if (!query) return null;
+    const url =
+      'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&q=' + encodeURIComponent(query);
+    // Places don't move: cache for a month, which also keeps us inside Nominatim's fair-use policy
+    const [result] = await this.integrations.fetchCached<
+      { lat: string; lon: string; address?: { country_code?: string } }[]
+    >(url, `place:${query.toLowerCase()}`, 30 * DAY);
+    if (!result) return null;
+    return { lat: +result.lat, lon: +result.lon, country: (result.address?.country_code ?? '').toUpperCase() };
+  }
+
+  /** Daily forecast for the part of [start, end) that's within reach; null when none of it is */
+  async forecast(place: Place, start: moment.Moment, end: moment.Moment): Promise<DailyForecast[] | null> {
+    const today = moment().startOf('day');
+    const from = moment.max(start.clone().startOf('day'), today);
+    // end is exclusive: an all-day event ending at midnight doesn't include that day
+    const to = moment.min(end.clone().subtract(1, 'ms').startOf('day'), today.clone().add(FORECAST_DAYS - 1, 'days'));
+    if (to.isBefore(from)) return null;
+
+    const dates = `start_date=${from.format('YYYY-MM-DD')}&end_date=${to.format('YYYY-MM-DD')}`;
+    const url =
+      `https://api.open-meteo.com/v1/forecast?latitude=${place.lat.toFixed(3)}&longitude=${place.lon.toFixed(3)}` +
+      '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max' +
+      `&timezone=auto&${dates}`;
+    const response = await this.integrations.fetchCached<{ daily: OpenMeteoDaily }>(url, `forecast:${url}`, 60 * 60 * 1000);
+    return toForecast(response.daily);
+  }
+}

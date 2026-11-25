@@ -3,12 +3,33 @@
   <button class="icon-btn"
           aria-label="Close"
           (click)="windowsService.back()">
-    <fa-icon [icon]="closeIcon" />
+    <fa-icon class="i-jelly" [icon]="closeIcon" />
   </button>
 </header>
 
 <form class="sheet-body editor"
       (ngSubmit)="saveChanges()">
+  @if (parameters.isNewEvent && features.isOn('text-events')) {
+    <div class="quick-add">
+      <input type="text"
+             id="quick-add"
+             placeholder="Type it: dinner Friday 8pm at Rosie's"
+             aria-label="Describe the event in words"
+             autocomplete="off"
+             [(ngModel)]="quickText"
+             [ngModelOptions]="{ standalone: true }"
+             (keydown.enter)="$event.preventDefault(); applyQuickAdd()">
+      <button type="button"
+              class="btn"
+              [disabled]="!quickText.trim()"
+              (click)="applyQuickAdd()">Fill in</button>
+    </div>
+    @if (quickNote) {
+      <p class="quick-note"
+         role="status">{{ quickNote }}</p>
+    }
+  }
+
   <div class="title-row">
     <span class="title-dot"
           [style.background-color]="parameters.event.colorId ? parameters.event.colour : selectedCalendar?.backgroundColor ?? 'var(--border)'"></span>
@@ -118,6 +139,12 @@
     </div>
   </section>
 
+  <app-event-extras [title]="parameters.event.title"
+                    [description]="parameters.event.description"
+                    [location]="parameters.event.location"
+                    [start]="rangeStart"
+                    [end]="rangeEnd" />
+
   @if (organiser || parameters.event.htmlLink) {
     <div class="details">
       @if (organiser) {
@@ -127,7 +154,7 @@
         <a [href]="parameters.event.htmlLink"
            target="_blank"
            rel="noopener noreferrer">Open in Google Calendar
-          <fa-icon [icon]="externalIcon"
+          <fa-icon class="i-pop" [icon]="externalIcon"
                    size="xs" /></a>
       }
     </div>

@@ -1,0 +1,56 @@
+@if (flight) {
+  <section class="group">
+    <fa-icon class="group-icon"
+             [icon]="flightIcon" />
+    <div class="group-body">
+      <p class="heading">{{ flight.flight }} · {{ flight.airline }}</p>
+      @if (flight.from || flight.to) {
+        <p class="muted">
+          {{ flight.from ? flight.from.code + ' ' + flight.from.name : '?' }}
+          →
+          {{ flight.to ? flight.to.code + ' ' + flight.to.name : '?' }}
+        </p>
+      }
+      <a class="link"
+         [href]="flight.trackUrl"
+         target="_blank"
+         rel="noopener noreferrer">Track on Flightradar24
+        <fa-icon class="i-pop" [icon]="externalIcon"
+                 size="xs" /></a>
+    </div>
+  </section>
+}
+
+@if (features.isOn('weather') && shownForecast.length) {
+  <section class="group">
+    <fa-icon class="group-icon"
+             [icon]="weatherIcon" />
+    <div class="group-body">
+      <ul class="days">
+        @for (day of shownForecast; track day.date) {
+          @let weather = describe(day.code);
+          <li>
+            <span class="day">{{ dayLabel(day.date) }}</span>
+            <span [title]="weather.label"
+                  [attr.aria-label]="weather.label">{{ weather.icon }}</span>
+            <span>{{ day.max }}° <span class="muted">/ {{ day.min }}°</span></span>
+            <span class="muted">{{ day.rain }}% rain</span>
+            @for (warning of warnings(day); track warning) {
+              <span class="warning">{{ warning }}</span>
+            }
+          </li>
+        }
+      </ul>
+      @if ((forecast?.length ?? 0) > shownForecast.length) {
+        <p class="muted">+{{ forecast!.length - shownForecast.length }} more days</p>
+      }
+      <!-- Required credits: Open-Meteo data is CC BY 4.0, place search uses OpenStreetMap (ODbL) -->
+      <p class="credit">Weather by <a href="https://open-meteo.com"
+           target="_blank"
+           rel="noopener noreferrer">Open-Meteo</a> · places © <a href="https://www.openstreetmap.org/copyright"
+           target="_blank"
+           rel="noopener noreferrer">OpenStreetMap</a></p>
+    </div>
+  </section>
+}
+

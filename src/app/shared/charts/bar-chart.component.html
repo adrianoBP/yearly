@@ -1,0 +1,60 @@
+<figure #figure>
+  <figcaption>{{ title }}</figcaption>
+  @if (subtitle) {
+    <p class="subtitle">{{ subtitle }}</p>
+  }
+
+  @if (orientation === 'vertical') {
+    <div class="columns"
+         role="img"
+         [attr.aria-label]="summary">
+      @for (bar of data; track bar.label; let i = $index) {
+        <div class="column"
+             (mouseenter)="show(bar, $event)"
+             (mouseleave)="hover = null">
+          <div class="track">
+            <!-- The stack is as tall as the bar, so the peak label sits just above it, inside the track's headroom -->
+            <div class="stack"
+                 [style.height.%]="size(bar)">
+              @if (i === peakIndex && bar.value > 0) {
+                <span class="peak">{{ bar.value }}</span>
+              }
+              <div class="bar"
+                   [style.animation-delay.ms]="i * 30"></div>
+            </div>
+          </div>
+          <span class="tick">{{ bar.label }}</span>
+        </div>
+      }
+    </div>
+  } @else {
+    <ul class="rows"
+        role="img"
+        [attr.aria-label]="summary">
+      @for (bar of data; track bar.label; let i = $index) {
+        <li>
+          <span class="row-label">
+            @if (bar.colour) {
+              <span class="swatch"
+                    [style.background-color]="bar.colour"></span>
+            }
+            <span class="name">{{ bar.label }}</span>
+          </span>
+          <span class="row-track">
+            <span class="bar"
+                  [style.width.%]="size(bar)"
+                  [style.animation-delay.ms]="i * 40"></span>
+            <span class="row-value">{{ bar.value }}</span>
+          </span>
+        </li>
+      }
+    </ul>
+  }
+  @if (hover) {
+    <!-- One tooltip, clamped inside the figure so it never makes the panel scroll -->
+    <span class="tooltip"
+          aria-hidden="true"
+          [style.left.px]="hover.left"
+          [style.top.px]="hover.top">{{ hover.tip }}</span>
+  }
+</figure>

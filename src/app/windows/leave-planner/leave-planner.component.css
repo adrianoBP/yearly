@@ -1,0 +1,66 @@
+.planner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.25rem 1rem 1rem;
+  font-size: 0.88rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filters select {
+  flex: 1;
+  min-width: 8rem;
+  height: 2.1rem;
+}
+
+h3 {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+ul {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.bridges li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0;
+}
+
+.bridges li + li,
+.holidays li + li {
+  border-top: 1px solid var(--border);
+}
+
+.headline strong {
+  color: var(--primary);
+}
+
+.holidays li {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+}
+
+.date {
+  min-width: 6.5rem;
+  color: var(--text-muted);
+}
+
+.past {
+  opacity: 0.45;
+}

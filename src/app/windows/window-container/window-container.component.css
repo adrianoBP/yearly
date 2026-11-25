@@ -97,3 +97,8 @@
     animation: slide-in-up 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 }
+
+/* The year review holds charts; give them room */
+.window.wide {
+  width: min(46rem, calc(100% - 2rem));
+}

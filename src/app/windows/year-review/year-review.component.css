@@ -1,0 +1,119 @@
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.25rem 1rem 1rem;
+  font-size: 0.88rem;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+/* Headline numbers: figures, not charts */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.tiles div {
+  padding: 0.7rem 0.75rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.tiles div:nth-child(2) { animation-delay: 40ms; }
+.tiles div:nth-child(3) { animation-delay: 80ms; }
+.tiles div:nth-child(4) { animation-delay: 120ms; }
+.tiles div:nth-child(5) { animation-delay: 160ms; }
+.tiles div:nth-child(6) { animation-delay: 200ms; }
+
+.tiles dt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.tiles dd {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tiles dd.small {
+  font-size: 1.1rem;
+}
+
+.tiles dd.caption {
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.card {
+  padding: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  animation: rise 0.45s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Two charts side by side when the panel is wide enough */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem;
+}
+
+.note {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+h3 {
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.busiest {
+  list-style: none;
+}
+
+.busiest li {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr auto;
+  gap: 0.6rem;
+  padding: 0.35rem 0;
+}
+
+.busiest li + li {
+  border-top: 1px solid var(--border);
+}
+
+.date {
+  color: var(--text-muted);
+}
+
+.titles {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.count {
+  font-weight: 600;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

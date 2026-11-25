@@ -14,6 +14,14 @@ export interface Settings {
   darkMode?: boolean;
   /** Feature id → switched on; a missing entry means on */
   features?: Record<string, boolean>;
+  /** Leave planner: ISO country code (e.g. GB) and optional region (e.g. GB-SCT); also "home" for trip prep */
+  holidayCountry?: string;
+  holidayRegion?: string | null;
+}
+
+/** Country from the browser's locale (en-GB → GB), used until the user picks one */
+export function homeCountry(settings: Settings): string {
+  return settings.holidayCountry ?? navigator.language.split('-')[1]?.toUpperCase() ?? 'GB';
 }
 
 @Injectable()

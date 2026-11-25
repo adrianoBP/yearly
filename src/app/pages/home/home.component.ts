@@ -6,8 +6,12 @@ import {
   faCalendarPlus,
   faChevronLeft,
   faChevronRight,
+  faChartSimple,
   faCog,
+  faEllipsis,
+  faKeyboard,
   faSignOutAlt,
+  faUmbrellaBeach,
 } from '@fortawesome/free-solid-svg-icons';
 import { Day, Month } from '../../interfaces/month.interface';
 import { DayHover, MonthComponent } from './month/month.component';
@@ -25,6 +29,9 @@ import { UserService } from '../../services/api/user.service';
 import { bucketEventsByDay, dayKey } from './events-by-day';
 import { withViewTransition } from '../../view-transition';
 import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
+import { SyncService } from '../../services/sync.service';
+import { FeaturesService } from '../../services/features.service';
+import { YearReviewParameters } from '../../windows/year-review/year-review.component';
 
 const TEMP_EVENT_ID = 'temp-id';
 // Per browser tab: a reload (or coming back from settings) keeps the year, a new tab starts at today
@@ -48,6 +55,10 @@ export class HomeComponent {
   cogIcon = faCog;
   exitIcon = faSignOutAlt;
   addEventIcon = faCalendarPlus;
+  leaveIcon = faUmbrellaBeach;
+  reviewIcon = faChartSimple;
+  typeIcon = faKeyboard;
+  moreIcon = faEllipsis;
 
   isLoading = true;
 
@@ -81,12 +92,15 @@ export class HomeComponent {
     private utilService: UtilService,
     private userService: UserService,
     private ngZone: NgZone,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sync: SyncService,
+    public features: FeaturesService
   ) {
     this.buildMonths();
   }
 
   async ngOnInit() {
+    this.sync.start();
     this.settings = this.settingsService.getSettings();
 
     this.calendars = await this.calendarService.getCalendars();
@@ -341,7 +355,12 @@ export class HomeComponent {
     }
 
     if (events?.length > 0) {
-      const parameters = { events, date } as EventsListParameters;
+      const parameters: EventsListParameters = {
+        events,
+        date,
+        onEventUpdated: (updated) =>
+          this.setEvents([...this.events.filter((event) => event.id !== updated.id), updated]),
+      };
       this.windowsService.openWindow(
         'list-events',
         parameters,
@@ -395,11 +414,22 @@ export class HomeComponent {
     const newEvent = this.tempEvent(start, end);
     this.removeEventsFromCalendar([TEMP_EVENT_ID]);
     this.addEventsToCalendar([newEvent]);
+    this.openNewEvent(newEvent, side);
+  }
 
+  /** Skips picking days: opens a new event with the plain-text box focused */
+  typeNewEvent() {
+    this.cancelNewEvent();
+    this.calendarService.isAddingEvent = false;
+    const start = moment().add(1, 'hour').startOf('hour');
+    this.openNewEvent(this.tempEvent(start.toDate(), start.clone().add(1, 'hour').toDate()), 'right', true);
+  }
+
+  private openNewEvent(newEvent: EventDisplayDetails, side: 'left' | 'right', focusQuickAdd = false) {
     const cleanUp = () => this.cancelNewEvent();
     this.windowsService.openWindow(
       'edit-event',
-      { event: newEvent, isNewEvent: true } as EditEventParameters,
+      { event: newEvent, isNewEvent: true, focusQuickAdd } as EditEventParameters,
       side,
       (createdEvent: Event) => {
         cleanUp();
@@ -407,5 +437,30 @@ export class HomeComponent {
       },
       cleanUp
     );
+  }
+
+  openLeavePlanner() {
+    this.windowsService.openWindow('leave-planner', { date: new Date(this.year, 0, 1) }, 'right');
+  }
+
+  openYearReview() {
+    const own = new Set(
+      this.calendars.filter((c) => c.accessRole === 'owner' || c.accessRole === 'writer').map((c) => c.id)
+    );
+    const events = this.events.filter((e) => e.id !== TEMP_EVENT_ID && own.has(e.calendarId));
+    const calendars = this.calendars
+      .filter((c) => own.has(c.id))
+      .map((c) => ({ id: c.id, name: this.calendarService.getCalendarName(c), colour: c.backgroundColor }));
+    const parameters: YearReviewParameters = {
+      date: new Date(this.year, 0, 1),
+      events,
+      calendars,
+      onPickDay: (date) => {
+        // Close the review and pulse that day in the calendar
+        this.windowsService.backAllWindows();
+        this.jumpTo(date);
+      },
+    };
+    this.windowsService.openWindow('year-review', parameters, 'right');
   }
 }

@@ -1,0 +1,194 @@
+:host {
+  /* Chart roles; one hue for single-series bars (reference palette, blue 450) */
+  --series: #2a78d6;
+  --series-hover: #1c5cab;
+  --grid: var(--border-subtle);
+  display: block;
+}
+
+figure {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+figcaption {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin-top: -0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Vertical columns */
+.columns {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 9rem;
+  border-bottom: 1px solid var(--grid);
+  /* Room under the baseline for the tick labels */
+  margin-bottom: 1.1rem;
+}
+
+.column {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.track {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  /* Headroom for the peak label, so it never reaches the title */
+  padding-top: 1.2rem;
+}
+
+.stack {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: min(100%, 24px);
+}
+
+.column .bar {
+  width: 100%;
+  height: 100%;
+  background: var(--series);
+  border-radius: 4px 4px 0 0;
+  transform-origin: bottom;
+  animation: grow-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: background-color 0.15s;
+}
+
+.peak {
+  position: absolute;
+  bottom: calc(100% + 0.15rem);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text);
+  animation: fade-in 0.4s 0.45s both;
+}
+
+.tick {
+  position: absolute;
+  bottom: -1.1rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Horizontal rows */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  list-style: none;
+}
+
+.rows li {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 9rem) 1fr;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+}
+
+.row-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.swatch {
+  flex-shrink: 0;
+  width: 0.6rem;
+  aspect-ratio: 1;
+  border-radius: 3px;
+}
+
+.row-track {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rows .bar {
+  height: 14px;
+  min-width: 2px;
+  background: var(--series);
+  border-radius: 0 4px 4px 0;
+  transform-origin: left;
+  animation: grow-right 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: background-color 0.15s;
+}
+
+.row-value {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Hover: darken the mark and show its tooltip; the whole column or row is the hit target */
+.column:hover .bar,
+.rows li:hover .bar {
+  background: var(--series-hover);
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 2;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: #fff;
+  background: rgb(17 24 39 / 0.92);
+  border-radius: 6px;
+  transform: translate(-50%, calc(-100% - 6px));
+  pointer-events: none;
+  animation: tip-in 0.12s ease-out;
+}
+
+
+@keyframes grow-up {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes grow-right {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% - 2px));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

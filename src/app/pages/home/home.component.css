@@ -257,3 +257,59 @@
     opacity: 0;
   }
 }
+
+/* "More" menu: leave planner and charts live here instead of the header */
+.menu {
+  inset: auto;
+  top: 3.4rem;
+  right: 0.75rem;
+  min-width: 12rem;
+  margin: 0;
+  padding: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateY(-6px) scale(0.97);
+  transform-origin: top right;
+  transition:
+    opacity 0.16s ease-out,
+    transform 0.16s ease-out,
+    overlay 0.16s allow-discrete,
+    display 0.16s allow-discrete;
+}
+
+.menu:popover-open {
+  opacity: 1;
+  transform: none;
+}
+
+@starting-style {
+  .menu:popover-open {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+
+.menu button {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.88rem;
+  text-align: left;
+  border-radius: 6px;
+  transition: background-color 0.15s, color 0.15s, padding-left 0.15s;
+}
+
+.menu button:hover,
+.menu button:focus-visible {
+  color: var(--primary);
+  background: var(--primary-soft);
+  padding-left: 0.85rem;
+  outline: none;
+}

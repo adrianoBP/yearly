@@ -2,14 +2,20 @@ import { Injectable, NgZone } from '@angular/core';
 import { withViewTransition } from '../view-transition';
 import { EventsListParameters } from './events-list/events-list.component';
 import { EditEventParameters } from './event-edit/event-edit.component';
+import { LeavePlannerParameters } from './leave-planner/leave-planner.component';
+import { YearReviewParameters } from './year-review/year-review.component';
 
-type WindowType = 'list-events' | 'edit-event';
+type WindowType = 'list-events' | 'edit-event' | 'leave-planner' | 'year-review';
 
 export interface WindowParameters {
   date: Date;
 }
 
-export type WindowParametersType = EventsListParameters | EditEventParameters;
+export type WindowParametersType =
+  | EventsListParameters
+  | EditEventParameters
+  | LeavePlannerParameters
+  | YearReviewParameters;
 
 interface Window {
   type: WindowType;

@@ -81,19 +81,18 @@ export interface Feature {
 }
 
 export const FEATURES: Feature[] = [
-  { id: 'text-events', name: 'Create events from text', description: 'Type "dinner Friday 8pm at Rosie\'s" to fill in a new event.', keys: [], available: false },
+  { id: 'text-events', name: 'Create events from text', description: 'Type "dinner Friday 8pm at Rosie\'s" to fill in a new event.', keys: [], available: true },
   {
     id: 'flights',
     name: 'Flight details',
     description: 'Airline, airports and times for events with a flight number.',
     keys: [['aviationstack', 'aeroapi']],
     basic: 'Live gate, delay and status need a free Aviationstack or AeroAPI key.',
-    available: false,
+    available: true,
   },
-  { id: 'weather', name: 'Weather warnings', description: 'Forecast warnings for events with a location.', keys: [], available: false },
-  { id: 'leave-planner', name: 'Leave planner', description: 'Bank holidays and the best days to take off.', keys: [], available: false },
-  { id: 'trip-prep', name: 'Trip prep checklist', description: 'A checklist based on trip length, destination and forecast.', keys: [], available: false },
-  { id: 'year-review', name: 'Year in review', description: 'Trips, busiest month and places visited.', keys: [], available: false },
+  { id: 'weather', name: 'Weather warnings', description: 'Forecast warnings for events with a location.', keys: [], available: true },
+  { id: 'leave-planner', name: 'Leave planner', description: 'Bank holidays and the best days to take off.', keys: [], available: true },
+  { id: 'year-review', name: 'Year in review', description: 'Trips, busiest month and places visited.', keys: [], available: true },
   { id: 'travel-buffers', name: 'Travel buffers', description: 'Warns when back-to-back events are too far apart.', keys: [['tomtom']], available: false },
   {
     id: 'crowd-alerts',

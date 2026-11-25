@@ -1,13 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { lastValueFrom } from 'rxjs';
+import { Subject, lastValueFrom } from 'rxjs';
 import { PROVIDERS, ProviderId, periodKey, periodResetDate } from './integrations';
-
-interface UsageEntry {
-  period: string;
-  count: number;
-  limitReached?: boolean;
-}
+import { KeyMap, SyncFile, UsageEntry, UsageMap } from './sync';
 
 interface CacheEntry {
   at: number;
@@ -33,8 +28,11 @@ export interface RequestOptions {
 // Kept apart from 'settings' so keys never travel with other settings
 const KEYS = 'apiKeys';
 const USAGE = 'apiUsage';
-// shortcut: cache entries are never evicted; add eviction if localStorage nears its ~5 MB limit
+/** Other devices' usage, as of the last sync */
+const OTHER_USAGE = 'apiUsageOtherDevices';
+const DEVICE_ID = 'deviceId';
 const CACHE = 'apiCache';
+const CACHE_MAX_AGE = 31 * 24 * 60 * 60 * 1000;
 
 function load<T>(name: string): Record<string, T> {
   try {
@@ -62,35 +60,49 @@ export class IntegrationsService {
   /** Overridable in tests */
   now = () => new Date();
 
+  /** Fires when keys or usage change, so they can be synced */
+  readonly changed = new Subject<void>();
+
+  readonly deviceId: string = (() => {
+    let id = localStorage.getItem(DEVICE_ID);
+    if (id == null) {
+      id = crypto.randomUUID();
+      localStorage.setItem(DEVICE_ID, id);
+    }
+    return id;
+  })();
+
   getKey(id: ProviderId): string | null {
-    return load<string>(KEYS)[id] ?? null;
+    return load<KeyMap[ProviderId]>(KEYS)[id]?.value || null;
   }
 
   hasKey = (id: ProviderId) => this.getKey(id) != null;
 
   setKey(id: ProviderId, key: string) {
-    const keys = load<string>(KEYS);
-    key = key.trim();
-    if (key) keys[id] = key;
-    else delete keys[id];
+    const keys = load<KeyMap[ProviderId]>(KEYS);
+    keys[id] = { value: key.trim(), at: this.now().getTime() };
     save(KEYS, keys);
+    this.changed.next();
   }
 
+  /** Usage across every synced device */
   usage(id: ProviderId): Usage {
     const provider = this.provider(id);
     const now = this.now();
-    const entry = this.usageEntry(id, now);
+    const current = periodKey(provider.period, now);
+    const entries = [this.usageEntry(id, now), ...Object.values(load<UsageMap>(OTHER_USAGE)).map((usage) => usage[id])]
+      .filter((entry): entry is UsageEntry => entry?.period === current);
     return {
-      count: entry.count,
+      count: entries.reduce((sum, entry) => sum + entry.count, 0),
       limit: provider.limit,
-      limitReached: entry.limitReached ?? false,
+      limitReached: entries.some((entry) => entry.limitReached),
       resetsOn: periodResetDate(provider.period, now),
     };
   }
 
   /** GET through the shared cache and usage counter; falls back to a stale cached copy when the request fails */
   async request<T>(id: ProviderId, url: string, options: RequestOptions = {}): Promise<T> {
-    const cached = options.cacheKey ? load<CacheEntry>(CACHE)[options.cacheKey] : undefined;
+    const cached = this.cached(options.cacheKey);
     if (cached && options.ttlMs != null && this.now().getTime() - cached.at < options.ttlMs) return cached.data as T;
 
     if (this.usage(id).limitReached && !options.ignoreLimit) {
@@ -101,18 +113,28 @@ export class IntegrationsService {
     this.updateUsage(id, (entry) => entry.count++);
     try {
       const data = await lastValueFrom(this.http.get<T>(url, { headers: options.headers }));
-      if (this.usage(id).limitReached) this.updateUsage(id, (entry) => delete entry.limitReached);
-      if (options.cacheKey) {
-        const cache = load<CacheEntry>(CACHE);
-        cache[options.cacheKey] = { at: this.now().getTime(), data };
-        save(CACHE, cache);
-      }
+      if (this.usageEntry(id, this.now()).limitReached) this.updateUsage(id, (entry) => delete entry.limitReached);
+      this.store(options.cacheKey, data);
       return data;
     } catch (err) {
       const limited = err instanceof HttpErrorResponse && err.status === 429;
       if (limited) this.updateUsage(id, (entry) => (entry.limitReached = true));
       if (cached) return cached.data as T;
       throw limited ? 'Free limit reached for this period.' : errorMessage(err);
+    }
+  }
+
+  /** GET for services that need no key: cached, not counted; falls back to a stale copy on failure */
+  async fetchCached<T>(url: string, cacheKey: string, ttlMs: number): Promise<T> {
+    const cached = this.cached(cacheKey);
+    if (cached && this.now().getTime() - cached.at < ttlMs) return cached.data as T;
+    try {
+      const data = await lastValueFrom(this.http.get<T>(url));
+      this.store(cacheKey, data);
+      return data;
+    } catch (err) {
+      if (cached) return cached.data as T;
+      throw errorMessage(err);
     }
   }
 
@@ -126,10 +148,38 @@ export class IntegrationsService {
     await this.request(id, url, { headers, ignoreLimit: true });
   }
 
+  /** This device's keys and usage, in the synced file's shape */
+  syncData(): SyncFile {
+    return { keys: load(KEYS), usage: { [this.deviceId]: load<UsageEntry>(USAGE) } };
+  }
+
+  /** Applies a merged sync file: keys from every device, and other devices' usage */
+  applySync(file: SyncFile) {
+    save(KEYS, file.keys);
+    const others = { ...file.usage };
+    delete others[this.deviceId];
+    save(OTHER_USAGE, others);
+  }
+
+  private cached(cacheKey?: string): CacheEntry | undefined {
+    return cacheKey ? load<CacheEntry>(CACHE)[cacheKey] : undefined;
+  }
+
+  private store(cacheKey: string | undefined, data: unknown) {
+    if (!cacheKey) return;
+    const cache = load<CacheEntry>(CACHE);
+    const now = this.now().getTime();
+    // Nothing is cached for longer than a month, so older entries are dead weight
+    for (const [key, entry] of Object.entries(cache)) if (now - entry.at > CACHE_MAX_AGE) delete cache[key];
+    cache[cacheKey] = { at: now, data };
+    save(CACHE, cache);
+  }
+
   private provider(id: ProviderId) {
     return PROVIDERS.find((p) => p.id === id)!;
   }
 
+  /** This device's entry for the current period */
   private usageEntry(id: ProviderId, now: Date): UsageEntry {
     const current = periodKey(this.provider(id).period, now);
     const entry = load<UsageEntry>(USAGE)[id];
@@ -142,5 +192,6 @@ export class IntegrationsService {
     change(entry);
     all[id] = entry;
     save(USAGE, all);
+    this.changed.next();
   }
 }

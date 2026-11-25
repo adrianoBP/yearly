@@ -1,0 +1,77 @@
+/* Same icon column + content layout as the event editor's groups */
+.group {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: 0.5rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.group-icon {
+  padding-top: 0.15rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.88rem;
+}
+
+.heading {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: fit-content;
+  color: var(--primary);
+}
+
+.days {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  list-style: none;
+}
+
+.days li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.6rem;
+}
+
+.day {
+  min-width: 3.5rem;
+  font-weight: 500;
+}
+
+.warning {
+  padding: 0.05rem 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--danger);
+  background: rgb(220 38 38 / 0.08);
+  border-radius: 999px;
+}
+
+.credit {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.credit a {
+  color: inherit;
+}

@@ -1,0 +1,42 @@
+<figure #figure>
+  <figcaption>Busy days <span class="hint">Click a day to open it</span></figcaption>
+  <div class="months"
+       aria-hidden="true"
+       [style.grid-template-columns]="'repeat(' + weekCount + ', 1fr)'">
+    @for (month of months; track month.label) {
+      <span [style.grid-column]="month.column">{{ month.label }}</span>
+    }
+  </div>
+  <div class="grid"
+       role="img"
+       [attr.aria-label]="summary"
+       [style.grid-template-columns]="'repeat(' + weekCount + ', 1fr)'"
+       (mouseleave)="hover = null">
+    @for (slot of offsetSlots; track $index) {
+      <span></span>
+    }
+    @for (cell of cells; track cell.date) {
+      <span class="cell"
+            [style.background-color]="levels[cell.level]"
+            [style.animation-delay.ms]="cell.delay"
+            (mouseenter)="show(cell, $event)"
+            (click)="pick.emit(cell.date)"></span>
+    }
+  </div>
+  @if (hover) {
+    <!-- One tooltip for the whole grid, kept inside the figure so it never makes the panel scroll -->
+    <span class="tooltip"
+          aria-hidden="true"
+          [style.left.px]="hover.left"
+          [style.top.px]="hover.top">{{ hover.tip }}</span>
+  }
+  <div class="legend"
+       aria-hidden="true">
+    Free
+    @for (level of levels; track $index) {
+      <span class="cell"
+            [style.background-color]="level"></span>
+    }
+    {{ levels.length - 1 }}+ events
+  </div>
+</figure>

@@ -17,13 +17,13 @@
               aria-label="Previous year"
               title="Previous year"
               (click)="changeYear(year - 1)">
-        <fa-icon [icon]="chevronLeftIcon" />
+        <fa-icon class="i-left" [icon]="chevronLeftIcon" />
       </button>
       <button class="icon-btn"
               aria-label="Next year"
               title="Next year"
               (click)="changeYear(year + 1)">
-        <fa-icon [icon]="chevronRightIcon" />
+        <fa-icon class="i-right" [icon]="chevronRightIcon" />
       </button>
     </div>
     <h1 class="year"
@@ -38,25 +38,63 @@
     @if (calendarService.isAddingEvent) {
       <span class="hint"
             role="status">{{ newEventStart ? 'Now pick the end day' : 'Pick the start day' }}</span>
+      @if (!newEventStart && features.isOn('text-events')) {
+        <button class="btn"
+                title="Describe the event in words instead"
+                (click)="typeNewEvent()">
+          <fa-icon class="i-press" [icon]="typeIcon" />
+          <span class="label">Type it</span>
+        </button>
+      }
     }
     <button class="btn"
             [class.btn-primary]="calendarService.isAddingEvent"
             [attr.aria-pressed]="calendarService.isAddingEvent"
             (click)="toggleAddEvent()">
-      <fa-icon [icon]="addEventIcon" />
+      <fa-icon class="i-jelly" [icon]="addEventIcon" />
       <span class="label">{{ calendarService.isAddingEvent ? 'Cancel' : 'New event' }}</span>
     </button>
+    @if (features.isOn('leave-planner') || features.isOn('year-review')) {
+      <button class="icon-btn"
+              popovertarget="more-menu"
+              aria-label="More"
+              title="More">
+        <fa-icon class="i-jelly" [icon]="moreIcon" />
+      </button>
+      <div #moreMenu
+           id="more-menu"
+           class="menu"
+           popover
+           role="menu">
+        @if (features.isOn('leave-planner')) {
+          <button role="menuitem"
+                  (click)="moreMenu.hidePopover(); openLeavePlanner()">
+            <fa-icon class="i-swing" [icon]="leaveIcon"
+                     [fixedWidth]="true" />
+            Leave planner
+          </button>
+        }
+        @if (features.isOn('year-review')) {
+          <button role="menuitem"
+                  (click)="moreMenu.hidePopover(); openYearReview()">
+            <fa-icon class="i-grow" [icon]="reviewIcon"
+                     [fixedWidth]="true" />
+            Year in review
+          </button>
+        }
+      </div>
+    }
     <a class="icon-btn"
        routerLink="/settings"
        aria-label="Settings"
        title="Settings">
-      <fa-icon [icon]="cogIcon" />
+      <fa-icon class="i-gear" [icon]="cogIcon" />
     </a>
     <button class="icon-btn"
             aria-label="Log out"
             title="Log out"
             (click)="authService.logOut()">
-      <fa-icon [icon]="exitIcon" />
+      <fa-icon class="i-out" [icon]="exitIcon" />
     </button>
   </div>
 

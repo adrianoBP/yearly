@@ -8,7 +8,7 @@
         aria-haspopup="dialog"
         (click)="toggle()">
   @if (variant === 'icon') {
-    <fa-icon [icon]="calendarIcon" />
+    <fa-icon class="i-jelly" [icon]="calendarIcon" />
   } @else {
     <span>{{ displayValue }}</span>
     <fa-icon class="chevron"
@@ -33,13 +33,13 @@
               class="icon-btn"
               [attr.aria-label]="mode === 'days' ? 'Previous month' : 'Previous year'"
               (click)="shift(mode === 'days' ? -1 : -12)">
-        <fa-icon [icon]="prevIcon" />
+        <fa-icon class="i-left" [icon]="prevIcon" />
       </button>
       <button type="button"
               class="icon-btn"
               [attr.aria-label]="mode === 'days' ? 'Next month' : 'Next year'"
               (click)="shift(mode === 'days' ? 1 : 12)">
-        <fa-icon [icon]="nextIcon" />
+        <fa-icon class="i-right" [icon]="nextIcon" />
       </button>
     </div>
   </header>

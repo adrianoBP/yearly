@@ -6,11 +6,11 @@
   <button class="icon-btn"
           aria-label="Close"
           (click)="windowsService.back()">
-    <fa-icon [icon]="closeIcon" />
+    <fa-icon class="i-jelly" [icon]="closeIcon" />
   </button>
 </header>
 
-<ul class="sheet-body events">
+<ul class="sheet-body events stagger">
   @for (event of events; track event.id) {
     <li class="event"
         tabindex="0"
@@ -36,7 +36,7 @@
                 aria-label="Delete event"
                 title="Delete"
                 (click)="$event.stopPropagation(); removeEvent(event)">
-          <fa-icon [icon]="faTrash"
+          <fa-icon class="i-shake" [icon]="faTrash"
                    size="sm" />
         </button>
       } @else {
@@ -58,7 +58,7 @@
   }
   <button class="btn btn-primary"
           (click)="saveChanges()"
-          [disabled]="isSaving || (eventsToDelete.length == 0 && eventsToUpdate.length == 0)">
-    {{ isSaving ? 'Saving…' : 'Save' }}
+          [disabled]="isSaving">
+    {{ isSaving ? 'Deleting…' : eventsToDelete.length ? 'Delete' : 'Done' }}
   </button>
 </footer>

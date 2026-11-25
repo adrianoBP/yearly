@@ -1,10 +1,10 @@
-<main class="page">
+<main class="page stagger">
   <header class="page-header">
     <a class="icon-btn"
        routerLink="/home"
        aria-label="Back to calendar"
        title="Back to calendar">
-      <fa-icon [icon]="backIcon" />
+      <fa-icon class="i-left" [icon]="backIcon" />
     </a>
     <div>
       <h1>Settings</h1>
@@ -109,7 +109,7 @@
     <div class="card-header">
       <h2>Features</h2>
     </div>
-    <ul class="features">
+    <ul class="features stagger">
       @for (feature of features; track feature.id) {
         @let status = getFeatureStatus(feature);
         <li>
@@ -136,7 +136,16 @@
   <section class="card">
     <div class="card-header">
       <h2>API keys</h2>
-      <span class="muted">All optional and free. Stored on this device only.</span>
+      <span class="muted"
+            role="status">
+        All optional and free.
+        @switch (sync.status) {
+          @case ('synced') { Synced through your Google Drive. }
+          @case ('syncing') { Syncing… }
+          @case ('error') { Stored on this device only: sign out and in again to sync. }
+          @default { Stored on this device only. }
+        }
+      </span>
     </div>
     <ul class="keys">
       @for (provider of providers; track provider.id) {
@@ -152,7 +161,7 @@
                rel="noopener noreferrer"
                [attr.aria-label]="'Get a free ' + provider.name + ' key (opens in a new tab)'">
               Get free key
-              <fa-icon [icon]="externalIcon"
+              <fa-icon class="i-pop" [icon]="externalIcon"
                        size="xs" />
             </a>
           </div>
@@ -205,7 +214,7 @@
                 }
                 {{ usage.count | number }}@if (usage.limit) {
                   / {{ usage.limit | number }}
-                } requests this {{ provider.period }} on this device · resets {{ usage.resetsOn | date: 'd MMM' }}
+                } requests this {{ provider.period }}{{ sync.status === 'synced' ? '' : ' on this device' }} · resets {{ usage.resetsOn | date: 'd MMM' }}
               </span>
               @if (provider.limitNote) {
                 <span class="muted">{{ provider.limitNote }}</span>

@@ -16,6 +16,7 @@ import { faCalendarXmark } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { IntegrationsService } from '../../services/integrations.service';
+import { SyncService } from '../../services/sync.service';
 import {
   FEATURES,
   Feature,
@@ -48,7 +49,8 @@ export class SettingsComponent {
     public settingsService: SettingsService,
     public utilService: UtilService,
     public userService: UserService,
-    public integrations: IntegrationsService
+    public integrations: IntegrationsService,
+    public sync: SyncService
   ) {}
 
   features = FEATURES;
@@ -120,6 +122,7 @@ export class SettingsComponent {
   };
 
   async ngOnInit() {
+    this.sync.start();
     this.calendars = await this.calendarService.getCalendars();
     this.settings = this.settingsService.getSettings();
 

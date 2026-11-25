@@ -1,0 +1,122 @@
+<header class="sheet-header">
+  <div>
+    <h2>{{ year }} in review</h2>
+    <p class="sheet-sub">From your own calendars</p>
+  </div>
+  <button class="icon-btn"
+          aria-label="Close"
+          (click)="windowsService.back()">
+    <fa-icon class="i-jelly" [icon]="closeIcon" />
+  </button>
+</header>
+
+<div class="sheet-body review">
+  @if (stats.events === 0) {
+    <p class="muted">No events of yours in {{ year }} yet.</p>
+  } @else {
+    <dl class="tiles">
+      <div>
+        <dt>Events</dt>
+        <dd>{{ stats.events }}</dd>
+      </div>
+      <div>
+        <dt>Busy days</dt>
+        <dd>{{ stats.busyDays }}</dd>
+      </div>
+      <div>
+        <dt>Trips</dt>
+        <dd>{{ stats.trips }}</dd>
+      </div>
+      <div>
+        <dt>Nights away</dt>
+        <dd>{{ stats.nightsAway }}</dd>
+      </div>
+      <div>
+        <dt>Flights</dt>
+        <dd>{{ stats.flights }}</dd>
+      </div>
+      @if (stats.longest) {
+        <div>
+          <dt>Longest event</dt>
+          <dd class="small">{{ stats.longest.days }} {{ stats.longest.days === 1 ? 'day' : 'days' }}</dd>
+          <dd class="caption">{{ stats.longest.title }}</dd>
+        </div>
+      }
+    </dl>
+
+    <section class="card">
+      <app-year-heatmap [days]="stats.days"
+                        (pick)="pickDay($event)" />
+    </section>
+
+    <div class="pair">
+      <section class="card">
+        <app-bar-chart title="Events per month"
+                       [data]="stats.months" />
+        @if (stats.busiestMonth) {
+          <p class="note">Busiest: {{ stats.busiestMonth.name }}</p>
+        }
+      </section>
+      <section class="card">
+        <app-bar-chart title="Events by weekday"
+                       [data]="stats.weekdays" />
+        @if (stats.busiestWeekday) {
+          <p class="note">Busiest: {{ stats.busiestWeekday }}</p>
+        }
+      </section>
+    </div>
+
+    <div class="pair">
+      <section class="card">
+        <app-bar-chart title="What time events start"
+                       subtitle="Events with a set time, in 2-hour slots"
+                       [data]="stats.hours" />
+      </section>
+      <section class="card">
+        <app-bar-chart title="How long events last"
+                       subtitle="Number of events of each length"
+                       orientation="horizontal"
+                       [data]="stats.lengths" />
+      </section>
+    </div>
+
+    @if (hasTrips) {
+      <section class="card">
+        <app-bar-chart title="Nights away per month"
+                       [data]="stats.nightsByMonth" />
+      </section>
+    }
+
+    <div class="pair">
+      @if (stats.calendars.length > 1) {
+        <section class="card">
+          <app-bar-chart title="By calendar"
+                         orientation="horizontal"
+                         [data]="stats.calendars" />
+        </section>
+      }
+      @if (stats.places.length) {
+        <section class="card">
+          <app-bar-chart title="Most visited places"
+                         orientation="horizontal"
+                         [data]="stats.places" />
+        </section>
+      }
+    </div>
+
+    @if (stats.busiestDays.length) {
+      <section class="card">
+        <h3>Busiest days</h3>
+        <ol class="busiest">
+          @for (day of stats.busiestDays; track day.date) {
+            <li>
+              <span class="date">{{ dayLabel(day.date) }}</span>
+              <span class="titles">{{ day.titles.join(', ') }}</span>
+              <span class="count">{{ day.count }}</span>
+            </li>
+          }
+        </ol>
+      </section>
+    }
+  }
+</div>
