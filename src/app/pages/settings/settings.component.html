@@ -105,6 +105,118 @@
     </ul>
   </section>
 
+  <section class="card">
+    <div class="card-header">
+      <h2>Features</h2>
+    </div>
+    <ul class="features">
+      @for (feature of features; track feature.id) {
+        @let status = getFeatureStatus(feature);
+        <li>
+          <div class="text">
+            <label [for]="'feature-' + feature.id">{{ feature.name }}</label>
+            <span class="muted">{{ feature.description }}</span>
+            @if (status === 'basic') {
+              <span class="muted">{{ feature.basic }}</span>
+            }
+          </div>
+          <span class="badge"
+                [attr.data-status]="status">{{ getStatusLabel(feature) }}</span>
+          <input type="checkbox"
+                 class="switch"
+                 [id]="'feature-' + feature.id"
+                 [checked]="canToggle(status) && isFeatureOn(feature)"
+                 [disabled]="!canToggle(status)"
+                 (change)="toggleFeature(feature)">
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="card-header">
+      <h2>API keys</h2>
+      <span class="muted">All optional and free. Stored on this device only.</span>
+    </div>
+    <ul class="keys">
+      @for (provider of providers; track provider.id) {
+        @let hasKey = integrations.hasKey(provider.id);
+        @let result = testResults[provider.id];
+        <li>
+          <div class="key-head">
+            <label class="key-name"
+                   [for]="'key-' + provider.id">{{ provider.name }}</label>
+            <a class="get-key"
+               [href]="provider.keyUrl"
+               target="_blank"
+               rel="noopener noreferrer"
+               [attr.aria-label]="'Get a free ' + provider.name + ' key (opens in a new tab)'">
+              Get free key
+              <fa-icon [icon]="externalIcon"
+                       size="xs" />
+            </a>
+          </div>
+          <span class="muted">Used for: {{ usedFor(provider.id) }}</span>
+          <span class="muted">{{ provider.steps }}</span>
+
+          <div class="key-input">
+            <input #keyInput
+                   type="password"
+                   autocomplete="off"
+                   spellcheck="false"
+                   placeholder="Paste your key"
+                   [id]="'key-' + provider.id"
+                   [value]="integrations.getKey(provider.id) ?? ''"
+                   (change)="saveKey(provider.id, keyInput.value)">
+            @if (provider.test) {
+              <button type="button"
+                      class="btn"
+                      [disabled]="testing[provider.id]"
+                      (click)="saveKey(provider.id, keyInput.value); testKey(provider.id)">
+                {{ testing[provider.id] ? 'Testing…' : 'Test' }}
+              </button>
+            }
+            <button type="button"
+                    class="btn btn-ghost"
+                    [disabled]="!hasKey"
+                    (click)="removeKey(provider.id); keyInput.value = ''">Remove</button>
+          </div>
+
+          @if (!provider.test && provider.testNote) {
+            <span class="muted">{{ provider.testNote }}</span>
+          }
+          @if (result) {
+            <span class="result"
+                  [class.error]="!result.ok"
+                  role="status">{{ result.message }}</span>
+          }
+
+          @if (hasKey) {
+            @let usage = integrations.usage(provider.id);
+            <div class="usage">
+              @if (usage.limit) {
+                <progress [value]="usage.count"
+                          [max]="usage.limit"
+                          [attr.aria-label]="provider.name + ' requests used'"></progress>
+              }
+              <span class="muted">
+                @if (usage.limitReached) {
+                  <strong class="error">Limit reached</strong> ·
+                }
+                {{ usage.count | number }}@if (usage.limit) {
+                  / {{ usage.limit | number }}
+                } requests this {{ provider.period }} on this device · resets {{ usage.resetsOn | date: 'd MMM' }}
+              </span>
+              @if (provider.limitNote) {
+                <span class="muted">{{ provider.limitNote }}</span>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  </section>
+
   <footer class="muted version">
     <a routerLink="/privacy-policy">Privacy policy</a>
     <span>v{{ utilService.version }}</span>

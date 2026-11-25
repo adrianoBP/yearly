@@ -12,6 +12,8 @@ export interface Settings {
   showDisabledCalendars?: boolean;
   closeAllWindows?: boolean;
   darkMode?: boolean;
+  /** Feature id → switched on; a missing entry means on */
+  features?: Record<string, boolean>;
 }
 
 @Injectable()

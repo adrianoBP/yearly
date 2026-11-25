@@ -129,6 +129,7 @@ a {
 
 /* -- FORM FIELDS -- */
 input[type='text'],
+input[type='password'],
 input[type='date'],
 input[type='time'],
 select {

@@ -9,6 +9,7 @@ import {
 import { routes } from './app.routes';
 import { CalendarService } from './services/api/calendar.service';
 import { SettingsService } from './services/settings.service';
+import { IntegrationsService } from './services/integrations.service';
 import { WindowsService } from './windows/windows.service';
 
 import { UtilService } from './services/util.service';
@@ -21,7 +22,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: 'version',
-      useValue: '1.0.1',
+      useValue: '1.1.1',
     },
     {
       provide: 'mockData',
@@ -42,6 +43,7 @@ export const appConfig: ApplicationConfig = {
     UserService,
     CalendarService,
     SettingsService,
+    IntegrationsService,
     WindowsService,
     UtilService,
     provideServiceWorker('ngsw-worker.js', {
