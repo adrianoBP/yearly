@@ -1,6 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { ASK_THREAD_KEY } from '../../features/ask';
+import { PINS_KEY } from '../../features/countdowns';
 import { HTTPRequestType, HttpService } from '../api/http.service';
 
 import { GoogleOAuthProvider, SuccessTokenResponse } from 'google-oauth-gsi';
@@ -96,6 +97,8 @@ export class GoogleAuthService {
     localStorage.removeItem(GoogleAuthService.LOGIN_HINT_KEY);
     // The chat holds calendar details, so it doesn't outlive the account
     localStorage.removeItem(ASK_THREAD_KEY);
+    localStorage.removeItem(PINS_KEY);
+    navigator.clearAppBadge?.().catch(() => {});
   }
 
   async makeRequest<T>(

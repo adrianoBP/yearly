@@ -1,0 +1,56 @@
+<dialog #dialog
+        class="search"
+        aria-label="Search"
+        (click)="$event.target === dialog && dialog.close()">
+  <div class="panel">
+    <label class="field">
+      <fa-icon class="glass"
+               [icon]="searchIcon" />
+      <input type="text"
+             role="combobox"
+             aria-label="Search events, dates or tools"
+             aria-controls="search-results"
+             aria-autocomplete="list"
+             [attr.aria-expanded]="results.length > 0"
+             [attr.aria-activedescendant]="results.length ? 'search-' + active : null"
+             placeholder="Search events, dates or tools"
+             autocomplete="off"
+             autofocus
+             [value]="query"
+             (input)="query = $any($event.target).value; update()"
+             (keydown)="onKeydown($event)">
+      <kbd>Esc</kbd>
+    </label>
+
+    <ul id="search-results"
+        role="listbox"
+        aria-label="Results">
+      @for (result of results; track $index) {
+        <li role="option"
+            [id]="'search-' + $index"
+            [class.active]="$index === active"
+            [attr.aria-selected]="$index === active"
+            (mousemove)="active = $index"
+            (click)="pick(result)">
+          @if (result.icon) {
+            <fa-icon class="icon"
+                     [icon]="result.icon"
+                     [fixedWidth]="true" />
+          } @else {
+            <span class="dot"
+                  [style.background-color]="result.colour"></span>
+          }
+          <span class="label">{{ result.label }}</span>
+          @if (result.sub) {
+            <span class="sub">{{ result.sub }}</span>
+          }
+        </li>
+      }
+    </ul>
+
+    @if (query.trim() && !results.length) {
+      <p class="empty">Nothing matches "{{ query.trim() }}".</p>
+    }
+    <p class="foot">Searches {{ years }} on this device · ↑↓ to move, Enter to open</p>
+  </div>
+</dialog>

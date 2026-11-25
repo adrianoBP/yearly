@@ -33,7 +33,19 @@ export class MockCalendarService {
   }
 
   async createEvent(event: Event): Promise<GoogleCalendarEvent> {
-    return {} as GoogleCalendarEvent;
+    const time = (m: Event['startMoment']) =>
+      m.format('HH:mm') === '00:00' ? { date: m.format('YYYY-MM-DD') } : { dateTime: m.toISOString() };
+    return {
+      id: `mock-${Date.now()}`,
+      summary: event.title,
+      description: event.description,
+      location: event.location,
+      creator: event.creator,
+      organizer: event.creator,
+      start: time(event.startMoment),
+      end: time(event.endMoment),
+      eventType: 'default',
+    } as unknown as GoogleCalendarEvent; // Google sends either date or dateTime
   }
 
   async deleteEvent(event: Event): Promise<void> {

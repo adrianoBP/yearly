@@ -6,6 +6,8 @@ export interface Month {
 }
 
 export interface Day {
+  /** YYYY-MM-DD, for dragging across days */
+  iso: string;
   number: number;
   /** 0 = Monday ... 6 = Sunday */
   weekDay: number;

@@ -1,6 +1,7 @@
 <button type="button"
         class="day"
         [id]="'day-' + day.number + '-' + day.date.getMonth() + '-' + day.date.getFullYear()"
+        [attr.data-date]="day.iso"
         [class.today]="day.isToday"
         [class.past]="day.isPast"
         [class.weekend]="day.weekDay >= 5"

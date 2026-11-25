@@ -9,6 +9,8 @@ import { isTrip, tripNights, yearStats } from './year-review';
 import { parseAviationstack } from './flight-status';
 import { bufferVerdict, distanceKm, geohash, neighbours, routeSummary } from './travel';
 import { footballCandidates, leaveBy, ticketmasterNearby } from './crowd';
+import { dateQuery, searchEvents } from './search';
+import { activePins, countdown } from './countdowns';
 import { FALLBACK_MODEL, answerLocally, answerText, buildRequest, describeEvents, keywords, nearestEvents, pickEvents, pickModel } from './ask';
 
 const ref = new Date(2026, 10, 25, 10); // Wed 25 Nov 2026
@@ -353,5 +355,44 @@ describe('ask your calendar', () => {
     expect(followUp.contents.map((c) => `${c.role}: ${c.parts[0].text}`)).toEqual(['user: When am I in Rome?', 'model: From Sun 20 Dec.', 'user: And after?']);
     expect(answerText({ candidates: [{ content: { parts: [{ text: 'From ' }, { text: 'Sun 20 Dec.' }] } }] })).toBe('From Sun 20 Dec.');
     expect(() => answerText({ promptFeedback: { blockReason: 'SAFETY' } })).toThrow('Gemini declined to answer that question.');
+  });
+});
+
+describe('searchEvents', () => {
+  const now = moment(ref);
+  const events = [
+    event('Dentist', '2026-03-06T09:00', '2026-03-06T09:30'),
+    event('Dentist check-up', '2027-01-12T10:00', '2027-01-12T10:30'),
+    event('Football', '2026-12-01T19:00', '2026-12-01T21:00', { location: 'Hampden Park' }),
+    event('Dentist', '2026-03-06T09:00', '2026-03-06T09:30'), // same event loaded with the next year
+  ];
+
+  it('matches every word in title or place, upcoming first, without duplicates', () => {
+    expect(searchEvents('dentist', events, now).map((e) => e.startMoment.format('YYYY-MM-DD'))).toEqual(['2027-01-12', '2026-03-06']);
+    expect(searchEvents('football hampden', events, now).map((e) => e.title)).toEqual(['Football']);
+    expect(searchEvents('  ', events, now)).toEqual([]);
+  });
+
+  it('treats a query as a date only when all of it is one', () => {
+    expect(dateQuery('5 dec', ref, 'en-GB')).toEqual(new Date(2026, 11, 5, 12));
+    expect(dateQuery('dentist', ref, 'en-GB')).toBeNull();
+    expect(dateQuery('dinner friday', ref, 'en-GB')).toBeNull();
+  });
+});
+
+describe('countdowns', () => {
+  const now = moment(ref);
+  const pin = (start: string, end: string) => ({ id: start, title: 'Trip', start, end, colour: '#000' });
+
+  it('counts calendar days to the start', () => {
+    expect(countdown(pin('2026-12-18T09:00', '2026-12-20T00:00'), now)).toBe('in 23 days');
+    expect(countdown(pin('2026-11-26T08:00', '2026-11-26T09:00'), now)).toBe('tomorrow');
+    expect(countdown(pin('2026-11-25T18:00', '2026-11-25T19:00'), now)).toBe('today');
+    expect(countdown(pin('2026-11-24T00:00', '2026-11-27T00:00'), now)).toBe('now');
+  });
+
+  it('drops ended pins and sorts the rest soonest first', () => {
+    const pins = [pin('2026-12-18T09:00', '2026-12-20T00:00'), pin('2026-11-01T00:00', '2026-11-02T00:00'), pin('2026-11-30T00:00', '2026-12-01T00:00')];
+    expect(activePins(pins, now).map((p) => p.start)).toEqual(['2026-11-30T00:00', '2026-12-18T09:00']);
   });
 });

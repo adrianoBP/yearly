@@ -81,6 +81,21 @@
   background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
+.pin {
+  color: var(--text-faint);
+}
+
+.pin.pinned {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.pin.pinned fa-icon {
+  display: inline-block;
+  transform: rotate(-30deg);
+  transition: transform 0.25s var(--spring);
+}
+
 .locked {
   color: var(--text-faint);
   cursor: default;

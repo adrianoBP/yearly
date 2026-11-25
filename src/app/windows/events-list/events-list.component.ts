@@ -3,10 +3,12 @@ import { WindowParameters, WindowsService } from '../windows.service';
 
 
 import { Event, EventDisplayDetails } from '../../interfaces/event.interface';
-import { faTrash, faLock, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faLock, faXmark, faThumbtack } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarService } from '../../services/api/calendar.service';
-import { UtilService } from '../../services/util.service';
+import { UtilService, canEditEvent } from '../../services/util.service';
+import { CountdownsService } from '../../services/countdowns.service';
+import { FeaturesService } from '../../services/features.service';
 import { EditEventParameters } from '../event-edit/event-edit.component';
 import { GoogleCalendar } from '../../services/google/calendar.service';
 import { AuthService } from '../../services/api/auth.service';
@@ -29,6 +31,7 @@ export class EventsListComponent {
   faTrash = faTrash;
   closeIcon = faXmark;
   faLock = faLock;
+  pinIcon = faThumbtack;
 
   // Properties
   parameters: EventsListParameters;
@@ -43,7 +46,9 @@ export class EventsListComponent {
     public windowsService: WindowsService,
     private calendarService: CalendarService,
     public authService: AuthService,
-    public userService: UserService
+    public userService: UserService,
+    public countdowns: CountdownsService,
+    public features: FeaturesService
   ) {
     this.parameters = this.windowsService.getOpenedWindow()?.parameters as EventsListParameters;
   }
@@ -81,10 +86,13 @@ export class EventsListComponent {
       isAllDay,
       startsBefore: startsBeforeDate,
       endsAfter: endsAfterDate,
-      canEdit:
-        event.eventType === 'default' &&
-        (event.creator?.email === this.userService.emailAddress || event.isGroupCalendar),
+      canEdit: canEditEvent(event, this.userService.emailAddress),
     };
+  }
+
+  /** Countdowns are for what's still to come */
+  canPin(event: Event): boolean {
+    return this.features.isOn('countdowns') && event.endMoment.isAfter();
   }
 
   getTime(event: EventDisplayDetails): string {
@@ -153,6 +161,7 @@ export class EventsListComponent {
     this.isSaving = true;
     await this.calendarService.deleteEvents(this.eventsToDelete);
     this.isSaving = false;
+    this.countdowns.unpin(...this.eventsToDelete.map((event) => event.id));
 
     this.windowsService.closeWindow({
       deletedEvents: this.eventsToDelete,

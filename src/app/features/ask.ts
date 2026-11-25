@@ -93,7 +93,7 @@ export function pickEvents(question: string, events: Event[], today = moment()):
 
 const isAllDay = (e: Event) => e.startMoment.format('HH:mm') === '00:00' && e.endMoment.format('HH:mm') === '00:00';
 
-function when(e: Event, withYear: boolean): string {
+export function when(e: Event, withYear: boolean): string {
   const day = withYear ? 'ddd D MMM YYYY' : 'ddd D MMM';
   if (!isAllDay(e)) return `${e.startMoment.format(day)}, ${e.startMoment.format('HH:mm')}–${e.endMoment.format('HH:mm')}`;
   const last = e.endMoment.clone().subtract(1, 'day');

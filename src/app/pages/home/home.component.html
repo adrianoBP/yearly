@@ -34,6 +34,30 @@
                      (valueChange)="jumpTo($event)" />
   </nav>
 
+  @if (features.isOn('countdowns') && countdowns.active().length) {
+    <ul class="countdowns"
+        aria-label="Countdowns">
+      @for (pin of countdowns.active(); track pin.id) {
+        <li class="countdown">
+          <button class="countdown-jump"
+                  [title]="'Go to ' + pin.title"
+                  (click)="jumpToPin(pin)">
+            <span class="dot"
+                  [style.background-color]="pin.colour"></span>
+            <span class="countdown-title">{{ pin.title }}</span>
+            <span class="countdown-days">{{ countdownLabel(pin) }}</span>
+          </button>
+          <button class="countdown-unpin"
+                  [attr.aria-label]="'Unpin ' + pin.title"
+                  title="Unpin"
+                  (click)="countdowns.unpin(pin.id)">
+            <fa-icon [icon]="closeIcon" />
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
   <div class="actions">
     @if (calendarService.isAddingEvent) {
       <span class="hint"
@@ -47,6 +71,15 @@
         </button>
       }
     }
+    @if (features.isOn('search')) {
+      <button class="icon-btn"
+              aria-label="Search"
+              title="Search (Ctrl+K)"
+              aria-keyshortcuts="Control+K /"
+              (click)="openSearch()">
+        <fa-icon class="i-grow" [icon]="searchIcon" />
+      </button>
+    }
     <button class="btn"
             [class.btn-primary]="calendarService.isAddingEvent"
             [attr.aria-pressed]="calendarService.isAddingEvent"
@@ -54,57 +87,65 @@
       <fa-icon class="i-jelly" [icon]="addEventIcon" />
       <span class="label">{{ calendarService.isAddingEvent ? 'Cancel' : 'New event' }}</span>
     </button>
-    @if (features.isOn('leave-planner') || features.isOn('year-review') || features.isOn('ask-calendar')) {
-      <button class="icon-btn"
-              popovertarget="more-menu"
-              aria-label="More"
-              title="More">
-        <fa-icon class="i-jelly" [icon]="moreIcon" />
+    <button class="icon-btn"
+            popovertarget="more-menu"
+            aria-label="More"
+            title="More">
+      <fa-icon class="i-jelly" [icon]="moreIcon" />
+    </button>
+    <div #moreMenu
+         id="more-menu"
+         class="menu"
+         popover
+         role="menu">
+      @if (features.isOn('ask-calendar')) {
+        <button role="menuitem"
+                (click)="moreMenu.hidePopover(); openAskCalendar()">
+          <fa-icon class="i-jelly"
+                   [icon]="askIcon"
+                   [fixedWidth]="true" />
+          Ask your calendar
+        </button>
+      }
+      @if (features.isOn('leave-planner')) {
+        <button role="menuitem"
+                (click)="moreMenu.hidePopover(); openLeavePlanner()">
+          <fa-icon class="i-swing" [icon]="leaveIcon"
+                   [fixedWidth]="true" />
+          Leave planner
+        </button>
+      }
+      @if (features.isOn('year-review')) {
+        <button role="menuitem"
+                (click)="moreMenu.hidePopover(); openYearReview()">
+          <fa-icon class="i-grow" [icon]="reviewIcon"
+                   [fixedWidth]="true" />
+          Year in review
+        </button>
+      }
+      <hr>
+      <a class="small-only"
+         role="menuitem"
+         routerLink="/settings">
+        <fa-icon class="i-gear"
+                 [icon]="cogIcon"
+                 [fixedWidth]="true" />
+        Settings
+      </a>
+      <button role="menuitem"
+              (click)="moreMenu.hidePopover(); authService.logOut()">
+        <fa-icon class="i-out"
+                 [icon]="exitIcon"
+                 [fixedWidth]="true" />
+        Log out
       </button>
-      <div #moreMenu
-           id="more-menu"
-           class="menu"
-           popover
-           role="menu">
-        @if (features.isOn('ask-calendar')) {
-          <button role="menuitem"
-                  (click)="moreMenu.hidePopover(); openAskCalendar()">
-            <fa-icon class="i-jelly"
-                     [icon]="askIcon"
-                     [fixedWidth]="true" />
-            Ask your calendar
-          </button>
-        }
-        @if (features.isOn('leave-planner')) {
-          <button role="menuitem"
-                  (click)="moreMenu.hidePopover(); openLeavePlanner()">
-            <fa-icon class="i-swing" [icon]="leaveIcon"
-                     [fixedWidth]="true" />
-            Leave planner
-          </button>
-        }
-        @if (features.isOn('year-review')) {
-          <button role="menuitem"
-                  (click)="moreMenu.hidePopover(); openYearReview()">
-            <fa-icon class="i-grow" [icon]="reviewIcon"
-                     [fixedWidth]="true" />
-            Year in review
-          </button>
-        }
       </div>
-    }
-    <a class="icon-btn"
+    <a class="icon-btn settings-btn"
        routerLink="/settings"
        aria-label="Settings"
        title="Settings">
       <fa-icon class="i-gear" [icon]="cogIcon" />
     </a>
-    <button class="icon-btn"
-            aria-label="Log out"
-            title="Log out"
-            (click)="authService.logOut()">
-      <fa-icon class="i-out" [icon]="exitIcon" />
-    </button>
   </div>
 
   @if (isLoading) {
@@ -114,7 +155,9 @@
   }
 </header>
 
-<main id="calendar">
+<main id="calendar"
+      [class.dragging]="dragging"
+      (pointerdown)="onGridPointerDown($event)">
   @for (month of months; track month.number) {
     <app-month [month]="month"
                [eventsByDay]="eventsByDay"
@@ -146,6 +189,19 @@
     }
   </div>
 }
+
+@if (notice) {
+  <div class="notice"
+       role="status">
+    <span>{{ notice.text }}</span>
+    @if (notice.undo) {
+      <button class="btn btn-ghost"
+              (click)="undoNotice()">Undo</button>
+    }
+  </div>
+}
+
+<app-search (pickDate)="jumpTo($event)" />
 
 @if (windowsService.anyWindowOpen()) {
   <app-window-container />

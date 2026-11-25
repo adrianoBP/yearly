@@ -91,6 +91,10 @@ export interface Feature {
 
 export const FEATURES: Feature[] = [
   { id: 'text-events', name: 'Create events from text', description: `Type "dinner Friday 8pm at Rosie's" to fill in a new event.`, keys: [], available: true },
+  { id: 'search', name: 'Quick search', description: 'Press Ctrl+K or / to find events, jump to a date or open a tool.', keys: [], available: true },
+  { id: 'countdowns', name: 'Countdowns', description: 'Pin an event to see the days left at the top of the calendar.', keys: [], available: true },
+  { id: 'drag-events', name: 'Drag on the calendar', description: 'With a mouse, drag across days to create an event, or drag an event to move it.', keys: [], available: true },
+  { id: 'app-badge', name: 'Today badge', description: `Shows how many events you have today on the installed app's icon (Chrome and Edge).`, keys: [], available: true },
   {
     id: 'flights',
     name: 'Flight details',

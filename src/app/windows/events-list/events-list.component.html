@@ -31,6 +31,17 @@
           }
         </span>
       </span>
+      @if (canPin(event)) {
+        <button class="icon-btn pin"
+                [class.pinned]="countdowns.isPinned(event.id)"
+                [attr.aria-pressed]="countdowns.isPinned(event.id)"
+                aria-label="Pin a countdown"
+                [title]="countdowns.isPinned(event.id) ? 'Unpin countdown' : 'Pin a countdown'"
+                (click)="$event.stopPropagation(); countdowns.toggle(event)">
+          <fa-icon class="i-jelly" [icon]="pinIcon"
+                   size="sm" />
+        </button>
+      }
       @if (event.canEdit) {
         <button class="icon-btn danger"
                 aria-label="Delete event"

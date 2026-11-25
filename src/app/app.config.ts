@@ -14,6 +14,7 @@ import { SyncService } from './services/sync.service';
 import { FeaturesService } from './services/features.service';
 import { WeatherService } from './services/weather.service';
 import { LiveService } from './services/live.service';
+import { CountdownsService } from './services/countdowns.service';
 import { WindowsService } from './windows/windows.service';
 
 import { UtilService } from './services/util.service';
@@ -26,7 +27,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: 'version',
-      useValue: '1.2.0',
+      useValue: '1.3.0',
     },
     {
       provide: 'mockData',
@@ -57,6 +58,7 @@ export const appConfig: ApplicationConfig = {
     FeaturesService,
     WeatherService,
     LiveService,
+    CountdownsService,
     WindowsService,
     UtilService,
     provideServiceWorker('ngsw-worker.js', {

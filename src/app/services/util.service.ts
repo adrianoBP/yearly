@@ -84,3 +84,7 @@ export class UtilService {
     return calendar ? calendar.backgroundColor : '';
   }
 }
+
+/** Only the user's own normal events, or events on shared group calendars, can be changed */
+export const canEditEvent = (event: Event, email: string) =>
+  event.eventType === 'default' && (event.creator?.email === email || event.isGroupCalendar);

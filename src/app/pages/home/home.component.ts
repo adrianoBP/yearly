@@ -1,8 +1,9 @@
-import { ChangeDetectorRef, Component, HostListener, NgZone } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectorRef, Component, HostListener, NgZone, ViewChild } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import moment from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
+  faCalendarDay,
   faCalendarPlus,
   faChevronLeft,
   faChevronRight,
@@ -11,8 +12,10 @@ import {
   faCog,
   faEllipsis,
   faKeyboard,
+  faMagnifyingGlass,
   faSignOutAlt,
   faUmbrellaBeach,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { Day, Month } from '../../interfaces/month.interface';
 import { DayHover, MonthComponent } from './month/month.component';
@@ -34,6 +37,10 @@ import { SyncService } from '../../services/sync.service';
 import { FeaturesService } from '../../services/features.service';
 import { YearReviewParameters } from '../../windows/year-review/year-review.component';
 import { AskCalendarParameters } from '../../windows/ask-calendar/ask-calendar.component';
+import { SearchCommand, SearchComponent } from './search/search.component';
+import { CountdownsService } from '../../services/countdowns.service';
+import { Pin, countdown } from '../../features/countdowns';
+import { canEditEvent } from '../../services/util.service';
 
 const TEMP_EVENT_ID = 'temp-id';
 // Per browser tab: a reload (or coming back from settings) keeps the year, a new tab starts at today
@@ -46,7 +53,7 @@ function savedYear(): number | null {
 
 @Component({
   selector: 'app-home',
-  imports: [FontAwesomeModule, RouterLink, MonthComponent, WindowContainerComponent, DatePickerComponent],
+  imports: [FontAwesomeModule, RouterLink, MonthComponent, WindowContainerComponent, DatePickerComponent, SearchComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
@@ -62,6 +69,9 @@ export class HomeComponent {
   typeIcon = faKeyboard;
   moreIcon = faEllipsis;
   askIcon = faComments;
+  searchIcon = faMagnifyingGlass;
+  closeIcon = faXmark;
+  todayIcon = faCalendarDay;
 
   isLoading = true;
 
@@ -97,7 +107,9 @@ export class HomeComponent {
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
     private sync: SyncService,
-    public features: FeaturesService
+    public features: FeaturesService,
+    public countdowns: CountdownsService,
+    private router: Router
   ) {
     this.buildMonths();
   }
@@ -105,12 +117,14 @@ export class HomeComponent {
   async ngOnInit() {
     this.sync.start();
     this.settings = this.settingsService.getSettings();
+    this.countdowns.reload();
 
     this.calendars = await this.calendarService.getCalendars();
     this.loadEventsIntoCalendars();
   }
 
   onDayHover(hover: DayHover | null) {
+    if (this.drag) return;
     this.growEventLines(this.canHover && !this.calendarService.isAddingEvent ? hover?.events ?? [] : []);
     if (!hover || !this.canHover || this.calendarService.isAddingEvent || this.windowsService.anyWindowOpen()) {
       this.preview = null;
@@ -214,8 +228,8 @@ export class HomeComponent {
 
   @HostListener('document:keydown.escape', ['$event'])
   onEscape(event: KeyboardEvent) {
-    // Escape in a dropdown or date picker only closes that
-    if ((event.target as Element)?.closest?.('select, [popover]')) return;
+    // Escape in a dropdown, date picker or search only closes that
+    if ((event.target as Element)?.closest?.('select, [popover], dialog')) return;
     // TODO: settings #6
     this.windowsService.backAllWindows();
   }
@@ -236,6 +250,7 @@ export class HomeComponent {
       for (; date.getMonth() === monthNumber; date.setDate(date.getDate() + 1)) {
         const day = new Date(date);
         days.push({
+          iso: moment(day).format('YYYY-MM-DD'),
           number: day.getDate(),
           weekDay: (day.getDay() + 6) % 7,
           date: day,
@@ -263,6 +278,23 @@ export class HomeComponent {
     // Keep local edits when coming back to this year
     this.yearCache.set(this.year, events);
     this.eventsByDay = bucketEventsByDay(events, this.year);
+    if (!this.drag) this.countdowns.refresh(events);
+    this.updateBadge();
+  }
+
+  /** Today's number of events on the installed app's icon */
+  // shortcut: only updates while Yearly is open, so the count can be a day old; phase 5 push could refresh it
+  private updateBadge() {
+    if (!('setAppBadge' in navigator)) return;
+    if (!this.features.isOn('app-badge')) {
+      navigator.clearAppBadge().catch(() => {});
+      return;
+    }
+    if (this.year !== this.currentYear) return;
+    const today = (this.eventsByDay.get(dayKey(new Date())) ?? []).filter(
+      (e) => e.id !== TEMP_EVENT_ID && e.eventType !== 'workingLocation'
+    ).length;
+    (today ? navigator.setAppBadge(today) : navigator.clearAppBadge()).catch(() => {});
   }
 
   addEventsToCalendar(events: Event[]) {
@@ -491,6 +523,184 @@ export class HomeComponent {
       },
       cleanUp
     );
+  }
+
+  // ---- Quick search ----
+
+  @ViewChild(SearchComponent) private search?: SearchComponent;
+
+  @HostListener('document:keydown', ['$event'])
+  onShortcut(event: KeyboardEvent) {
+    const typing = (event.target as Element)?.closest?.('input, textarea, select, [contenteditable], dialog');
+    const ctrlK = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k';
+    if (!ctrlK && (event.key !== '/' || typing)) return;
+    if (!this.features.isOn('search') || this.windowsService.anyWindowOpen()) return;
+    event.preventDefault();
+    this.openSearch();
+  }
+
+  /** Searches every year loaded so far: the one on screen and the neighbours fetched alongside it */
+  openSearch() {
+    this.preview = null;
+    const years = [...this.yearCache.keys()].sort((a, b) => a - b);
+    const events = years.flatMap((year) => this.yearCache.get(year)!).filter((e) => e.id !== TEMP_EVENT_ID);
+    const on = (id: string) => this.features.isOn(id);
+    const commands: SearchCommand[] = [
+      { label: 'Today', icon: this.todayIcon, run: () => this.goToToday() },
+      { label: 'New event', icon: this.addEventIcon, run: () => this.calendarService.isAddingEvent || this.toggleAddEvent() },
+      ...(on('text-events') ? [{ label: 'Type a new event', icon: this.typeIcon, run: () => this.typeNewEvent() }] : []),
+      ...(on('ask-calendar') ? [{ label: 'Ask your calendar', icon: this.askIcon, run: () => this.openAskCalendar() }] : []),
+      ...(on('leave-planner') ? [{ label: 'Leave planner', icon: this.leaveIcon, run: () => this.openLeavePlanner() }] : []),
+      ...(on('year-review') ? [{ label: 'Year in review', icon: this.reviewIcon, run: () => this.openYearReview() }] : []),
+      { label: 'Settings', icon: this.cogIcon, run: () => this.router.navigate(['/settings']) },
+    ];
+    const span = years.length > 1 ? `${years[0]}–${years[years.length - 1]}` : String(years[0] ?? this.year);
+    this.search?.open(events, commands, span);
+  }
+
+  // ---- Countdowns ----
+
+  countdownLabel(pin: Pin): string {
+    return countdown(pin);
+  }
+
+  jumpToPin(pin: Pin) {
+    this.jumpTo(moment(pin.start).format('YYYY-MM-DD'));
+  }
+
+  // ---- Dragging on the grid (mouse and pen) ----
+
+  /** In progress: from an event moves it, from an empty day creates one */
+  private drag: { from: string; to: string; event?: Event; before: Event[] } | null = null;
+  dragging = false;
+  notice: { text: string; undo?: () => void } | null = null;
+  private noticeTimer = 0;
+
+  // shortcut: touch drags keep scrolling the page, so phones still tap to pick days; add a long-press drag if wanted
+  onGridPointerDown(down: PointerEvent) {
+    if (down.button !== 0 || down.pointerType === 'touch' || !this.features.isOn('drag-events')) return;
+    if (this.windowsService.anyWindowOpen()) return;
+    const from = this.dateAt(down.target);
+    if (!from) return;
+
+    let event: Event | undefined;
+    if (this.calendarService.isAddingEvent) {
+      if (this.newEventStart) return; // halfway through picking days by clicking
+    } else {
+      const dayEvents = this.eventsByDay.get(dayKey(moment(from).toDate())) ?? [];
+      const movable = dayEvents.filter((e) => canEditEvent(e, this.userService.emailAddress));
+      const lineId = (down.target as HTMLElement).closest<HTMLElement>('.line')?.dataset['event'];
+      const picked = movable.find((e) => e.id === lineId) ?? (dayEvents.length === 1 ? movable[0] : undefined);
+      // Several events and no line grabbed: a click lists them
+      if (!picked && dayEvents.length) return;
+      event = picked && this.events.find((e) => e.id === picked.id);
+    }
+    this.drag = { from, to: from, event, before: this.events };
+
+    const move = (e: PointerEvent) => {
+      const to = this.dateAt(e.target);
+      if (to && this.drag && to !== this.drag.to) this.ngZone.run(() => this.dragTo(to));
+    };
+    const stop = () => {
+      removeEventListener('pointermove', move);
+      removeEventListener('pointerup', up);
+      removeEventListener('pointercancel', cancel);
+    };
+    const up = (e: PointerEvent) => {
+      stop();
+      this.ngZone.run(() => this.endDrag(e));
+    };
+    const cancel = () => {
+      stop();
+      this.ngZone.run(() => this.resetDrag());
+    };
+    this.ngZone.runOutsideAngular(() => {
+      addEventListener('pointermove', move);
+      addEventListener('pointerup', up);
+      addEventListener('pointercancel', cancel);
+    });
+  }
+
+  private dateAt(target: EventTarget | null): string | null {
+    return (target as Element | null)?.closest?.<HTMLElement>('[data-date]')?.dataset['date'] ?? null;
+  }
+
+  private shifted(event: Event, from: string, to: string): Event {
+    const days = moment(to).diff(moment(from), 'days');
+    return { ...event, startMoment: event.startMoment.clone().add(days, 'days'), endMoment: event.endMoment.clone().add(days, 'days') };
+  }
+
+  /** The days between both ends, as an all-day placeholder */
+  private dragRange(): EventDisplayDetails {
+    const [start, end] = [this.drag!.from, this.drag!.to].sort();
+    return this.tempEvent(moment(start).toDate(), moment(end).add(1, 'day').toDate());
+  }
+
+  private dragTo(to: string) {
+    const drag = this.drag!;
+    drag.to = to;
+    this.dragging = true;
+    this.preview = null;
+    this.growEventLines([]);
+    const moving = drag.event;
+    if (moving) this.setEvents(drag.before.map((e) => (e.id === moving.id ? this.shifted(moving, drag.from, to) : e)));
+    else this.setEvents([...drag.before.filter((e) => e.id !== TEMP_EVENT_ID), this.dragRange()]);
+  }
+
+  /** Back to how it was; a release on the starting day stays a normal click */
+  private resetDrag() {
+    if (this.drag && this.events !== this.drag.before) this.setEvents(this.drag.before);
+    this.drag = null;
+    this.dragging = false;
+  }
+
+  private async endDrag(up: PointerEvent) {
+    const drag = this.drag;
+    if (!drag || drag.to === drag.from) return this.resetDrag();
+    this.drag = null;
+    this.dragging = false;
+    this.countdowns.refresh(this.events);
+
+    if (!drag.event) {
+      const side = up.clientX < innerWidth / 2 ? 'right' : 'left';
+      this.openNewEvent(this.events.find((e) => e.id === TEMP_EVENT_ID) as EventDisplayDetails, side);
+      return;
+    }
+
+    const original = drag.event;
+    const moved = this.shifted(original, drag.from, drag.to);
+    const title = original.title || '(No title)';
+    const put = (event: Event) => {
+      this.setEvents(this.events.map((e) => (e.id === event.id ? event : e)));
+      this.countdowns.refresh(this.events);
+    };
+    try {
+      await this.calendarService.updateEvent(moved);
+      this.notify(`Moved "${title}" to ${moved.startMoment.format('ddd D MMM')}`, async () => {
+        put(original);
+        try {
+          await this.calendarService.updateEvent(original);
+        } catch {
+          put(moved);
+          this.notify(`Couldn't undo moving "${title}".`);
+        }
+      });
+    } catch {
+      put(original);
+      this.notify(`Couldn't move "${title}". Try again.`);
+    }
+  }
+
+  private notify(text: string, undo?: () => void) {
+    clearTimeout(this.noticeTimer);
+    this.notice = { text, undo };
+    this.noticeTimer = window.setTimeout(() => (this.notice = null), 6000);
+  }
+
+  undoNotice() {
+    const undo = this.notice?.undo;
+    this.notice = null;
+    undo?.();
   }
 
   openLeavePlanner() {
