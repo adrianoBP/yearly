@@ -1,18 +1,289 @@
-@import url("../../common.stylesheet.css");
-
-:host {
+.editor {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.25rem 1rem 1rem;
 }
 
-#event-calendar {
-  width: 100%;
+/* Title: borderless, large, underline on focus */
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  padding: 0 0.1rem;
+  border-bottom: 1.5px solid var(--border);
+  transition: border-color 0.15s;
 }
 
-#save-button {
-  flex: 4;
+.title-row:focus-within {
+  border-color: var(--primary);
 }
 
-#back-button {
+.title-dot {
+  flex-shrink: 0;
+  width: 0.7rem;
+  aspect-ratio: 1;
+  border-radius: 4px;
+}
+
+.title-input,
+.title-input:focus,
+.title-input:disabled {
   flex: 1;
+  height: 2.75rem;
+  padding: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.title-input::placeholder {
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+/* Icon column + content, like a native calendar app */
+.group {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: 0.5rem;
+  padding: 0.6rem 0;
+}
+
+.group + .group {
+  border-top: 1px solid var(--border);
+}
+
+.group-icon {
+  padding-top: 0.45rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.when {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) 6.25rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.when.all-day {
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+}
+
+.when-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Soft filled fields instead of outlined boxes */
+.group input[type='date'],
+.group input[type='time'],
+.group select {
+  height: 2.1rem;
+  padding: 0 0.6rem;
+  font-size: 0.88rem;
+  background: var(--surface-subtle);
+  border-color: var(--border-subtle);
+}
+
+.group input:hover:not(:disabled),
+.group select:hover:not(:disabled) {
+  border-color: var(--border);
+}
+
+.group :is(input, select):focus {
+  background: var(--surface);
+  border-color: var(--primary);
+}
+
+.calendar-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.calendar-select .dot {
+  position: absolute;
+  left: 0.65rem;
+  pointer-events: none;
+}
+
+.calendar-select select {
+  width: 100%;
+  padding-left: 1.85rem;
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.note.error {
+  color: var(--danger);
+}
+
+.group input[type='text'],
+.group textarea {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.88rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.group input[type='text'] {
+  height: 2.1rem;
+}
+
+.group textarea {
+  min-height: 4.5rem;
+  max-height: 12rem;
+  line-height: 1.45;
+  resize: none;
+  /* Grows with its content where supported */
+  field-sizing: content;
+}
+
+.group textarea:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.6rem 0 0 2rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+
+.details a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.details a:hover {
+  text-decoration: underline;
+}
+
+/* Customisable select (Chromium today): styled popup with colour dots. Other browsers keep the native dropdown. */
+@supports (appearance: base-select) {
+  .calendar-select select,
+  .calendar-select select::picker(select) {
+    appearance: base-select;
+  }
+
+  .calendar-select select {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .calendar-select select::picker-icon {
+    font-size: 0.65em;
+    color: var(--text-muted);
+    transition: rotate 0.2s;
+  }
+
+  .calendar-select select:open::picker-icon {
+    rotate: 180deg;
+  }
+
+  .calendar-select select::picker(select) {
+    margin-top: 4px;
+    padding: 0.3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    opacity: 1;
+    transition: opacity 0.15s, translate 0.15s, display 0.15s allow-discrete, overlay 0.15s allow-discrete;
+  }
+
+  .calendar-select select:not(:open)::picker(select) {
+    opacity: 0;
+    translate: 0 -4px;
+  }
+
+  @starting-style {
+    .calendar-select select:open::picker(select) {
+      opacity: 0;
+      translate: 0 -4px;
+    }
+  }
+
+  .calendar-select option {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.88rem;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .calendar-select option:hover,
+  .calendar-select option:focus-visible {
+    background: var(--surface-subtle);
+    outline: none;
+  }
+
+  .calendar-select option:checked {
+    font-weight: 600;
+  }
+
+  .calendar-select option::checkmark {
+    order: 1;
+    margin-left: auto;
+    color: var(--primary);
+  }
+}
+
+.opt-dot {
+  flex-shrink: 0;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 3px;
+}
+
+.calendar-select .dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 3px;
 }

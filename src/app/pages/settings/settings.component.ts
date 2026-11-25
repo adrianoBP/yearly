@@ -1,12 +1,12 @@
-import { Component, Inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { CalendarService } from '../../services/api/calendar.service';
-import { CommonModule } from '@angular/common';
+
 import { GoogleCalendar } from '../../services/google/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
 import { UtilService } from '../../services/util.service';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { UserService } from '../../services/api/user.service';
-import { faCake, faInfinity } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faCake, faInfinity } from '@fortawesome/free-solid-svg-icons';
 import { faCalendarXmark } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -14,7 +14,7 @@ type toggleSettingType = 'allowed' | 'recurring' | 'birthdays' | 'declined-event
 
 @Component({
   selector: 'app-settings',
-  imports: [CommonModule, FontAwesomeModule],
+  imports: [FontAwesomeModule, RouterLink],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -23,13 +23,13 @@ export class SettingsComponent {
     public calendarService: CalendarService,
     public settingsService: SettingsService,
     public utilService: UtilService,
-    @Inject(Router) public router: Router,
     public userService: UserService
   ) {}
 
   declineEventIcon = faCalendarXmark;
   infinityIcon = faInfinity;
   cakeIcon = faCake;
+  backIcon = faArrowLeft;
 
   calendars: GoogleCalendar[] = [];
   settings: Settings = {
@@ -82,11 +82,5 @@ export class SettingsComponent {
     }
 
     this.settingsService.setSettings(this.settings);
-  }
-
-  toggleDarkMode() {
-    this.settings.darkMode = !this.settings.darkMode;
-    this.settingsService.setSettings(this.settings);
-    this.settingsService.setStyle();
   }
 }

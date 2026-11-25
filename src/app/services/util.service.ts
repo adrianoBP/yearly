@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@angular/core';
-import moment from 'moment-timezone';
+import moment from 'moment';
 import { GoogleCalendar } from './google/calendar.service';
 import { GoogleCalendarEvent } from './google/calendar.service';
 import { Event } from '../interfaces/event.interface';
@@ -48,19 +48,18 @@ export class UtilService {
     backgroundColor: string,
     calendarId: string
   ): Event {
-    let startMoment = moment(event.start.date ?? event.start.dateTime);
-    let endMoment = moment(event.end.date ?? event.end.dateTime);
-
-    if (event.start.timeZone) startMoment = startMoment.tz(event.start.timeZone).local();
-
-    if (event.end.timeZone) endMoment = endMoment.tz(event.end.timeZone).local();
+    // dateTime carries its UTC offset, so moment parses it straight into local time
+    const startMoment = moment(event.start.date ?? event.start.dateTime);
+    const endMoment = moment(event.end.date ?? event.end.dateTime);
 
     return {
       id: event.id,
       title: event.summary,
       description: event.description,
+      location: event.location,
       colour: backgroundColor,
       eventType: event.eventType,
+      colorId: event.colorId,
       creator: event.creator,
       organizer: event.organizer,
       htmlLink: event.htmlLink,

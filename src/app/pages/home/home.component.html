@@ -1,56 +1,105 @@
-<!-- TODO: Move nav to its own component -->
-<nav>
-  <div id="info">
-    <h3>Yearly</h3>
-    <!-- <p class="mobile-hidden">{{authService.socialUser?.firstName}}'s calendar</p>
-    <p class="mobile-hidden">{{todaysPercentage.toFixed(2)}}%</p> -->
-
-    <div id="year-selection"
-         class="bg-primary-light">
-      <button (click)="changeYear(year - 1)"
-              class="primary bg-primary-light"
-              [disabled]="this.isLoading">
-        <fa-icon [icon]="chevronLeftIcon"
-                 [size]="'lg'"></fa-icon>
+<header class="topbar">
+  <nav class="date-nav"
+       aria-label="Year navigation">
+    <div class="brand">
+      <img src="yearly-icon.svg"
+           alt=""
+           width="22"
+           height="22">
+      <span>Yearly</span>
+    </div>
+    <span class="divider"></span>
+    <button class="btn today-btn"
+            [disabled]="year === currentYear"
+            (click)="changeYear(currentYear)">Today</button>
+    <div class="arrows">
+      <button class="icon-btn"
+              aria-label="Previous year"
+              title="Previous year"
+              (click)="changeYear(year - 1)">
+        <fa-icon [icon]="chevronLeftIcon" />
       </button>
-      <p (click)="changeYear(currentYear)"
-         class="pointer">{{ year }}</p>
-      <button (click)="changeYear(year + 1)"
-              class="primary bg-primary-light"
-              [disabled]="this.isLoading">
-        <fa-icon [icon]="chevronRightIcon"
-                 [size]="'lg'"></fa-icon>
+      <button class="icon-btn"
+              aria-label="Next year"
+              title="Next year"
+              (click)="changeYear(year + 1)">
+        <fa-icon [icon]="chevronRightIcon" />
       </button>
     </div>
+    <h1 class="year"
+        aria-live="polite">{{ year }}</h1>
+    <app-date-picker variant="icon"
+                     label="Go to date"
+                     [startAt]="year === currentYear ? null : year + '-01-01'"
+                     (valueChange)="jumpTo($event)" />
+  </nav>
+
+  <div class="actions">
+    @if (calendarService.isAddingEvent) {
+      <span class="hint"
+            role="status">{{ newEventStart ? 'Now pick the end day' : 'Pick the start day' }}</span>
+    }
+    <button class="btn"
+            [class.btn-primary]="calendarService.isAddingEvent"
+            [attr.aria-pressed]="calendarService.isAddingEvent"
+            (click)="toggleAddEvent()">
+      <fa-icon [icon]="addEventIcon" />
+      <span class="label">{{ calendarService.isAddingEvent ? 'Cancel' : 'New event' }}</span>
+    </button>
+    <a class="icon-btn"
+       routerLink="/settings"
+       aria-label="Settings"
+       title="Settings">
+      <fa-icon [icon]="cogIcon" />
+    </a>
+    <button class="icon-btn"
+            aria-label="Log out"
+            title="Log out"
+            (click)="authService.logOut()">
+      <fa-icon [icon]="exitIcon" />
+    </button>
   </div>
 
-  <div id="actions">
-    <button (click)="toggleAddEvent()"
-            class="primary bg-light border"
-            [ngClass]="{ 'editing-mode': calendarService.isAddingEvent }">
-      <fa-icon [icon]="addEventIcon"
-               [size]="'lg'"></fa-icon>
-    </button>
-    <button (click)="router.navigate(['/settings'])"
-            class="primary bg-light border">
-      <fa-icon [icon]="cogIcon"
-               [size]="'lg'"></fa-icon>
-    </button>
-    <button (click)="authService.logOut()"
-            class="primary bg-light border">
-      <fa-icon [icon]="exitIcon"
-               [size]="'lg'"></fa-icon>
-    </button>
+  @if (isLoading) {
+    <div class="progress"
+         role="progressbar"
+         aria-label="Loading events"></div>
+  }
+</header>
+
+<main id="calendar">
+  @for (month of months; track month.number) {
+    <app-month [month]="month"
+               [eventsByDay]="eventsByDay"
+               [isAddingEvent]="calendarService.isAddingEvent"
+               (dayClick)="onDayClickEvent($event)"
+               (dayHover)="onDayHover($event)" />
+  }
+</main>
+
+@if (preview) {
+  <div class="preview"
+       role="tooltip"
+       [class.above]="preview.above"
+       [style.left.px]="preview.left"
+       [style.top.px]="preview.top">
+    <p class="preview-date">{{ preview.day.label }}</p>
+    <ul>
+      @for (event of preview.events.slice(0, 5); track event.id) {
+        <li>
+          <span class="dot"
+                [style.background-color]="event.colour"></span>
+          <span class="preview-title">{{ event.title || '(No title)' }}</span>
+          <span class="preview-time">{{ previewTime(event) }}</span>
+        </li>
+      }
+    </ul>
+    @if (preview.events.length > 5) {
+      <p class="preview-more">+{{ preview.events.length - 5 }} more</p>
+    }
   </div>
-</nav>
+}
 
-<div id="calendar">
-  <app-month *ngFor="let month of months | keyvalue : monthsOrder"
-             [month]="month.value"
-             [year]="year"
-             [events]="month.value.events"
-             (onDayClick)="onDayClickEvent($event)"></app-month>
-</div>
-
-<app-window-container *ngIf="windowsService.anyWindowOpen()"
-                      [@inOutPaneAnimation]="{ value: windowsService.anyWindowOpen() ? 'open' : 'closed' }"></app-window-container>
+@if (windowsService.anyWindowOpen()) {
+  <app-window-container />
+}

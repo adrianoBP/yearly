@@ -1,38 +1,39 @@
-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.6rem;
-  font-weight: 500;
+/* Sized by the calendar grid; text scales with the month's width */
+:host {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  container-type: inline-size;
 }
 
-.calendar-container {
+.month {
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-width: 30rem;
+}
+
+h2 {
+  padding: 0 0.3rem 0.1rem;
+  font-size: clamp(0.72rem, 5.5cqw, 1.1rem);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.current h2 {
+  color: var(--primary);
+}
+
+.grid {
   flex: 1;
-}
-
-#weekdays {
+  min-height: 0;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: 1fr;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-rows: auto repeat(6, var(--day-row, minmax(0, 1fr)));
 }
 
-#weekdays>div {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.2rem;
-  font-weight: 500;
-  padding: 0.5rem;
-}
-
-#days-container {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(6, 1fr);
-  flex: 1;
-  gap: 0.2rem 0;
+.weekday {
+  text-align: center;
+  font-size: clamp(0.55rem, 3.4cqw, 0.72rem);
+  font-weight: 600;
+  color: var(--text-faint);
 }

@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
+import { withViewTransition } from '../view-transition';
 import { EventsListParameters } from './events-list/events-list.component';
 import { EditEventParameters } from './event-edit/event-edit.component';
 
@@ -20,7 +21,7 @@ interface Window {
 
 @Injectable()
 export class WindowsService {
-  constructor() {}
+  constructor(private ngZone: NgZone) {}
 
   windowQueue: Window[] = [];
 
@@ -55,28 +56,30 @@ export class WindowsService {
   }
 
   closeWindow(closingParameters?: any): void {
-    const closedWindow = this.windowQueue.pop();
-    if (closedWindow && closedWindow.onCloseEvent) {
-      closedWindow.onCloseEvent(closingParameters);
-    }
+    withViewTransition(this.ngZone, () => this.pop(true, closingParameters), 'panel');
   }
 
   closeAllWindows(): void {
-    while (this.anyWindowOpen()) {
-      this.closeWindow();
-    }
+    withViewTransition(this.ngZone, () => {
+      while (this.anyWindowOpen()) this.pop(true);
+    }, 'panel');
   }
 
   back(): void {
-    const closedWindow = this.windowQueue.pop();
-    if (closedWindow && closedWindow.onBackEvent) {
-      closedWindow.onBackEvent();
-    }
+    withViewTransition(this.ngZone, () => this.pop(false), 'panel');
   }
 
   backAllWindows(): void {
-    while (this.anyWindowOpen()) {
-      this.back();
-    }
+    if (!this.anyWindowOpen()) return;
+    withViewTransition(this.ngZone, () => {
+      while (this.anyWindowOpen()) this.pop(false);
+    }, 'panel');
+  }
+
+  // Pops the top window synchronously; the public methods animate it out
+  private pop(isClose: boolean, closingParameters?: any): void {
+    const closedWindow = this.windowQueue.pop();
+    if (isClose) closedWindow?.onCloseEvent?.(closingParameters);
+    else closedWindow?.onBackEvent?.();
   }
 }

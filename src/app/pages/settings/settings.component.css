@@ -1,42 +1,130 @@
-@import url('../../common.stylesheet.css');
-
-:host {
+.page {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  gap: 1rem;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2rem;
 }
 
-/* Mobile */
-@media (max-width: 768px) {
-  #calendars>div>label:nth-of-type(1) {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    width: auto !important;
-  }
-
-  #calendars>div>input:nth-of-type(2) {
-    margin-left: auto !important;
-  }
-
-  main {
-    width: auto !important;
-  }
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
-#calendars>div>input:nth-of-type(2) {
-  margin-left: auto;
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-#calendars>div>label:nth-of-type(1) {
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-
-  width: 20rem;
+h2 {
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-main {
+.muted {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem 0.5rem;
+}
+
+.legend {
+  display: flex;
+  gap: 0.9rem;
+  font-size: 0.78rem;
+}
+
+ul {
+  list-style: none;
+  padding: 0 0.5rem 0.5rem;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3rem;
+  padding: 0.25rem 0.75rem;
+}
+
+li + li {
+  border-top: 1px solid var(--border);
+}
+
+.name {
   flex: 1;
-  width: 30vw;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.chips {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.chip {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.chip:hover {
+  background: var(--surface-2);
+}
+
+.chip:has(:checked) {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.chip:has(:disabled) {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: none;
+}
+
+.chip:has(:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.preferences label {
+  flex: 1;
+  cursor: pointer;
+}
+
+.version {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.25rem;
+}
+
+.version a {
+  color: inherit;
 }

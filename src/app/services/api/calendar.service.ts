@@ -30,6 +30,18 @@ export class CalendarService {
     return this.calendarAPIService.getSettings();
   }
 
+  private eventColours: Promise<Record<string, string>> | null = null;
+
+  /** Cached; on failure events fall back to their calendar colour and the next call retries */
+  getEventColours(): Promise<Record<string, string>> {
+    this.eventColours ??= this.calendarAPIService.getEventColours().catch((e) => {
+      console.warn('Could not load event colours', e);
+      this.eventColours = null;
+      return {};
+    });
+    return this.eventColours;
+  }
+
   async getCalendars(): Promise<GoogleCalendar[]> {
     if (this.calendars.length == 0) {
       const calendars = await this.calendarAPIService.getCalendars();

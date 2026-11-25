@@ -1,92 +1,144 @@
-* {
-  /* Disable touches */
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
+/* Everything inside scales with the cell (container units), so the year always fits the window */
+:host {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  container-type: size;
+}
+
+.day {
+  --line: clamp(2px, 8cqh, 5px);
+  --line-gap: clamp(1px, 3cqh, 2px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1px, 4cqh, 4px);
+  width: 100%;
+  height: 100%;
+  font-size: clamp(0.6rem, min(38cqh, 40cqw), 1.15rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text);
+  cursor: default;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-
-  font-size: 1.2rem;
-  position: relative;
-}
-
-.container p {
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.container .selection {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 40%;
-
+.day.clickable {
   cursor: pointer;
 }
 
+.day.past {
+  color: var(--text-faint);
+}
+
+/* Rounded chip with room around the digits (shape used for today and hover) */
+.num {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.05em;
+  height: 1.5em;
+  border-radius: 0.5em;
+  letter-spacing: -0.02em;
+  transition: box-shadow 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.today .num {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Hover: a soft tint of the day's main event colour, lines grow slightly */
+.day {
+  border-radius: 8px;
+  transition: background-color 0.15s;
+}
+
+.line {
+  transition: transform 0.15s;
+}
+
 @media (hover: hover) {
-  .is-adding-new-event:hover {
-    cursor: pointer;
-    border-radius: 2rem;
-    /* Border with no width */
-    box-shadow: 0 0 0 1px black;
+  .day.clickable:not(.adding):hover {
+    background: color-mix(in srgb, var(--hover-c, var(--text)) 12%, transparent);
+  }
+
+  .day.clickable:not(.adding):hover .line {
+    transform: scaleY(1.4);
+  }
+
+  .today.clickable:not(.adding):hover .num {
+    background: var(--primary-hover);
+  }
+
+  .day.adding:hover {
+    background: var(--primary-soft);
+  }
+
+  .day.adding:hover .num {
+    box-shadow: inset 0 0 0 1.5px var(--primary);
   }
 }
 
-.container .selection.start {
-  border-radius: 2rem 0 0 2rem;
-}
-
-.container .selection.end {
-  border-radius: 0 2rem 2rem 0;
-}
-
-.container .selection.start.end {
-  border-radius: 2rem;
-}
-
-.isToday {
-  font-weight: bold;
-  font-style: italic;
-}
-
-.isPast {
-  color: #a8a8a8;
-  font-weight: lighter;
-}
-
-.pointer {
-  cursor: pointer !important;
-}
-
-
-/* ICONS CONTAINER */
-#icons-container {
-  /* position it */
+/* Travel icon and "more events" dot hug the number's top/bottom right corner */
+.icon {
   position: absolute;
-  top: 0;
-  right: 25%;
-  font-size: 1rem;
-
-  display: flex;
-  flex-direction: row;
-
-  z-index: 2;
+  left: 92%;
+  top: -0.2em;
+  font-size: 0.62em;
 }
 
-.event-icon {
-  width: 0.5rem;
-  height: 0.5rem;
+.more {
+  position: absolute;
+  left: 100%;
+  bottom: 0.15em;
+  width: 0.28em;
+  height: 0.28em;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+/* Event lines: one row per lane, flush across days so stacked lines line up; rounded at the event's ends */
+.lanes {
+  position: relative;
+  align-self: stretch;
+  flex-shrink: 0;
+  height: calc(3 * var(--line) + 2 * var(--line-gap));
+}
+
+.line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--lane) * (var(--line) + var(--line-gap)));
+  height: var(--line);
+  background: var(--c);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--c) 45%, transparent);
+  transform-origin: left;
+  animation: line-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.line.start {
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
+}
+
+.line.end {
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
+}
+
+.past .line {
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+@keyframes line-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.6);
+  }
 }

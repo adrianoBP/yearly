@@ -1,119 +1,112 @@
-<main class="column padding-heavy row center-items-y margin-auto">
-
-    <header class="row center-items-y">
-        <p class="font-xl bold margin-ends-heavy">Settings</p>
-        <p class="margin-left-heavy">{{userService.emailAddress}}</p>
-    </header>
-
-
-    <section id="calendars"
-             class="fill-width">
-        <p class="font-lg bold margin-ends">Calendars</p>
-        <div *ngFor="let calendar of calendars"
-             class="row center-items-y margin-ends-light">
-
-            <input [id]="'calendar-' + calendar.id "
-                   class="primary"
-                   type="checkbox"
-                   [checked]="getCalendarSettings(calendar.id)?.allowed"
-                   (change)="toggleSetting(calendar.id, 'allowed')">
-
-            <div class="colour-indicator raised margin-sides"
-                 [ngStyle]="{'background-color': calendar.backgroundColor}"></div>
-
-            <label for="{{'calendar-' + calendar.id }}"
-                   class="font-m pointer">{{calendarService.getCalendarName(calendar)}}</label>
-
-            <!-- Show declined events -->
-            <input [id]="'calendar-' + calendar.id + '-declined-events'"
-                   class="primary margin-left-light"
-                   type="checkbox"
-                   [checked]="getCalendarSettings(calendar.id)?.showDeclinedEvents"
-                   (change)="toggleSetting(calendar.id, 'declined-events')"
-                   [disabled]="!getCalendarSettings(calendar.id)?.allowed">
-
-            <label for="{{'calendar-' + calendar.id + '-declined-events' }}"
-                   class="font-m pointer margin-left-light primary">
-                <fa-icon [icon]="declineEventIcon"
-                         [size]="'sm'"></fa-icon></label>
-
-            <!-- Show Recurring events -->
-            <input [id]="'calendar-' + calendar.id + '-recurring'"
-                   class="primary margin-left-light"
-                   type="checkbox"
-                   [checked]="getCalendarSettings(calendar.id)?.allowRecurring"
-                   (change)="toggleSetting(calendar.id, 'recurring')"
-                   [disabled]="!getCalendarSettings(calendar.id)?.allowed">
-
-            <label for="{{'calendar-' + calendar.id + '-recurring' }}"
-                   class="font-m pointer margin-left-light primary">
-                <fa-icon [icon]="infinityIcon"
-                         [size]="'sm'"></fa-icon></label>
-
-            <!-- Show birthdays -->
-            <input [id]="'calendar-' + calendar.id + '-birthdays'"
-                   class="primary margin-left-light"
-                   type="checkbox"
-                   [checked]="getCalendarSettings(calendar.id)?.allowBirthdays"
-                   (change)="toggleSetting(calendar.id, 'birthdays')"
-                   [disabled]="!getCalendarSettings(calendar.id)?.allowed || !getCalendarSettings(calendar.id)?.allowRecurring">
-
-            <label for="{{'calendar-' + calendar.id + '-birthdays' }}"
-                   class="font-m pointer margin-left-light primary">
-                <fa-icon [icon]="cakeIcon"
-                         [size]="'sm'"></fa-icon></label>
-
-        </div>
-    </section>
-
-    <section class="fill-width margin-top">
-        <p class="font-lg bold margin-ends">User Interface</p>
-
-        <!-- Show disabled calendars edit -->
-        <div class="row">
-            <input id="dark-mode"
-                   class="primary "
-                   type="checkbox"
-                   [checked]="settings.darkMode"
-                   (change)="toggleDarkMode()">
-
-            <label for="dark-mode"
-                   class="font-m margin-left">
-                Dark Mode</label>
-        </div>
-
-        <!-- Show disabled calendars edit -->
-        <div class="row margin-top">
-            <input id="show-disabled-calendars"
-                   class="primary "
-                   type="checkbox"
-                   [checked]="settings.showDisabledCalendars"
-                   (change)="settings.showDisabledCalendars = !settings.showDisabledCalendars; settingsService.setSettings(settings)">
-
-            <label for="show-disabled-calendars"
-                   class="font-m margin-left">
-                Show disabled calendars on event edit</label>
-        </div>
-
-        <!-- Close all windows on backdrop -->
-        <div class="row margin-top">
-            <input id="close-all-windows"
-                   class="primary "
-                   type="checkbox"
-                   [checked]="settings.closeAllWindows"
-                   (change)="settings.closeAllWindows = !settings.closeAllWindows; settingsService.setSettings(settings)">
-
-            <label for="close-all-windows"
-                   class="font-m margin-left">
-                Close all windows on backdrop click</label>
-        </div>
-    </section>
-
+<main class="page">
+  <header class="page-header">
+    <a class="icon-btn"
+       routerLink="/home"
+       aria-label="Back to calendar"
+       title="Back to calendar">
+      <fa-icon [icon]="backIcon" />
+    </a>
     <div>
-        <button class="primary bg-light border margin-top-heavy"
-                (click)="router.navigate(['/home']);">Back</button>
+      <h1>Settings</h1>
+      <p class="muted">{{ userService.emailAddress }}</p>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="card-header">
+      <h2>Calendars</h2>
+      <div class="legend muted">
+        <span><fa-icon [icon]="declineEventIcon"
+                   size="sm" /> Declined</span>
+        <span><fa-icon [icon]="infinityIcon"
+                   size="sm" /> Recurring</span>
+        <span><fa-icon [icon]="cakeIcon"
+                   size="sm" /> Birthdays</span>
+      </div>
     </div>
 
-</main>
+    <ul class="calendars">
+      @for (calendar of calendars; track calendar.id) {
+        @let calendarSettings = getCalendarSettings(calendar.id);
+        <li>
+          <input type="checkbox"
+                 class="switch"
+                 [id]="'calendar-' + calendar.id"
+                 [checked]="calendarSettings?.allowed"
+                 (change)="toggleSetting(calendar.id, 'allowed')">
+          <span class="dot"
+                [style.background-color]="calendar.backgroundColor"></span>
+          <label class="name"
+                 [for]="'calendar-' + calendar.id">{{ calendarService.getCalendarName(calendar) }}</label>
 
-<p class="margin-top-auto margin-left-auto padding">v{{utilService.version}}</p>
+          <div class="chips">
+            <label class="chip"
+                   title="Show declined events">
+              <input type="checkbox"
+                     class="visually-hidden"
+                     aria-label="Show declined events"
+                     [checked]="calendarSettings?.showDeclinedEvents"
+                     [disabled]="!calendarSettings?.allowed"
+                     (change)="toggleSetting(calendar.id, 'declined-events')">
+              <fa-icon [icon]="declineEventIcon"
+                       size="sm" />
+            </label>
+            <label class="chip"
+                   title="Show recurring events">
+              <input type="checkbox"
+                     class="visually-hidden"
+                     aria-label="Show recurring events"
+                     [checked]="calendarSettings?.allowRecurring"
+                     [disabled]="!calendarSettings?.allowed"
+                     (change)="toggleSetting(calendar.id, 'recurring')">
+              <fa-icon [icon]="infinityIcon"
+                       size="sm" />
+            </label>
+            <label class="chip"
+                   title="Show birthdays">
+              <input type="checkbox"
+                     class="visually-hidden"
+                     aria-label="Show birthdays"
+                     [checked]="calendarSettings?.allowBirthdays"
+                     [disabled]="!calendarSettings?.allowed || !calendarSettings?.allowRecurring"
+                     (change)="toggleSetting(calendar.id, 'birthdays')">
+              <fa-icon [icon]="cakeIcon"
+                       size="sm" />
+            </label>
+          </div>
+        </li>
+      } @empty {
+        <li class="muted">Loading calendars…</li>
+      }
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="card-header">
+      <h2>Preferences</h2>
+    </div>
+    <ul class="preferences">
+      <li>
+        <label for="show-disabled-calendars">Show disabled calendars when editing events</label>
+        <input id="show-disabled-calendars"
+               type="checkbox"
+               class="switch"
+               [checked]="settings.showDisabledCalendars"
+               (change)="settings.showDisabledCalendars = !settings.showDisabledCalendars; settingsService.setSettings(settings)">
+      </li>
+      <li>
+        <label for="close-all-windows">Close all panels when clicking outside</label>
+        <input id="close-all-windows"
+               type="checkbox"
+               class="switch"
+               [checked]="settings.closeAllWindows"
+               (change)="settings.closeAllWindows = !settings.closeAllWindows; settingsService.setSettings(settings)">
+      </li>
+    </ul>
+  </section>
+
+  <footer class="muted version">
+    <a routerLink="/privacy-policy">Privacy policy</a>
+    <span>v{{ utilService.version }}</span>
+  </footer>
+</main>

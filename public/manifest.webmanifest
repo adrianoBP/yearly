@@ -1,8 +1,8 @@
 {
   "name": "yearly",
   "short_name": "yearly",
-  "theme_color": "#0045db",
-  "background_color": "#fafafa",
+  "theme_color": "#2563eb",
+  "background_color": "#f6f7f9",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

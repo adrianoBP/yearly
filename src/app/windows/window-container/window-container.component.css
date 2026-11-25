@@ -1,58 +1,99 @@
-@import url('../../common.stylesheet.css');
-
-* {
-  --window-width: 30%;
-  --window-margin: 0 1rem 0 1rem;
-  --window-height: 95%;
-  --window-alignment: center;
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
 }
 
-/* Mobile */
-@media (max-width: 768px) {
-  * {
-    --window-width: 95%;
-    --window-height: 50%;
-    --window-margin: 1rem auto 1rem auto;
-    --window-alignment: end;
-  }
-
-  #backdrop {
-    justify-content: center !important;
-  }
-}
-
-#backdrop {
-  height: 100%;
-  width: 100%;
-
+.backdrop {
+  position: absolute;
+  inset: 0;
   display: flex;
-  align-items: var(--window-alignment);
+  align-items: center;
+  padding: 1rem;
+  background: rgb(15 23 42 / 0.22);
+  animation: fade-in 0.2s ease-out;
 }
 
-#backdrop.from-left {
-  justify-content: start;
+.backdrop.from-left {
+  justify-content: flex-start;
 }
 
-#backdrop.from-right {
-  justify-content: end;
+.backdrop.from-right {
+  justify-content: flex-end;
 }
 
-#window {
-  background-color: var(--background-color);
-
+.window {
+  position: absolute;
+  top: 1rem;
+  bottom: 1rem;
   display: flex;
-  width: var(--window-width);
-  height: var(--window-height);
-  margin: var(--window-margin);
-
-  border-radius: 1rem;
-
-  box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
-
-  position: absolute
+  width: min(24rem, calc(100% - 2rem));
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
 }
 
-#window>* {
+.from-left .window {
+  left: 1rem;
+  animation: slide-in-left 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.from-right .window {
+  right: 1rem;
+  animation: slide-in-right 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.window > * {
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  overflow-y: auto;
+  min-width: 0;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-1.5rem);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(1.5rem);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+/* Mobile: bottom sheet */
+@media (max-width: 768px) {
+  .backdrop {
+    padding: 0;
+  }
+
+  .window,
+  .from-left .window,
+  .from-right .window {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 85dvh;
+    border-radius: 20px 20px 0 0;
+    animation: slide-in-up 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
 }

@@ -1,40 +1,64 @@
-<p class="font-xl bold margin-sides-auto margin-ends">{{utilService.getFormattedDate(this.parameters.date)}}</p>
+<header class="sheet-header">
+  <div>
+    <h2>{{ utilService.getFormattedDate(parameters.date, 'dddd, D MMMM') }}</h2>
+    <p class="sheet-sub">{{ events.length }} {{ events.length === 1 ? 'event' : 'events' }} · {{ parameters.date.getFullYear() }}</p>
+  </div>
+  <button class="icon-btn"
+          aria-label="Close"
+          (click)="windowsService.back()">
+    <fa-icon [icon]="closeIcon" />
+  </button>
+</header>
 
-<div *ngFor="let event of events"
-     class="event-details row padding-heavy center-items-y"
-     (click)="openEvent(event)">
+<ul class="sheet-body events">
+  @for (event of events; track event.id) {
+    <li class="event"
+        tabindex="0"
+        (click)="openEvent(event)"
+        (keydown.enter)="openEvent(event)">
+      <button class="swatch"
+              [style.background-color]="event.colour"
+              title="Open in Google Calendar"
+              aria-label="Open in Google Calendar"
+              (click)="$event.stopPropagation(); tryOpenEvent(event)"></button>
+      <span class="info">
+        <span class="title">{{ event.title || '(No title)' }}</span>
+        <span class="sub">
+          <span class="time">{{ getTime(event) }}</span>
+          <span>{{ calendarName(event) }}</span>
+          @if (event.location) {
+            <span>{{ event.location }}</span>
+          }
+        </span>
+      </span>
+      @if (event.canEdit) {
+        <button class="icon-btn danger"
+                aria-label="Delete event"
+                title="Delete"
+                (click)="$event.stopPropagation(); removeEvent(event)">
+          <fa-icon [icon]="faTrash"
+                   size="sm" />
+        </button>
+      } @else {
+        <span class="icon-btn locked"
+              title="Read only">
+          <fa-icon [icon]="faLock"
+                   size="sm" />
+        </span>
+      }
+    </li>
+  } @empty {
+    <li class="empty">No events left on this day</li>
+  }
+</ul>
 
-     <div class="colour-indicator raised"
-          [ngStyle]="{'background-color': event.colour}"
-          (click)="$event.stopPropagation(); tryOpenEvent(event)"></div>
-
-     <p class="margin-sides">{{event.title}}</p>
-
-     <span
-           class="pill padding-sides margin-sides margin-left-auto blue bg-light border raised-low">{{getTime(event)}}</span>
-
-     <fa-icon *ngIf="event.canEdit"
-              id="event-delete"
-              class="red"
-              [icon]="faTrash"
-              [size]="'sm'"
-              (click)="removeEvent(event)"></fa-icon>
-
-     <fa-icon *ngIf="!event.canEdit"
-              class="grey-500"
-              [icon]="faLock"
-              [size]="'sm'"></fa-icon>
-
-</div>
-
-<button id="save-button"
-        class="bg-primary margin-top-auto margin-sides-heavy margin-bottom-heavy"
-        (click)="saveChanges()"
-        [disabled]="isSaving || (this.eventsToDelete.length == 0 && this.eventsToUpdate.length == 0)">
-     {{isSaving ? '' : 'Save'}}
-     <fa-icon *ngIf="isSaving"
-              [icon]="fanIcon"
-              [size]="'lg'"
-              animation="spin">
-     </fa-icon>
-</button>
+<footer class="sheet-footer">
+  @if (eventsToDelete.length > 0) {
+    <span class="pending">{{ eventsToDelete.length }} to delete</span>
+  }
+  <button class="btn btn-primary"
+          (click)="saveChanges()"
+          [disabled]="isSaving || (eventsToDelete.length == 0 && eventsToUpdate.length == 0)">
+    {{ isSaving ? 'Saving…' : 'Save' }}
+  </button>
+</footer>

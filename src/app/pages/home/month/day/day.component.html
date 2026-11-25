@@ -1,18 +1,34 @@
-<div class="container"
-     [id]="dayId"
-     (click)="onClick($event)">
-     <p
-        [ngClass]="{'is-adding-new-event': calendarService.isAddingEvent, 'isToday': isToday, 'isPast': isPast, 'pointer': events.length > 0}">
-          {{day.number}}</p>
-
-     <div class="selection"
-          *ngFor="let eventDay of sortedEvents"
-          [ngClass]="{'start': eventDay.isFirstDay, 'end': eventDay.isLastDay}"
-          [ngStyle]="{'background-color': eventDay.colour}"></div>
-
-     <div id="icons-container">
-          <div class="event-icon"
-               *ngFor="let icon of enabledIcons">{{icon}}</div>
-     </div>
-
-</div>
+<button type="button"
+        class="day"
+        [id]="'day-' + day.number + '-' + day.date.getMonth() + '-' + day.date.getFullYear()"
+        [class.today]="day.isToday"
+        [class.past]="day.isPast"
+        [class.clickable]="isAddingEvent || events.length > 0"
+        [class.adding]="isAddingEvent"
+        [style.--hover-c]="events.length ? events[0].colour : null"
+        [attr.aria-label]="day.label + (events.length ? ', ' + events.length + ' events' : '')"
+        (mouseenter)="events.length && hoverChange.emit($any($event.currentTarget))"
+        (mouseleave)="events.length && hoverChange.emit(null)"
+        (click)="dayClick.emit({ day, mouseEvent: $event })">
+  <span class="num">
+    {{ day.number }}
+    @if (icon) {
+      <span class="icon"
+            aria-hidden="true">{{ icon }}</span>
+    }
+    @if (hasHiddenEvents) {
+      <span class="more"
+            aria-hidden="true"></span>
+    }
+  </span>
+  <span class="lanes"
+        aria-hidden="true">
+    @for (event of visibleEvents; track event.id) {
+      <span class="line"
+            [class.start]="event.isFirstDay"
+            [class.end]="event.isLastDay"
+            [style.--c]="event.colour"
+            [style.--lane]="event.lane"></span>
+    }
+  </span>
+</button>

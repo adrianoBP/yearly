@@ -32,6 +32,7 @@ export interface GoogleCalendarEvent {
   htmlLink?: string;
   summary: string;
   description?: string;
+  location?: string;
   creator: GoogleCalendarEventPerson;
   organizer: GoogleCalendarEventPerson;
   start: GoogleCalendarEventDate;
@@ -39,6 +40,8 @@ export interface GoogleCalendarEvent {
   recurringEventId?: string;
   attendees?: GoogleCalendarEventPerson[];
   eventType: 'birthday' | 'default' | 'focusTime' | 'fromGmail' | 'outOfOffice' | 'workingLocation';
+  /** Event's own colour (index into the /colors event palette); unset means the calendar colour */
+  colorId?: string;
 }
 
 export interface GoogleCalendarEventPerson {
@@ -77,6 +80,15 @@ export class GoogleCalendarService {
     const response = await this.googleAuthService.makeRequest<
       GenericGoogleItemsResponse<GoogleCalendarSetting>
     >(url, 'get');
+  }
+
+  /** Google's event colour palette: colorId -> background colour */
+  async getEventColours(): Promise<Record<string, string>> {
+    const url = `${this.baseUrl}/colors`;
+    const response = await this.googleAuthService.makeRequest<GoogleCalendarColorsResponse>(url, 'get');
+    return Object.fromEntries(
+      Object.entries(response.event).map(([id, colour]) => [id, colour.background])
+    );
   }
 
   async getCalendars(): Promise<GoogleCalendar[]> {
@@ -126,6 +138,7 @@ export class GoogleCalendarService {
     return await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
       summary: event.title,
       description: event.description,
+      location: event.location,
       start: startDateTime,
       end: endDateTime,
     });
@@ -148,6 +161,8 @@ export class GoogleCalendarService {
     const url = `${this.baseUrl}/calendars/${event.calendarId}/events/${event.id}`;
     return await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'patch', {
       summary: event.title,
+      description: event.description,
+      location: event.location,
       start: startDateTime,
       end: endDateTime,
     });

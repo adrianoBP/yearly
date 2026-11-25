@@ -1,18 +1,19 @@
-<div id="backdrop"
-     (click)="settingService.getSettings().closeAllWindows ? windowsService.backAllWindows() : windowsService.back()"
-     [ngClass]="{'from-left': openingSide == 'left', 'from-right': openingSide == 'right'}">
-
-  <div id="window"
-       [@swipe]="{ value: true, params: getParameters()}"
-       (click)="$event.stopPropagation();"
-       *ngFor="let event of windowsService.windowQueue">
-
-    <app-events-list *ngIf="event.type == 'list-events'">
-    </app-events-list>
-
-    <app-event-edit *ngIf="event.type == 'edit-event'">
-    </app-event-edit>
-
-  </div>
-
+<div class="backdrop"
+     [class.from-left]="side === 'left'"
+     [class.from-right]="side === 'right'"
+     (click)="onBackdropClick()">
+  @for (window of windowsService.windowQueue; track window) {
+    <div class="window"
+         role="dialog"
+         aria-modal="true"
+         [style.view-transition-name]="$last ? 'panel' : null"
+         (click)="$event.stopPropagation()">
+      @if (window.type === 'list-events') {
+        <app-events-list />
+      }
+      @if (window.type === 'edit-event') {
+        <app-event-edit />
+      }
+    </div>
+  }
 </div>

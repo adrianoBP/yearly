@@ -1,35 +1,99 @@
-@import url("../../common.stylesheet.css");
-
-:host {
-  display: flex;
-  flex-direction: column;
+.events {
+  list-style: none;
+  padding: 0.25rem 0.5rem 0.5rem;
 }
 
-.event-details {
-  transition: all 0.3s;
+.event {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.55rem 0.4rem 0.55rem 0.6rem;
+  font-size: 0.9rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s;
 }
 
 @media (hover: hover) {
-  .event-details:hover {
-    background-color: color-mix(in srgb, var(--font-color) 5%, var(--background-color));
-    cursor: pointer;
+  .event:hover {
+    background: var(--surface-2);
   }
 }
 
-.event-details:not(:last-child) {
-  border-bottom: 1px solid #efefef;
+.swatch {
+  flex-shrink: 0;
+  width: 0.7rem;
+  aspect-ratio: 1;
+  margin-top: 0.3rem;
+  border-radius: 4px;
 }
 
-.event-details p {
-  max-width: 50%;
+.swatch:hover {
+  outline: 2px solid var(--border);
+  outline-offset: 2px;
 }
 
-.event-details #event-delete {
-  transition: all 0.3s;
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
 }
 
-.event-details #event-delete:hover {
-  cursor: pointer;
-  text-shadow: 0 0 5px black;
-  transform: translateY(-2px);
+.title,
+.sub > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.title {
+  font-weight: 550;
+}
+
+/* "All day · Calendar · Location" */
+.sub {
+  display: flex;
+  min-width: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.sub > span:not(:empty) + span:not(:empty)::before {
+  content: '·';
+  margin: 0 0.35rem;
+}
+
+.time {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.icon-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.8rem;
+}
+
+.danger:hover:not(:disabled) {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.locked {
+  color: var(--text-faint);
+  cursor: default;
+}
+
+.empty {
+  padding: 2rem 0.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.pending {
+  margin-right: auto;
+  font-size: 0.85rem;
+  color: var(--danger);
 }

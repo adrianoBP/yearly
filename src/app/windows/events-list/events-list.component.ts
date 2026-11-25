@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { WindowParameters, WindowsService } from '../windows.service';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+
+
 import { Event, EventDisplayDetails } from '../../interfaces/event.interface';
-import { faTrash, faFan, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faLock, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarService } from '../../services/api/calendar.service';
 import { UtilService } from '../../services/util.service';
@@ -18,14 +18,14 @@ export interface EventsListParameters extends WindowParameters {
 
 @Component({
   selector: 'app-events-list',
-  imports: [CommonModule, FormsModule, FontAwesomeModule],
+  imports: [FontAwesomeModule],
   templateUrl: './events-list.component.html',
   styleUrl: './events-list.component.css',
 })
 export class EventsListComponent {
   // FontAwesome icons
   faTrash = faTrash;
-  fanIcon = faFan;
+  closeIcon = faXmark;
   faLock = faLock;
 
   // Properties
@@ -39,7 +39,7 @@ export class EventsListComponent {
 
   constructor(
     public utilService: UtilService,
-    private windowsService: WindowsService,
+    public windowsService: WindowsService,
     private calendarService: CalendarService,
     public authService: AuthService,
     public userService: UserService
@@ -82,17 +82,17 @@ export class EventsListComponent {
       endsAfter: endsAfterDate,
       canEdit:
         event.eventType === 'default' &&
-        (event.creator.email === this.userService.emailAddress || event.isGroupCalendar),
+        (event.creator?.email === this.userService.emailAddress || event.isGroupCalendar),
     };
   }
 
   getTime(event: EventDisplayDetails): string {
     if (event.isAllDay) return 'All day';
 
-    if (event.startsBefore) return `➡️ - ${event.endMoment.format('HH:mm')}`;
-    if (event.endsAfter) return `${event.startMoment.format('HH:mm')} - ➡️`;
+    if (event.startsBefore) return `→ ${event.endMoment.format("HH:mm")}`;
+    if (event.endsAfter) return `${event.startMoment.format("HH:mm")} →`;
 
-    return `${event.startMoment.format('HH:mm')} - ${event.endMoment.format('HH:mm')}`;
+    return `${event.startMoment.format("HH:mm")} – ${event.endMoment.format("HH:mm")}`;
   }
 
   openEvent(event: EventDisplayDetails): void {
@@ -107,11 +107,12 @@ export class EventsListComponent {
       (updatedEvent: EventDisplayDetails) => {
         // on SAVE
         if (updatedEvent) {
-          // Update the event colour
-          updatedEvent.colour = this.utilService.getCalendarColour(
-            updatedEvent.calendarId,
-            this.availableCalendars
-          );
+          // Follow the (possibly new) calendar's colour, unless the event has its own
+          if (!updatedEvent.colorId)
+            updatedEvent.colour = this.utilService.getCalendarColour(
+              updatedEvent.calendarId,
+              this.availableCalendars
+            );
 
           // Update time display
           const { isAllDay, startsBefore, endsAfter } = this.eventToDisplayEvent(updatedEvent);
@@ -131,6 +132,11 @@ export class EventsListComponent {
         Object.assign(event, originalEvent);
       }
     );
+  }
+
+  calendarName(event: Event): string {
+    const calendar = this.availableCalendars.find((c) => c.id === event.calendarId);
+    return calendar ? this.calendarService.getCalendarName(calendar) : '';
   }
 
   tryOpenEvent(event: EventDisplayDetails): void {

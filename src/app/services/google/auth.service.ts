@@ -1,10 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { HTTPRequestType, HttpService } from '../api/http.service';
 
 import { GoogleOAuthProvider, SuccessTokenResponse } from 'google-oauth-gsi';
 import { UtilService } from '../util.service';
-import moment from 'moment';
 
 interface TokenDetails {
   token: string;
@@ -18,18 +17,26 @@ export class GoogleAuthService {
   private ACCESS_TOKEN_KEY = 'googleAccessToken';
   private tokenDetails: TokenDetails | null = null;
 
-  googleProvider: GoogleOAuthProvider;
+  googleProvider!: GoogleOAuthProvider;
+  /** Resolves once Google's sign-in script has loaded; before that, login calls are no-ops */
+  private scriptReady: Promise<void>;
+  /** Shared by concurrent callers (e.g. several 401s at once) so only one popup opens */
+  private pendingLogin: Promise<SuccessTokenResponse> | null = null;
 
   constructor(
     private router: Router,
     private httpService: HttpService,
-    private utilService: UtilService
+    private utilService: UtilService,
+    private ngZone: NgZone
   ) {
-    this.googleProvider = new GoogleOAuthProvider({
-      clientId: utilService.googleClientId,
-      onScriptLoadError: () => console.log('onScriptLoadError'),
-      onScriptLoadSuccess: () => console.log('onScriptLoadSuccess'),
+    this.scriptReady = new Promise((resolve, reject) => {
+      this.googleProvider = new GoogleOAuthProvider({
+        clientId: utilService.googleClientId,
+        onScriptLoadError: () => reject('Google sign-in script failed to load'),
+        onScriptLoadSuccess: () => resolve(),
+      });
     });
+    this.scriptReady.catch(console.error);
 
     try {
       this.tokenDetails = JSON.parse(localStorage.getItem(this.ACCESS_TOKEN_KEY) as string);
@@ -37,44 +44,39 @@ export class GoogleAuthService {
       this.tokenDetails = null;
     }
 
-    // Check there's a token
-    if (this.tokenDetails == null) {
-      this.getAccessToken(() => this.router.navigate(['/']));
-      return;
-    }
-
-    // Check the token is valid
-    if (moment(this.tokenDetails.expiryDate).toDate() < new Date()) {
-      this.getAccessToken(() => this.router.navigate(['/']));
-      return;
-    }
+    // No valid token: stay logged out, the landing page asks the user to sign in
+    if (this.tokenDetails == null || new Date(this.tokenDetails.expiryDate) < new Date()) return;
 
     // Login
     this.isLoggedIn = true;
     this.router.navigate(['/']);
   }
 
-  async getAccessToken(onTokenRetrieved?: () => void): Promise<void> {
-    await this.getAccessTokenAsync();
-    if (onTokenRetrieved) onTokenRetrieved();
+  getAccessTokenAsync(): Promise<SuccessTokenResponse> {
+    this.pendingLogin ??= this.requestToken().finally(() => (this.pendingLogin = null));
+    return this.pendingLogin;
   }
 
-  getAccessTokenAsync(onTokenRetrieved?: () => void): Promise<SuccessTokenResponse> {
+  private async requestToken(): Promise<SuccessTokenResponse> {
+    await this.scriptReady;
     return new Promise((resolve, reject) => {
+      // Google calls back outside Angular's zone; re-enter it so the app re-renders without an extra click
       this.googleProvider.useGoogleLogin({
         flow: 'implicit',
         scope: this.utilService.googleLoginScopes,
-        onSuccess: (res) => {
-          this.tokenDetails = {
-            token: res.access_token,
-            expiryDate: new Date(Date.now() + res.expires_in * 1000),
-          };
-          localStorage.setItem(this.ACCESS_TOKEN_KEY, JSON.stringify(this.tokenDetails));
-          this.isLoggedIn = true;
-          if (onTokenRetrieved) onTokenRetrieved();
-          resolve(res);
-        },
-        onError: (err) => reject(err),
+        onSuccess: (res) =>
+          this.ngZone.run(() => {
+            this.tokenDetails = {
+              token: res.access_token,
+              expiryDate: new Date(Date.now() + res.expires_in * 1000),
+            };
+            localStorage.setItem(this.ACCESS_TOKEN_KEY, JSON.stringify(this.tokenDetails));
+            this.isLoggedIn = true;
+            resolve(res);
+          }),
+        onError: (err) => this.ngZone.run(() => reject(err)),
+        // e.g. the popup was closed or blocked
+        onNonOAuthError: (err) => this.ngZone.run(() => reject(err)),
       })();
     });
   }

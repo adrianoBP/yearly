@@ -1,0 +1,86 @@
+<button #trigger
+        type="button"
+        [class]="variant === 'icon' ? 'icon-btn' : 'date-field'"
+        [disabled]="disabled"
+        [title]="variant === 'icon' ? label : ''"
+        [attr.aria-label]="variant === 'icon' ? label : label + ': ' + displayValue"
+        [attr.aria-expanded]="isOpen"
+        aria-haspopup="dialog"
+        (click)="toggle()">
+  @if (variant === 'icon') {
+    <fa-icon [icon]="calendarIcon" />
+  } @else {
+    <span>{{ displayValue }}</span>
+    <fa-icon class="chevron"
+             [icon]="chevronDownIcon" />
+  }
+</button>
+
+<div #popover
+     popover="auto"
+     class="picker"
+     role="dialog"
+     [attr.aria-label]="label"
+     (toggle)="onToggle()">
+  <header>
+    <button type="button"
+            class="title-btn"
+            [attr.aria-label]="mode === 'days' ? 'Choose month and year, currently ' + title : 'Year ' + title"
+            [disabled]="mode === 'months'"
+            (click)="showMonths()">{{ title }}</button>
+    <div class="nav">
+      <button type="button"
+              class="icon-btn"
+              [attr.aria-label]="mode === 'days' ? 'Previous month' : 'Previous year'"
+              (click)="shift(mode === 'days' ? -1 : -12)">
+        <fa-icon [icon]="prevIcon" />
+      </button>
+      <button type="button"
+              class="icon-btn"
+              [attr.aria-label]="mode === 'days' ? 'Next month' : 'Next year'"
+              (click)="shift(mode === 'days' ? 1 : 12)">
+        <fa-icon [icon]="nextIcon" />
+      </button>
+    </div>
+  </header>
+
+  @if (mode === 'days') {
+    <div class="weekdays"
+         aria-hidden="true">
+      @for (weekDay of weekDays; track $index) {
+        <span>{{ weekDay }}</span>
+      }
+    </div>
+    <div class="days">
+      @for (cell of cells; track cell.key) {
+        <button type="button"
+                class="d"
+                [class.outside]="cell.outside"
+                [class.today]="cell.today"
+                [class.selected]="cell.selected"
+                [disabled]="cell.disabled"
+                [attr.tabindex]="cell.key === focusKey ? 0 : -1"
+                [attr.aria-label]="cell.label"
+                [attr.aria-current]="cell.today ? 'date' : null"
+                [attr.aria-pressed]="cell.selected"
+                (keydown)="onDayKeydown($event)"
+                (click)="pick(cell.key)">{{ cell.day }}</button>
+      }
+    </div>
+  } @else {
+    <div class="months">
+      @for (name of monthNames; track $index) {
+        <button type="button"
+                class="m"
+                [class.selected]="$index === focusDate.getMonth()"
+                (click)="pickMonth($index)">{{ name }}</button>
+      }
+    </div>
+  }
+
+  <footer>
+    <button type="button"
+            class="btn btn-ghost"
+            (click)="pickToday()">Today</button>
+  </footer>
+</div>

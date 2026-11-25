@@ -1,104 +1,60 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+} from '@angular/core';
 import { Day } from '../../../../interfaces/month.interface';
 import { Event } from '../../../../interfaces/event.interface';
-import { CommonModule } from '@angular/common';
-import moment from 'moment';
-import { CalendarService } from '../../../../services/api/calendar.service';
 
-interface EventIcon {
-  enabled: boolean;
-  icon: string;
-}
+// Keyword in an event title -> icon. Order is the priority when several events match.
+const EVENT_ICONS: [string, string][] = [
+  ['flight', '✈️'],
+  ['ferry', '🚢'],
+  ['train', '🚅'],
+  ['bus', '🚌'],
+];
+
+// Lines that fit under the day number; events in later lanes show as a "more" dot
+const MAX_LANES = 3;
 
 @Component({
   selector: 'app-day',
-  imports: [CommonModule],
   templateUrl: './day.component.html',
   styleUrl: './day.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DayComponent {
-  @Input() day!: Day;
+export class DayComponent implements OnChanges {
+  @Input({ required: true }) day!: Day;
   @Input() events: Event[] = [];
-  @Input() canCreateNewEvent!: boolean;
-  @Output() onDayClick = new EventEmitter<{
-    day: Day;
-    mouseEvent: MouseEvent;
-  }>();
+  @Input() isAddingEvent = false;
+  @Output() dayClick = new EventEmitter<{ day: Day; mouseEvent: MouseEvent }>();
+  /** The hovered day element, or null when the pointer leaves (days with events only) */
+  @Output() hoverChange = new EventEmitter<HTMLElement | null>();
 
-  today: moment.Moment;
-  dayId: string = '';
+  // Only one icon per day due to space constraints
+  icon?: string;
+  visibleEvents: Event[] = [];
+  hasHiddenEvents = false;
 
-  // Properties
-  isToday: boolean = false;
-  isPast: boolean = false;
-  sortedEvents: Event[] = [];
-  enabledIcons: string[] = [];
+  ngOnChanges(): void {
+    this.visibleEvents = this.events.filter((event) => event.lane < MAX_LANES);
+    this.hasHiddenEvents = this.visibleEvents.length < this.events.length;
 
-  constructor(public calendarService: CalendarService) {
-    this.today = moment();
-  }
-
-  eventColours: string[] = [];
-
-  // List of icons for the events
-  eventIcons: { [key: string]: EventIcon } = {
-    flight: { enabled: false, icon: '✈️' } as EventIcon,
-    ferry: { enabled: false, icon: '🚢' } as EventIcon,
-    train: { enabled: false, icon: '🚅' } as EventIcon,
-    bus: { enabled: false, icon: '🚌' } as EventIcon,
-  };
-
-  ngOnChanges(changes: {
-    events: { previousValue: any[]; currentValue: any[]; firstChange: boolean };
-  }): void {
-    if (
-      !changes.events.firstChange &&
-      changes.events.currentValue.length == 0 &&
-      changes.events.previousValue.length == 0
-    )
-      return;
-
-    // Ensure we have a unique day id to be able to scroll to this element
-    this.dayId = `day-${this.day.date.getDate()}-${this.day.date.getMonth()}-${this.day.date.getFullYear()}`;
-
+    const matched = new Set<string>();
     for (const event of this.events) {
-      if (!this.eventColours.includes(event.colour)) {
-        this.eventColours.push(event.colour);
+      const title = event.title?.toLowerCase() ?? '';
+      // Per event, the keyword appearing first in the title wins
+      let best: string | undefined;
+      let bestIndex = Infinity;
+      for (const [keyword] of EVENT_ICONS) {
+        const index = title.indexOf(keyword);
+        if (index > -1 && index < bestIndex) [best, bestIndex] = [keyword, index];
       }
-
-      const availableIcons = Object.keys(this.eventIcons)
-        .map((key) => ({
-          type: key,
-          index: event.title.toLowerCase().indexOf(key),
-        }))
-        .filter((index) => index.index > -1);
-
-      // Enable the icon with the first index
-      if (availableIcons.length > 0) {
-        const highestPriorityIndex = availableIcons.reduce((prev, current) =>
-          current.index > prev.index ? prev : current
-        );
-        this.eventIcons[highestPriorityIndex.type].enabled = true;
-      }
+      if (best) matched.add(best);
     }
-
-    this.updatedParameters();
-  }
-
-  updatedParameters(): void {
-    this.isToday = this.today.isSame(this.day.date, 'day');
-    this.isPast = this.today.isAfter(this.day.date, 'day');
-    this.sortedEvents = this.events.sort((a, b) => b.duration - a.duration);
-
-    // ? Currently only supporting one icon per day due to space constraints
-    this.enabledIcons = [
-      Object.keys(this.eventIcons)
-        .filter((key) => this.eventIcons[key].enabled)
-        .map((key) => this.eventIcons[key].icon)[0],
-    ];
-  }
-
-  onClick(mouseEvent: MouseEvent): void {
-    this.onDayClick.emit({ day: this.day, mouseEvent });
+    this.icon = EVENT_ICONS.find(([keyword]) => matched.has(keyword))?.[1];
   }
 }

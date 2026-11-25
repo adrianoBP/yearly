@@ -1,47 +1,45 @@
-<div class="column fill-height"
-     style="justify-content: space-between; background-color: antiquewhite;">
+<header class="topbar">
+  <div class="brand">
+    <img src="yearly-icon.svg"
+         alt=""
+         width="28"
+         height="28">
+    <span>Yearly</span>
+  </div>
+  <button class="btn"
+          (click)="login()">
+    <fa-icon [icon]="googleIcon" />
+    Sign in
+  </button>
+</header>
 
-     <nav class="flex row margin"
-          style="justify-content: space-between;">
-          <div class="row margin"
-               style="align-items: baseline;">Your <p style="font-size: 3rem; font-weight: bold;">Yearly</p> calendar
-               view
-          </div>
-          <div>
-               <button (click)="login()"
-                       class="bg-black raised margin-top-heavy">
-                    <fa-icon [icon]="googleIcon"
-                             [size]="'lg'">
-                    </fa-icon>
-                    Login
-               </button>
-          </div>
-     </nav>
+<main class="hero">
+  <p class="eyebrow">Your Google Calendar, one page per year</p>
+  <h1>See your whole year<br>at a glance.</h1>
+  <p class="lead">Yearly gives you a bird's-eye view of all twelve months. Plan holidays, spot busy stretches
+    and keep long-term goals in sight.</p>
+  <button class="btn btn-primary btn-lg"
+          (click)="login()">
+    <fa-icon [icon]="googleIcon" />
+    Continue with Google
+  </button>
 
-     <main class="column container padding margin"
-           style="height: 100%;">
+  <ul class="features">
+    <li>
+      <strong>All 12 months</strong>
+      <span>The full year on one screen, no scrolling between months.</span>
+    </li>
+    <li>
+      <strong>Colour-coded</strong>
+      <span>Events keep the colours of the calendars they belong to.</span>
+    </li>
+    <li>
+      <strong>Always in sync</strong>
+      <span>Create, edit and delete events straight in Google Calendar.</span>
+    </li>
+  </ul>
+</main>
 
-
-          <p class="padding-y margin-y"
-             style="max-width: 36rem; text-align: justify;">Yearly provides a unique, bird's-eye view of your entire
-               year.
-               Perfect for long-term planning, tracking habits, or just getting a better perspective on your time. </p>
-
-          <p class="margin-top-heavy">Spot patterns, plan vacations and stay motivated in your annual goals!</p>
-
-          <div class="column margin-top-heavy">
-               <p style="font-size: 1.2rem; font-weight: bold;">✨ Features</p>
-               <ul style="text-align: start;">
-                    <li>View all 12 months at once</li>
-                    <li>Color-code events from multiple calendars</li>
-                    <li>Sync with your existing calendars</li>
-                    <li>And many more!</li>
-               </ul>
-          </div>
-
-
-     </main>
-
-     <a href="/privacy-policy"
-        style="align-self: end; margin: 1rem; text-decoration: none; color: black;">Privacy Policy</a>
-</div>
+<footer class="footer">
+  <a href="/privacy-policy">Privacy policy</a>
+</footer>

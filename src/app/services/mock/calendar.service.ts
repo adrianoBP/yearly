@@ -10,6 +10,15 @@ export class MockCalendarService {
 
   async getSettings() {}
 
+  // Google's standard event palette
+  async getEventColours(): Promise<Record<string, string>> {
+    return {
+      '1': '#a4bdfc', '2': '#7ae7bf', '3': '#dbadff', '4': '#ff887c',
+      '5': '#fbd75b', '6': '#ffb878', '7': '#46d6db', '8': '#e1e1e1',
+      '9': '#5484ed', '10': '#51b749', '11': '#dc2127',
+    };
+  }
+
   async getCalendars(): Promise<GoogleCalendar[]> {
     return JSON.parse(
       '[{"kind":"calendar#calendarListEntry","id":"en.uk#holiday@group.v.calendar.google.com","summary":"Holidays in United Kingdom","description":"Holidays and Observances in United Kingdom","timeZone":"Europe/London","summaryOverride":"Holidays in United Kingdom","backgroundColor":"#16a765","foregroundColor":"#000000","selected":true,"accessRole":"reader"},{"kind":"calendar#calendarListEntry","id":"4d1b7dfc474eb4a3c926b2a202519f3d530f5f95894528233c35119a22d24a3d@group.calendar.google.com","summary":"Travels","timeZone":"Europe/London","backgroundColor":"#9fe1e7","foregroundColor":"#000000","selected":true,"accessRole":"owner"},{"kind":"calendar#calendarListEntry","id":"adriano.boccardo@gmail.com","summary":"adriano.boccardo@gmail.com","timeZone":"Europe/London","backgroundColor":"#b99aff","foregroundColor":"#000000","selected":true,"accessRole":"owner","primary":true},{"kind":"calendar#calendarListEntry","id":"adriano.pochettino@linnworks.com","summary":"adriano.pochettino@linnworks.com","timeZone":"Europe/London","summaryOverride":"Linnworks","backgroundColor":"#4986e7","foregroundColor":"#000000","selected":true,"accessRole":"freeBusyReader"}]'

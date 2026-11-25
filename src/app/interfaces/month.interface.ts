@@ -1,17 +1,18 @@
-import { Moment } from 'moment';
-import { Event } from './event.interface';
-
 export interface Month {
   name: string;
   number: number;
+  isCurrent: boolean;
   days: Day[];
-  events: Event[];
 }
-
-export type WeekDay = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
 
 export interface Day {
   number: number;
-  weekDay: WeekDay;
+  /** 0 = Monday ... 6 = Sunday */
+  weekDay: number;
   date: Date;
+  /** Key into the events-by-day map, see dayKey() */
+  key: string;
+  label: string;
+  isToday: boolean;
+  isPast: boolean;
 }

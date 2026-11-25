@@ -6,7 +6,10 @@ export interface Event {
   id: string;
   title: string;
   description?: string;
+  location?: string;
   colour: string;
+  /** Google colour id when the event has its own colour; colour is then that, not the calendar colour */
+  colorId?: string;
   eventType: 'birthday' | 'default' | 'focusTime' | 'fromGmail' | 'outOfOffice' | 'workingLocation';
   creator: GoogleCalendarEventPerson;
   organizer: GoogleCalendarEventPerson;
@@ -22,6 +25,8 @@ export interface Event {
   isLastDay: boolean;
   duration: number;
   isGroupCalendar: boolean;
+  /** Row the event is drawn in, constant across its days */
+  lane: number;
 }
 
 export interface EventDisplayDetails extends Event {

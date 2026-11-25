@@ -1,12 +1,338 @@
-@import url('./app/common.stylesheet.css');
+/* Light theme tokens. Dark mode: override these under a selector later. */
+:root {
+  color-scheme: light;
 
-* {
-  margin: 0;
-  padding: 0;
-  font-family: system-ui;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --surface-subtle: #f8f9fb;
+  --border-subtle: #eceef2;
+  --border: #e4e7ec;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --text-faint: #a3a9b4;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-soft: #e8f0fe;
+  --danger: #dc2626;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow-lg: 0 16px 40px rgb(16 24 40 / 0.14), 0 2px 6px rgb(16 24 40 / 0.06);
+
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
-body,
-html {
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
   height: 100%;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+a {
+  color: var(--primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* -- BUTTONS -- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2rem;
+  padding: 0 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.icon-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+/* -- FORM FIELDS -- */
+input[type='text'],
+input[type='date'],
+input[type='time'],
+select {
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+:is(input, select):focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+:is(input, select):disabled {
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+
+/* Toggle switch */
+input[type='checkbox'].switch {
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 1.25rem;
+  background: #d0d5dd;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+input[type='checkbox'].switch::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.25rem - 4px);
+  aspect-ratio: 1;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  transition: transform 0.2s;
+}
+
+input[type='checkbox'].switch:checked {
+  background: var(--primary);
+}
+
+input[type='checkbox'].switch:checked::before {
+  transform: translateX(1rem);
+}
+
+/* -- SIDE PANELS (windows) -- */
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.85rem 0.6rem 0.25rem 1.1rem;
+}
+
+.sheet-header h2 {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.sheet-sub {
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.sheet-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sheet-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+/* -- MISC -- */
+.dot {
+  flex-shrink: 0;
+  width: 0.75rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d0d5dd;
+  border-radius: 999px;
+}
+
+/* -- VIEW TRANSITIONS (see view-transition.ts) -- */
+::view-transition-group(*) {
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Name the top bar and calendar only while the year changes; at other times they would be
+   drawn above the panel backdrop */
+:root:is([data-transition='next'], [data-transition='prev']) app-home .topbar {
+  view-transition-name: topbar;
+}
+
+:root:is([data-transition='next'], [data-transition='prev']) #calendar {
+  view-transition-name: calendar;
+}
+
+::view-transition-group(topbar) {
+  z-index: 1;
+}
+
+:root[data-transition='next']::view-transition-old(calendar) {
+  animation: 0.2s ease-in both slide-out-left;
+}
+
+:root[data-transition='next']::view-transition-new(calendar) {
+  animation: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both slide-in-right;
+}
+
+:root[data-transition='prev']::view-transition-old(calendar) {
+  animation: 0.2s ease-in both slide-out-right;
+}
+
+:root[data-transition='prev']::view-transition-new(calendar) {
+  animation: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both slide-in-left;
+}
+
+:root[data-transition='panel']::view-transition-old(panel) {
+  animation: 0.18s ease-in both panel-out;
+}
+
+@keyframes slide-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes slide-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+}
+
+@keyframes panel-out {
+  to {
+    opacity: 0;
+    transform: scale(0.97) translateY(0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

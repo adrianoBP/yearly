@@ -1,14 +1,17 @@
-import { ApplicationConfig } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { ApplicationConfig, isDevMode } from '@angular/core';
+import {
+  PreloadAllModules,
+  provideRouter,
+  withPreloading,
+  withViewTransitions,
+} from '@angular/router';
 
 import { routes } from './app.routes';
 import { CalendarService } from './services/api/calendar.service';
 import { SettingsService } from './services/settings.service';
 import { WindowsService } from './windows/windows.service';
 
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { UtilService } from './services/util.service';
-import { MobileUtilService } from './services/mobile.util.service';
 import { AuthService } from './services/api/auth.service';
 import { UserService } from './services/api/user.service';
 import { provideHttpClient } from '@angular/common/http';
@@ -18,7 +21,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: 'version',
-      useValue: '0.8.1',
+      useValue: '1.0.1',
     },
     {
       provide: 'mockData',
@@ -33,8 +36,7 @@ export const appConfig: ApplicationConfig = {
       useValue:
         'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
     },
-    provideAnimationsAsync(),
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(PreloadAllModules), withViewTransitions()),
     provideHttpClient(),
     AuthService,
     UserService,
@@ -42,9 +44,8 @@ export const appConfig: ApplicationConfig = {
     SettingsService,
     WindowsService,
     UtilService,
-    MobileUtilService,
     provideServiceWorker('ngsw-worker.js', {
-      enabled: true,
+      enabled: !isDevMode(),
       registrationStrategy: 'registerImmediately',
     }),
   ],

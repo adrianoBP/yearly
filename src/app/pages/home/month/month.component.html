@@ -1,17 +1,19 @@
-<div class="calendar-container">
-  <header>{{ month.name }}</header>
-  <div id="weekdays">
-    <div *ngFor="let weekdayName of weekDays">
-      {{ weekdayName[0] }}
-    </div>
+<section class="month"
+         [class.current]="month.isCurrent"
+         [attr.aria-label]="month.name">
+  <h2>{{ month.name }}</h2>
+  <div class="grid">
+    @for (weekDay of weekDays; track $index) {
+      <span class="weekday"
+            aria-hidden="true">{{ weekDay }}</span>
+    }
+    @for (day of month.days; track day.key) {
+      <app-day [day]="day"
+               [events]="eventsByDay.get(day.key) ?? noEvents"
+               [isAddingEvent]="isAddingEvent"
+               [style.grid-column-start]="$first ? day.weekDay + 1 : null"
+               (dayClick)="onDayClick($event)"
+               (hoverChange)="dayHover.emit($event ? { day, events: eventsByDay.get(day.key) ?? noEvents, element: $event } : null)" />
+    }
   </div>
-  <div id="days-container">
-    <div class="filler"
-         *ngFor="let filler of fillerDays"></div>
-    <app-day *ngFor="let day of month.days"
-             [day]="day"
-             [events]="this.eventsByDay[day.number]"
-             [canCreateNewEvent]="canCreateNewEvent"
-             (onDayClick)="onDayClickEvent($event)"></app-day>
-  </div>
-</div>
+</section>

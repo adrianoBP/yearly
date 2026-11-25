@@ -1,20 +1,18 @@
-import { Component, Inject } from '@angular/core';
-import { Day, Month, WeekDay } from '../../interfaces/month.interface';
-import { CommonModule, KeyValue } from '@angular/common';
-import { MonthComponent } from './month/month.component';
-import { GoogleCalendarEvent, GoogleCalendar } from '../../services/google/calendar.service';
-import { Event, EventDisplayDetails } from '../../interfaces/event.interface';
+import { ChangeDetectorRef, Component, HostListener, NgZone } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import moment from 'moment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
-  faBan,
   faCalendarPlus,
   faChevronLeft,
   faChevronRight,
   faCog,
   faSignOutAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import { Router } from '@angular/router';
+import { Day, Month } from '../../interfaces/month.interface';
+import { DayHover, MonthComponent } from './month/month.component';
+import { GoogleCalendarEvent, GoogleCalendar } from '../../services/google/calendar.service';
+import { Event, EventDisplayDetails } from '../../interfaces/event.interface';
 import { CalendarService } from '../../services/api/calendar.service';
 import { Settings, SettingsService } from '../../services/settings.service';
 import { WindowContainerComponent } from '../../windows/window-container/window-container.component';
@@ -22,38 +20,29 @@ import { WindowsService } from '../../windows/windows.service';
 import { EventsListParameters } from '../../windows/events-list/events-list.component';
 import { EditEventParameters } from '../../windows/event-edit/event-edit.component';
 import { UtilService } from '../../services/util.service';
-import {
-  trigger,
-  state,
-  style,
-  transition,
-  animate,
-  query,
-  animateChild,
-} from '@angular/animations';
-import { MobileUtilService } from '../../services/mobile.util.service';
 import { AuthService } from '../../services/api/auth.service';
 import { UserService } from '../../services/api/user.service';
+import { bucketEventsByDay, dayKey } from './events-by-day';
+import { withViewTransition } from '../../view-transition';
+import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
+
+const TEMP_EVENT_ID = 'temp-id';
+// Per browser tab: a reload (or coming back from settings) keeps the year, a new tab starts at today
+const YEAR_KEY = 'yearly.year';
+
+function savedYear(): number | null {
+  const year = Number(sessionStorage.getItem(YEAR_KEY));
+  return Number.isInteger(year) && year >= 1900 && year <= 2200 ? year : null;
+}
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, FontAwesomeModule, MonthComponent, WindowContainerComponent],
+  imports: [FontAwesomeModule, RouterLink, MonthComponent, WindowContainerComponent, DatePickerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
-  animations: [
-    trigger('inOutPaneAnimation', [
-      state('open', style({ 'background-color': 'rgba(0, 0, 0, 0.5)' })),
-      transition(':enter', [animate('0.2s ease-in-out'), query('@swipe', animateChild())]),
-      transition(':leave', [
-        query('@swipe', animateChild()),
-        animate('0.2s ease-in-out', style({ 'background-color': 'rgba(0, 0, 0, 0)' })),
-      ]),
-    ]),
-  ],
 })
 export class HomeComponent {
   // FontAwesome icons
-  banIcon = faBan;
   chevronLeftIcon = faChevronLeft;
   chevronRightIcon = faChevronRight;
   cogIcon = faCog;
@@ -67,172 +56,188 @@ export class HomeComponent {
   };
 
   currentYear = new Date().getFullYear();
+  year: number = savedYear() ?? this.currentYear;
+  months: Month[] = [];
 
-  year: number = new Date().getFullYear();
-  months: { [key: string]: Month } = {};
+  /** Raw events of the displayed year; eventsByDay is derived from it */
+  private events: Event[] = [];
+  // shortcut: lives as long as this page, so returning from settings refetches; fine while settings can change what is shown
+  private yearCache = new Map<number, Event[]>();
+  eventsByDay = new Map<string, Event[]>();
 
   calendars: GoogleCalendar[] = [];
 
+  newEventStart: Date | null = null;
+
+  /** Hover preview of a day's events (pointer devices only) */
+  preview: { day: Day; events: Event[]; left: number; top: number; above: boolean } | null = null;
+  private readonly canHover = matchMedia('(hover: hover)').matches;
+
   constructor(
-    @Inject(Router) public router: Router,
     public authService: AuthService,
     public calendarService: CalendarService,
     private settingsService: SettingsService,
     public windowsService: WindowsService,
     private utilService: UtilService,
-    private mobileUtilService: MobileUtilService,
-    private userService: UserService
+    private userService: UserService,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {
     this.buildMonths();
   }
 
   async ngOnInit() {
-    this.settingsService.setStyle();
-
-    this.addPageEventListeners();
-
     this.settings = this.settingsService.getSettings();
 
     this.calendars = await this.calendarService.getCalendars();
     this.loadEventsIntoCalendars();
-    this.mobileUtilService.scrollTodayIntoView();
+  }
+
+  onDayHover(hover: DayHover | null) {
+    if (!hover || !this.canHover || this.calendarService.isAddingEvent || this.windowsService.anyWindowOpen()) {
+      this.preview = null;
+      return;
+    }
+    const rect = hover.element.getBoundingClientRect();
+    const width = 256; // matches .preview width in CSS
+    const estimatedHeight = 52 + Math.min(hover.events.length, 5) * 30;
+    const above = rect.bottom + 8 + estimatedHeight > innerHeight;
+    this.preview = {
+      day: hover.day,
+      events: [...hover.events].sort((a, b) => a.startMoment.valueOf() - b.startMoment.valueOf()),
+      left: Math.min(Math.max(rect.left + rect.width / 2 - width / 2, 8), innerWidth - width - 8),
+      top: above ? rect.top - 8 : rect.bottom + 8,
+      above,
+    };
+  }
+
+  /** Shows the year of `value` (YYYY-MM-DD), then pulses and focuses that day */
+  jumpTo(value: string) {
+    const date = moment(value, 'YYYY-MM-DD', true);
+    if (!date.isValid()) return;
+
+    const highlight = () => {
+      const day = document.getElementById(`day-${date.date()}-${date.month()}-${date.year()}`);
+      day?.scrollIntoView({ block: 'center', behavior: 'smooth' }); // phones scroll; no-op when it all fits
+      day?.focus({ preventScroll: true });
+      day?.animate(
+        [
+          { boxShadow: '0 0 0 0 rgb(37 99 235 / 0.55)' },
+          { boxShadow: '0 0 0 8px rgb(37 99 235 / 0)' },
+        ],
+        { duration: 800, iterations: 3, easing: 'ease-out' }
+      );
+    };
+
+    if (date.year() === this.year) highlight();
+    else this.changeYear(date.year()).then(highlight);
+  }
+
+  previewTime(event: Event): string {
+    const time = (m: moment.Moment) => m.format('HH:mm');
+    const allDay = time(event.startMoment) === '00:00' && time(event.endMoment) === '00:00';
+    if (allDay || (!event.isFirstDay && !event.isLastDay)) return 'All day';
+    if (event.isFirstDay && event.isLastDay) return `${time(event.startMoment)} – ${time(event.endMoment)}`;
+    return event.isFirstDay ? `From ${time(event.startMoment)}` : `Until ${time(event.endMoment)}`;
+  }
+
+  ngAfterViewInit() {
+    // Phones scroll through the months: start at today
+    if (matchMedia('(max-width: 768px), (max-height: 500px)').matches)
+      document.querySelector('app-day .today')?.scrollIntoView({ block: 'center' });
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscape(event: KeyboardEvent) {
+    // Escape in a dropdown or date picker only closes that
+    if ((event.target as Element)?.closest?.('select, [popover]')) return;
+    // TODO: settings #6
+    this.windowsService.backAllWindows();
   }
 
   buildMonths() {
-    this.months = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const monthName = new Intl.DateTimeFormat(undefined, { month: 'long' });
+    const dayLabel = new Intl.DateTimeFormat(undefined, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
 
-    const date = moment().set('year', this.year).set('month', 0).set('date', 1).toDate();
-
-    while (date.getFullYear() === this.year) {
-      const monthName = this.getMonthName(date);
-      const monthNumber = date.getMonth();
-
+    this.months = Array.from({ length: 12 }, (_, monthNumber) => {
       const days: Day[] = [];
-
-      do {
+      const date = new Date(this.year, monthNumber, 1);
+      for (; date.getMonth() === monthNumber; date.setDate(date.getDate() + 1)) {
+        const day = new Date(date);
         days.push({
-          number: date.getDate(),
-          weekDay: date.toLocaleString('default', {
-            weekday: 'short',
-          }) as WeekDay,
-          date: new Date(date),
+          number: day.getDate(),
+          weekDay: (day.getDay() + 6) % 7,
+          date: day,
+          key: dayKey(day),
+          label: dayLabel.format(day),
+          isToday: day.getTime() === today.getTime(),
+          isPast: day < today,
         });
-        date.setDate(date.getDate() + 1);
-      } while (monthName === this.getMonthName(date));
-
-      this.months[monthName] = {
-        name: monthName,
-        number: monthNumber,
-        days,
-        startMoment: moment(`${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-01`),
-        endMoment: moment(
-          `${this.year}-${(monthNumber + 1).toString().padStart(2, '0')}-${days.length}`
-        ),
-        events: [],
-      } as Month;
-    }
-  }
-
-  addPageEventListeners(): void {
-    // Read for Escape button to close windows
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        // TODO: settings #6
-        this.windowsService.backAllWindows();
       }
+      return {
+        name: monthName.format(new Date(this.year, monthNumber, 1)),
+        number: monthNumber,
+        isCurrent: this.year === today.getFullYear() && monthNumber === today.getMonth(),
+        days,
+      };
     });
   }
 
   isEventDeclined(event: GoogleCalendarEvent): boolean {
-    if (event.attendees == null) return false;
+    return event.attendees?.some((a) => a.self && a.responseStatus === 'declined') ?? false;
+  }
 
-    for (const attendee of event.attendees) {
-      if (attendee.self && attendee.responseStatus === 'declined') return true;
-    }
-
-    return false;
+  private setEvents(events: Event[]) {
+    this.events = events;
+    // Keep local edits when coming back to this year
+    this.yearCache.set(this.year, events);
+    this.eventsByDay = bucketEventsByDay(events, this.year);
   }
 
   addEventsToCalendar(events: Event[]) {
-    for (const event of events) {
-      // If the start of the event is in the previous year, we want the beginning of the year
-      const statMonthNumber = event.startMoment.year() < this.year ? 0 : event.startMoment.month();
-      // If the end of the event is in the next year, we want the end of the year
-      let endMonthNumber = event.endMoment.year() > this.year ? 11 : event.endMoment.month();
-
-      // If the end month is in the next year, set it to the last day of the current year
-      if (event.endMoment.year() > this.year) endMonthNumber = 11;
-
-      // Loop through the months
-      for (let monthNumber = statMonthNumber; monthNumber <= endMonthNumber; monthNumber++) {
-        const date = moment()
-          .set('year', this.year)
-          .set('month', monthNumber)
-          .set('date', 1)
-          .toDate();
-        const monthName = this.getMonthName(date);
-        this.months[monthName].events.push(event);
-        this.months[monthName].events = [...this.months[monthName].events];
-      }
-    }
+    this.setEvents([...this.events, ...events]);
   }
 
   removeEventsFromCalendar(eventsId: string[]): void {
-    // Remove the event from all the months
-    for (let monthNumber = 0; monthNumber <= 11; monthNumber++) {
-      const date = moment()
-        .set('year', this.year)
-        .set('month', monthNumber)
-        .set('date', 1)
-        .toDate();
-      const monthName = this.getMonthName(date);
-      this.months[monthName].events = this.months[monthName].events.filter(
-        (event) => !eventsId.includes(event.id)
-      );
-    }
+    this.setEvents(this.events.filter((event) => !eventsId.includes(event.id)));
   }
 
-  async loadEventsIntoCalendars() {
-    const yearStart = moment()
-      .set('year', this.year)
-      .set('month', 0)
-      .set('date', 1)
-      .set('hour', 0)
-      .set('minute', 0)
-      .set('second', 0)
-      .toDate();
-    const yearEnd = moment()
-      .set('year', this.year)
-      .set('month', 11)
-      .set('date', 31)
-      .set('hour', 23)
-      .set('minute', 59)
-      .set('second', 59)
-      .toDate();
-
-    // for now used only to ensure that the user is logged in
-    await this.calendarService.getSettings();
-
-    try {
-      this.isLoading = true;
-      const promises = this.calendars
+  /** Fetches every enabled calendar's events for a year, in parallel */
+  private async fetchYear(year: number): Promise<Event[]> {
+    const start = new Date(year, 0, 1);
+    const end = new Date(year, 11, 31, 23, 59, 59);
+    const perCalendar = await Promise.all(
+      this.calendars
         .filter(
           (calendar) =>
             this.settings.calendars.find((cal) => cal.id === calendar.id)?.allowed ?? false
-        ) // Only calendars that are enabled
-        .map((calendar) => this.loadEventsIntoCalendar(calendar, yearStart, yearEnd)); // Load events for each calendar in parallel
-
-      await Promise.all(promises);
-    } finally {
-      this.isLoading = false;
-    }
+        )
+        .map((calendar) => this.fetchCalendarEvents(calendar, start, end))
+    );
+    return perCalendar.flat();
   }
 
-  async loadEventsIntoCalendar(calendar: GoogleCalendar, start: Date, end: Date): Promise<void> {
+  private async fetchCalendarEvents(
+    calendar: GoogleCalendar,
+    start: Date,
+    end: Date
+  ): Promise<Event[]> {
     try {
       const calendarSettings = this.settings.calendars.find((cal) => cal.id === calendar.id);
 
-      let events = (await this.calendarService.getEvents(start, end, calendar.id))
+      // The colour palette is cached and shared, so it loads alongside the events
+      const [googleEvents, eventColours] = await Promise.all([
+        this.calendarService.getEvents(start, end, calendar.id),
+        this.calendarService.getEventColours(),
+      ]);
+
+      return googleEvents
         // remove recurring and declined events
         .filter(
           (event) =>
@@ -242,30 +247,81 @@ export class HomeComponent {
             (calendarSettings?.showDeclinedEvents || !this.isEventDeclined(event))
         )
         .map((event) =>
-          this.utilService.googleEventToEvent(event, calendar.backgroundColor, calendar.id)
+          this.utilService.googleEventToEvent(
+            event,
+            (event.colorId && eventColours[event.colorId]) || calendar.backgroundColor,
+            calendar.id
+          )
         );
-
-      this.addEventsToCalendar(events);
     } catch (e) {
       console.log(e);
+      return [];
     }
   }
 
-  async changeYear(newYear: number) {
-    if (this.isLoading) return;
+  /** Shows the year from cache straight away, then refreshes it and prefetches its neighbours */
+  async loadEventsIntoCalendars() {
+    const year = this.year;
+    this.setEvents(this.yearCache.get(year) ?? []);
+    this.isLoading = true;
+    try {
+      const events = await this.fetchYear(year);
+      this.yearCache.set(year, events);
+      if (year === this.year) this.setEvents(events);
+    } finally {
+      if (year === this.year) this.isLoading = false;
+    }
 
-    this.year = newYear;
-    this.buildMonths();
-    this.calendars = await this.calendarService.getCalendars();
-    this.loadEventsIntoCalendars();
+    for (const neighbour of [year - 1, year + 1]) {
+      if (!this.yearCache.has(neighbour))
+        this.fetchYear(neighbour).then((events) => {
+          if (!this.yearCache.has(neighbour)) this.yearCache.set(neighbour, events);
+        });
+    }
+  }
+
+  changeYear(newYear: number): Promise<void> {
+    const direction = newYear > this.year ? 'next' : newYear < this.year ? 'prev' : '';
+    return withViewTransition(
+      this.ngZone,
+      () => {
+        this.preview = null;
+        this.cancelNewEvent();
+        this.year = newYear;
+        sessionStorage.setItem(YEAR_KEY, String(newYear));
+        this.buildMonths();
+        this.loadEventsIntoCalendars();
+        this.cdr.detectChanges();
+      },
+      direction
+    );
   }
 
   toggleAddEvent() {
     this.calendarService.isAddingEvent = !this.calendarService.isAddingEvent;
+    if (!this.calendarService.isAddingEvent) this.cancelNewEvent();
   }
 
-  newEventStart: Date | null = null;
-  newEventEnd: Date | null = null;
+  private cancelNewEvent() {
+    this.newEventStart = null;
+    this.removeEventsFromCalendar([TEMP_EVENT_ID]);
+  }
+
+  private tempEvent(start: Date, end: Date): EventDisplayDetails {
+    const calendar = this.calendars.find((c) => c.primary) ?? this.calendars[0];
+    return {
+      id: TEMP_EVENT_ID,
+      title: '',
+      colour: calendar?.backgroundColor ?? '#2563eb',
+      eventType: 'default',
+      creator: { email: this.userService.emailAddress },
+      calendarId: calendar?.id,
+      startMoment: moment(start),
+      endMoment: moment(end),
+      canEdit: true,
+    } as EventDisplayDetails;
+  }
+
   onDayClickEvent({
     date,
     events,
@@ -275,79 +331,12 @@ export class HomeComponent {
     events: Event[];
     mouseEvent: MouseEvent;
   }) {
+    this.preview = null;
     // If user clicks on the left side of the screen, open the window on the right side and vice versa
     const side = mouseEvent.clientX < window.innerWidth / 2 ? 'right' : 'left';
 
     if (this.calendarService.isAddingEvent) {
-      // TODO: Add to separate functions
-      if (this.newEventStart == null) {
-        this.newEventStart = date;
-        return;
-      }
-
-      if (this.newEventEnd == null) {
-        // Add one day to the end date
-        this.newEventEnd = new Date(date);
-
-        // If end is before start, swap them
-        if (this.newEventEnd < this.newEventStart) {
-          const temp = this.newEventEnd;
-          this.newEventEnd = this.newEventStart;
-          this.newEventStart = temp;
-        }
-
-        // Add an extra day to the end date to make it inclusive (full day events reset at midnight of the next day)
-        if (this.newEventStart.getDate() != this.newEventEnd.getDate()) {
-          this.newEventStart.setHours(0, 0, 0, 0);
-          this.newEventEnd.setHours(0, 0, 0, 0);
-          this.newEventEnd.setDate(this.newEventEnd.getDate() + 1);
-        } else {
-          // Add one hour to the end time for practicality
-          this.newEventEnd.setHours(this.newEventEnd.getHours() + 1);
-        }
-      }
-
-      const newEvent = {
-        id: 'temp-id',
-        title: '',
-        colour: '#ff0000',
-        eventType: 'default',
-        creator: {
-          email: this.userService.emailAddress,
-        },
-        calendarId: this.calendars[0].id,
-
-        startMoment: moment(this.newEventStart),
-        endMoment: moment(this.newEventEnd),
-        canEdit: true,
-      } as EventDisplayDetails;
-
-      this.addEventsToCalendar([newEvent]);
-
-      this.windowsService.openWindow(
-        'edit-event',
-        {
-          event: newEvent,
-          isNewEvent: true,
-        } as EditEventParameters,
-        side,
-        (createdEvent: Event) => {
-          if (createdEvent) {
-            this.addEventsToCalendar([createdEvent]);
-          }
-          // Remove the temporary event from the calendar
-          this.removeEventsFromCalendar([newEvent.id]);
-          this.newEventStart = null;
-          this.newEventEnd = null;
-        },
-        () => {
-          // Remove the temporary event from the calendar
-          this.removeEventsFromCalendar([newEvent.id]);
-          this.newEventStart = null;
-          this.newEventEnd = null;
-        }
-      );
-
+      this.pickNewEventDay(date, side);
       return;
     }
 
@@ -367,34 +356,56 @@ export class HomeComponent {
           } = { deletedEvents: [], updatedEvents: [] }
         ) => {
           // Reflect changes in the calendar
-
-          if (deletedEvents.length > 0) {
-            const deletedEventsIds = deletedEvents.map((event) => event.id);
-            this.removeEventsFromCalendar(deletedEventsIds);
-          }
-
-          if (updatedEvents.length > 0) {
-            this.removeEventsFromCalendar(updatedEvents.map((event) => event.id));
-            this.addEventsToCalendar(updatedEvents);
+          const changedIds = [...deletedEvents, ...updatedEvents].map((event) => event.id);
+          if (changedIds.length > 0) {
+            this.setEvents([
+              ...this.events.filter((event) => !changedIds.includes(event.id)),
+              ...updatedEvents,
+            ]);
           }
         }
       );
     }
   }
 
-  get todaysPercentage(): number {
-    const todayDay = moment.utc().dayOfYear();
-    const yearDays = moment.utc().isLeapYear() ? 366 : 365;
-    const percentage = (todayDay / yearDays) * 100;
-    return percentage;
-  }
+  private pickNewEventDay(date: Date, side: 'left' | 'right') {
+    if (this.newEventStart == null) {
+      this.newEventStart = date;
+      // Show the picked start day straight away
+      const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const nextDay = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1);
+      this.addEventsToCalendar([this.tempEvent(dayStart, nextDay)]);
+      return;
+    }
 
-  // UTIL functions
-  getMonthName(date: Date) {
-    return date.toLocaleString('default', { month: 'long' });
-  }
+    let start = new Date(this.newEventStart);
+    let end = new Date(date);
+    if (end < start) [start, end] = [end, start];
 
-  monthsOrder = (a: KeyValue<string, Month>, b: KeyValue<string, Month>): number => {
-    return a.value.number - b.value.number;
-  };
+    if (start.toDateString() !== end.toDateString()) {
+      // Full day events end at midnight of the next day
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      end.setDate(end.getDate() + 1);
+    } else {
+      // Add one hour to the end time for practicality
+      end.setHours(end.getHours() + 1);
+    }
+
+    const newEvent = this.tempEvent(start, end);
+    this.removeEventsFromCalendar([TEMP_EVENT_ID]);
+    this.addEventsToCalendar([newEvent]);
+
+    const cleanUp = () => this.cancelNewEvent();
+    this.windowsService.openWindow(
+      'edit-event',
+      { event: newEvent, isNewEvent: true } as EditEventParameters,
+      side,
+      (createdEvent: Event) => {
+        cleanUp();
+        if (createdEvent) this.addEventsToCalendar([createdEvent]);
+      },
+      cleanUp
+    );
+  }
 }

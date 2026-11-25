@@ -1,83 +1,162 @@
-<p class="font-xl bold margin-sides-auto margin-ends">
-       {{this.parameters.isNewEvent ? '✨ New Event ✨' : '✏️ Edit Event'}}</p>
+<header class="sheet-header">
+  <h2>{{ parameters.isNewEvent ? 'New event' : 'Edit event' }}</h2>
+  <button class="icon-btn"
+          aria-label="Close"
+          (click)="windowsService.back()">
+    <fa-icon [icon]="closeIcon" />
+  </button>
+</header>
 
-<div class="column padding margin-sides">
-       <label for="event-title"
-              class="font-m bold margin-ends">Title</label>
-       <input type="text"
-              id="event-title"
-              placeholder="Event title"
-              [(ngModel)]="this.parameters.event.title"
-              [disabled]="!this.parameters.event.canEdit"
-              (keyup.enter)="saveChanges()">
-</div>
+<form class="sheet-body editor"
+      (ngSubmit)="saveChanges()">
+  <div class="title-row">
+    <span class="title-dot"
+          [style.background-color]="parameters.event.colorId ? parameters.event.colour : selectedCalendar?.backgroundColor ?? 'var(--border)'"></span>
+    <input type="text"
+           id="event-title"
+           class="title-input"
+           name="title"
+           placeholder="Add title"
+           aria-label="Title"
+           autocomplete="off"
+           [(ngModel)]="parameters.event.title"
+           [disabled]="!parameters.event.canEdit">
+  </div>
 
-<div class="column padding margin-sides">
-       <label for="event-start"
-              class="font-m bold">Start</label>
-       <div class="horizontal">
-              <input type="date"
-                     id="event-start"
-                     [(ngModel)]="eventStartDate"
-                     [disabled]="!this.parameters.event.canEdit">
-              <input type="time"
-                     id="event-start-time"
-                     class="margin-sides"
-                     [(ngModel)]="eventStartTime"
-                     [disabled]="!this.parameters.event.canEdit">
-       </div>
-</div>
+  <section class="group">
+    <fa-icon class="group-icon"
+             [icon]="clockIcon" />
+    <div class="group-body">
+      <label class="toggle-row">
+        <span>All day</span>
+        <input type="checkbox"
+               class="switch"
+               [checked]="isAllDay"
+               [disabled]="!parameters.event.canEdit"
+               (change)="toggleAllDay()">
+      </label>
 
-<div class="column padding margin-sides">
-       <label for="event-start"
-              class="font-m bold">End</label>
-       <div class="horizontal">
-              <input type="date"
-                     id="event-start"
-                     [(ngModel)]="eventEndDate"
-                     [disabled]="!this.parameters.event.canEdit">
-              <input type="time"
-                     id="event-start-time"
-                     class="margin-sides"
-                     [(ngModel)]="eventEndTime"
-                     [disabled]="!this.parameters.event.canEdit">
-       </div>
-</div>
+      <div class="when"
+           [class.all-day]="isAllDay">
+        <span class="when-label">Starts</span>
+        <app-date-picker label="Start date"
+                         [value]="eventStartDate"
+                         [disabled]="!parameters.event.canEdit"
+                         (valueChange)="eventStartDate = $event; onStartDateChange()" />
+        @if (!isAllDay) {
+          <input type="time"
+                 name="start-time"
+                 aria-label="Start time"
+                 [(ngModel)]="eventStartTime"
+                 [disabled]="!parameters.event.canEdit">
+        }
+      </div>
 
+      <div class="when"
+           [class.all-day]="isAllDay">
+        <span class="when-label">Ends</span>
+        <app-date-picker label="End date"
+                         [value]="eventEndDate"
+                         [min]="eventStartDate"
+                         [disabled]="!parameters.event.canEdit"
+                         (valueChange)="eventEndDate = $event" />
+        @if (!isAllDay) {
+          <input type="time"
+                 name="end-time"
+                 aria-label="End time"
+                 [(ngModel)]="eventEndTime"
+                 [disabled]="!parameters.event.canEdit">
+        }
+      </div>
+    </div>
+  </section>
 
-<div class="column padding margin margin-bottom-heavy">
-       <label for="event-calendar"
-              class="font-m bold margin-bottom">Calendar</label>
-       <div class="horizontal center-items-y">
+  <section class="group">
+    <fa-icon class="group-icon"
+             [icon]="calendarIcon" />
+    <div class="group-body">
+      <div class="calendar-select">
+        <span class="dot"
+              [style.background-color]="selectedCalendar?.backgroundColor ?? 'transparent'"></span>
+        <select name="calendar"
+                aria-label="Calendar"
+                [(ngModel)]="selectedCalendar"
+                [disabled]="!parameters.event.canEdit">
+          @for (calendar of calendars; track calendar.id) {
+            <option [ngValue]="calendar"><span class="opt-dot"
+                    [style.background-color]="calendar.backgroundColor"></span>{{ calendarService.getCalendarName(calendar) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </section>
 
-              <select id="event-calendar"
-                      [(ngModel)]="this.selectedCalendar"
-                      [disabled]="!this.parameters.event.canEdit">
-                     <option *ngFor="let calendar of calendars"
-                             [ngValue]="calendar">{{calendarService.getCalendarName(calendar)}}</option>
-              </select>
-              <div class="colour-indicator margin-sides"
-                   [ngClass]="{'raised': selectedCalendar != null}"
-                   [ngStyle]="{'background-color': selectedCalendar?.backgroundColor}"></div>
-       </div>
+  <section class="group">
+    <fa-icon class="group-icon"
+             [icon]="locationIcon" />
+    <div class="group-body">
+      <input type="text"
+             name="location"
+             placeholder="Add location"
+             aria-label="Location"
+             autocomplete="off"
+             [(ngModel)]="parameters.event.location"
+             [disabled]="!parameters.event.canEdit">
+    </div>
+  </section>
 
-</div>
+  <section class="group">
+    <fa-icon class="group-icon"
+             [icon]="descriptionIcon" />
+    <div class="group-body">
+      <textarea name="description"
+                rows="3"
+                placeholder="Add description"
+                aria-label="Description"
+                [(ngModel)]="parameters.event.description"
+                [disabled]="!parameters.event.canEdit"></textarea>
+    </div>
+  </section>
 
-<footer class="row margin-top-auto fill-width center-items-x">
-       <button id="back-button"
-               class="margin-sides-heavy margin-bottom-heavy primary bg-light"
-               *ngIf="!this.parameters.isNewEvent"
-               (click)="$event.stopPropagation(); windowsService.back()">Back</button>
+  @if (organiser || parameters.event.htmlLink) {
+    <div class="details">
+      @if (organiser) {
+        <span>Organised by {{ organiser }}</span>
+      }
+      @if (parameters.event.htmlLink) {
+        <a [href]="parameters.event.htmlLink"
+           target="_blank"
+           rel="noopener noreferrer">Open in Google Calendar
+          <fa-icon [icon]="externalIcon"
+                   size="xs" /></a>
+      }
+    </div>
+  }
 
-       <button id="save-button"
-               class="bg-primary margin-sides-heavy margin-bottom-heavy"
-               (click)="$event.stopPropagation(); saveChanges()"
-               [disabled]="!canSave || isSaving || !this.parameters.event.canEdit">
-              {{isSaving ? '' : 'Save'}}
-              <fa-icon *ngIf="isSaving"
-                       [icon]="fanIcon"
-                       [size]="'lg'"
-                       animation="spin">
-              </fa-icon>
-       </button>
+  @if (!parameters.event.canEdit) {
+    <p class="note">
+      <fa-icon [icon]="lockIcon"
+               size="sm" />
+      You can't edit this event here.
+    </p>
+  }
+
+  @if (saveError) {
+    <p class="note error"
+       role="alert">{{ saveError }}</p>
+  }
+
+  <!-- Lets Enter in any field submit the form -->
+  <button type="submit"
+          hidden></button>
+</form>
+
+<footer class="sheet-footer">
+  <button class="btn btn-ghost"
+          (click)="windowsService.back()">{{ parameters.isNewEvent ? 'Cancel' : 'Back' }}</button>
+  <button class="btn btn-primary"
+          (click)="saveChanges()"
+          [disabled]="!canSave || isSaving || !parameters.event.canEdit">
+    {{ isSaving ? 'Saving…' : 'Save' }}
+  </button>
 </footer>

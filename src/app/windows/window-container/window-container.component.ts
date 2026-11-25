@@ -1,50 +1,26 @@
 import { Component } from '@angular/core';
 import { EventsListComponent } from '../events-list/events-list.component';
 import { WindowsService } from '../windows.service';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { style, animate, transition, trigger } from '@angular/animations';
 import { EventEditComponent } from '../event-edit/event-edit.component';
-import { MobileUtilService } from '../../services/mobile.util.service';
 import { SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'app-window-container',
-  imports: [CommonModule, FormsModule, EventsListComponent, EventEditComponent],
+  imports: [EventsListComponent, EventEditComponent],
   templateUrl: './window-container.component.html',
   styleUrl: './window-container.component.css',
-  animations: [
-    trigger('swipe', [
-      transition(':enter', [
-        style({ transform: 'translate{{axis}}({{startPercentage}}%)' }),
-        animate('100ms', style({ transform: 'translate{{axis}}(0)' })),
-      ]),
-      transition(':leave', [
-        animate('100ms', style({ transform: 'translate{{axis}}({{startPercentage}}%)' })),
-      ]),
-    ]),
-  ],
 })
 export class WindowContainerComponent {
-  openingSide: string | null;
+  // Side of the first window; later windows stack on top of it
+  readonly side = this.windowsService.getOpenedWindow()?.side ?? 'left';
 
   constructor(
     public windowsService: WindowsService,
-    private mobileUtilService: MobileUtilService,
     public settingService: SettingsService
-  ) {
-    this.openingSide = this.mobileUtilService.isMobile()
-      ? null
-      : this.windowsService.getOpenedWindow()!.side;
-  }
+  ) {}
 
-  getParameters() {
-    return {
-      axis: this.mobileUtilService.isMobile() ? 'Y' : 'X',
-      startPercentage:
-        this.mobileUtilService.isMobile() || this.windowsService.getOpenedWindow()?.side === 'right'
-          ? 120
-          : -120,
-    };
+  onBackdropClick() {
+    if (this.settingService.getSettings().closeAllWindows) this.windowsService.backAllWindows();
+    else this.windowsService.back();
   }
 }
