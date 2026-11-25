@@ -39,6 +39,11 @@ body {
   height: 100%;
 }
 
+/* No blue flash on tapped buttons and sections (mobile browsers); pressed states give feedback instead */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: var(--font);
   font-size: 15px;

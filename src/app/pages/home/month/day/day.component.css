@@ -22,7 +22,6 @@
   color: var(--text);
   cursor: default;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .day.clickable {
@@ -31,6 +30,15 @@
 
 .day.past {
   color: var(--text-faint);
+}
+
+/* Weekends in brand blue (weekDay 5 and 6: Saturday and Sunday, weeks start on Monday) */
+.day.weekend {
+  color: var(--primary);
+}
+
+.day.weekend.past {
+  color: #a9c1f5;
 }
 
 /* Rounded chip with room around the digits (shape used for today and hover) */
@@ -73,7 +81,9 @@
     background: color-mix(in srgb, var(--hover-c, var(--text)) 12%, transparent);
   }
 
-  .day.clickable:not(.adding):hover .line {
+  /* .grow is set by HomeComponent on every day of the hovered day's events */
+  .day.clickable:not(.adding):hover .line,
+  .line.grow {
     transform: scaleY(1.4);
   }
 

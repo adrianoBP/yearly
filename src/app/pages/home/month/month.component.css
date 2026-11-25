@@ -17,10 +17,23 @@ h2 {
   font-size: clamp(0.72rem, 5.5cqw, 1.1rem);
   font-weight: 650;
   letter-spacing: -0.01em;
+  color: #1e3a8a;
 }
 
 .current h2 {
   color: var(--primary);
+}
+
+/* The amber "highlight" from the logo marks the current month */
+.current h2::after {
+  content: '';
+  display: inline-block;
+  width: 0.4em;
+  aspect-ratio: 1;
+  margin-left: 0.3em;
+  vertical-align: 0.15em;
+  background: #fbbf24;
+  border-radius: 50%;
 }
 
 .grid {
@@ -36,4 +49,9 @@ h2 {
   font-size: clamp(0.55rem, 3.4cqw, 0.72rem);
   font-weight: 600;
   color: var(--text-faint);
+}
+
+/* Weeks always start on Monday, so columns 6 and 7 are the weekend */
+.weekday:nth-child(n + 6) {
+  color: #7ca1f3;
 }

@@ -11,6 +11,7 @@ export class GoogleUserService {
   async getUserInfo(): Promise<User> {
     const url = `${this.baseUrl}/userinfo `;
     const response = await this.googleAuthService.makeRequest<User>(url, 'get');
+    localStorage.setItem(GoogleAuthService.LOGIN_HINT_KEY, response.email);
     return response;
   }
 }

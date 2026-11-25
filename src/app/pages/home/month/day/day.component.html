@@ -3,6 +3,7 @@
         [id]="'day-' + day.number + '-' + day.date.getMonth() + '-' + day.date.getFullYear()"
         [class.today]="day.isToday"
         [class.past]="day.isPast"
+        [class.weekend]="day.weekDay >= 5"
         [class.clickable]="isAddingEvent || events.length > 0"
         [class.adding]="isAddingEvent"
         [style.--hover-c]="events.length ? events[0].colour : null"
@@ -25,6 +26,7 @@
         aria-hidden="true">
     @for (event of visibleEvents; track event.id) {
       <span class="line"
+            [attr.data-event]="event.id"
             [class.start]="event.isFirstDay"
             [class.end]="event.isLastDay"
             [style.--c]="event.colour"

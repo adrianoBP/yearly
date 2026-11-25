@@ -15,6 +15,8 @@ export class GoogleAuthService {
   isLoggedIn?: boolean = false;
 
   private ACCESS_TOKEN_KEY = 'googleAccessToken';
+  /** Email of the signed-in account (saved by GoogleUserService), so signing in again skips the account picker */
+  static readonly LOGIN_HINT_KEY = 'googleLoginHint';
   private tokenDetails: TokenDetails | null = null;
 
   googleProvider!: GoogleOAuthProvider;
@@ -59,11 +61,15 @@ export class GoogleAuthService {
 
   private async requestToken(): Promise<SuccessTokenResponse> {
     await this.scriptReady;
+    const hint = localStorage.getItem(GoogleAuthService.LOGIN_HINT_KEY) ?? undefined;
     return new Promise((resolve, reject) => {
       // Google calls back outside Angular's zone; re-enter it so the app re-renders without an extra click
       this.googleProvider.useGoogleLogin({
         flow: 'implicit',
         scope: this.utilService.googleLoginScopes,
+        // Known account: Google skips the picker and consent, so the popup closes by itself
+        prompt: hint ? '' : 'select_account',
+        hint,
         onSuccess: (res) =>
           this.ngZone.run(() => {
             this.tokenDetails = {
@@ -85,6 +91,8 @@ export class GoogleAuthService {
     this.tokenDetails = null;
     this.isLoggedIn = false;
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+    // A deliberate log out shows the account picker next time, to allow switching accounts
+    localStorage.removeItem(GoogleAuthService.LOGIN_HINT_KEY);
   }
 
   async makeRequest<T>(

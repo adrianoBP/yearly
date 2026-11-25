@@ -108,6 +108,7 @@ export class HomeComponent {
   }
 
   onDayHover(hover: DayHover | null) {
+    this.growEventLines(this.canHover && !this.calendarService.isAddingEvent ? hover?.events ?? [] : []);
     if (!hover || !this.canHover || this.calendarService.isAddingEvent || this.windowsService.anyWindowOpen()) {
       this.preview = null;
       return;
@@ -123,6 +124,18 @@ export class HomeComponent {
       top: above ? rect.top - 8 : rect.bottom + 8,
       above,
     };
+  }
+
+  private grownLines: Element[] = [];
+
+  /** Grows every day's line of these events, so a multi-day event grows as a whole.
+   *  Done on the DOM: re-rendering ~365 day cells on every hover would be wasteful. */
+  private growEventLines(events: Event[]) {
+    this.grownLines.forEach((line) => line.classList.remove('grow'));
+    this.grownLines = events.flatMap((event) =>
+      Array.from(document.querySelectorAll(`.line[data-event="${CSS.escape(event.id)}"]`))
+    );
+    this.grownLines.forEach((line) => line.classList.add('grow'));
   }
 
   /** Shows the year of `value` (YYYY-MM-DD), then pulses and focuses that day */
