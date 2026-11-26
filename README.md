@@ -7,7 +7,7 @@ planner, a year in review, questions about your calendar, and notifications.
 It's an Angular app hosted on Firebase. It talks to Google Calendar straight from the browser, and a small optional
 server on your own VPS adds notifications and a few APIs that browsers can't call.
 
-![The year at a glance](docs/screenshots/home.jpg)
+![The year at a glance](docs/screenshots/home.png)
 
 - [Features](#features)
 - [Settings and API keys](#settings-and-api-keys)
@@ -38,7 +38,7 @@ Press **Ctrl+K** (or **/**), or the 🔍 button. Search finds events by title or
 upcoming ones first. Type a date such as "5 march" or "next friday" to jump to it, or the name of a tool to open it.
 Everything runs on your device.
 
-![Quick search](docs/screenshots/search.jpg)
+![Quick search](docs/screenshots/search.png)
 
 ### Countdowns
 
@@ -62,7 +62,7 @@ Opening an event shows extra details underneath when they apply:
 - **Crowd and traffic alerts:** concerts, shows and matches near the venue around the same time (free Ticketmaster
   or football-data.org key), and with your home address and a TomTom key, when to leave.
 
-![Event details](docs/screenshots/event.jpg)
+![Event details](docs/screenshots/event.png)
 
 ### Tools in the ••• More menu
 
@@ -72,7 +72,7 @@ Opening an event shows extra details underneath when they apply:
 - **Leave planner:** bank holidays for your country and region, and the best days to take off around them.
 - **Year in review:** charts of your year: busiest days and months, calendars, places, trips and more.
 
-![Year in review](docs/screenshots/year-review.jpg)
+![Year in review](docs/screenshots/year-review.png)
 
 ### Notifications
 
@@ -99,7 +99,7 @@ alerts the next time Yearly opens.
 
 ## Settings and API keys
 
-![Settings](docs/screenshots/settings.jpg)
+![Settings](docs/screenshots/settings.png)
 
 **Settings** has:
 
