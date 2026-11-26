@@ -18,6 +18,10 @@
   <h1>See your whole year<br>at a glance.</h1>
   <p class="lead">Yearly gives you a bird's-eye view of all twelve months. Plan holidays, spot busy stretches
     and keep long-term goals in sight.</p>
+  @if (authService.signInError) {
+    <p class="sign-in-error"
+       role="alert">{{ authService.signInError }}</p>
+  }
   <button class="btn btn-primary btn-lg"
           (click)="login()">
     <fa-icon [icon]="googleIcon" />

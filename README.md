@@ -5,7 +5,7 @@ each event, and adds a few helpers on top: quick search, countdowns, travel and 
 planner, a year in review, questions about your calendar, and notifications.
 
 It's an Angular app hosted on Firebase. It talks to Google Calendar straight from the browser, and a small optional
-server on your own VPS adds notifications and a few APIs that browsers can't call.
+server on your own VPS keeps you signed in, and adds notifications and a few APIs that browsers can't call.
 
 ![The year at a glance](docs/screenshots/home.png)
 
@@ -129,7 +129,9 @@ Weather (Open-Meteo), places (OpenStreetMap) and bank holidays (Nager.Date) need
 
 ## Privacy
 
-- Google Calendar is read and changed straight from your browser with your own Google sign-in.
+- Google Calendar is read and changed straight from your browser with your own Google sign-in. To keep you signed in,
+  the Yearly server holds Google's long-lived sign-in token, encrypted with a key only your device has. Logging out
+  revokes it at Google and deletes it.
 - API keys stay in your browser and your own Google Drive. Requests go from your device to each service, except
   football-data.org (and Ticketmaster when the browser can't reach it), which pass through the Yearly server without
   being stored or logged.
@@ -147,8 +149,13 @@ You need a Google account, a Firebase project and Node.js 18 or newer.
    1. Enable the **Google Calendar API** and the **Google Drive API**.
    2. In **Google Auth Platform**, set up the consent screen and add these scopes under **Data Access**:
       `calendar.readonly`, `calendar.events` and `drive.appdata`.
-   3. Create an **OAuth client ID** of type **Web application**, and add your site's address (and
-      `http://localhost:4200` for development) to **Authorised JavaScript origins**.
+   3. Create an **OAuth client ID** of type **Web application**. Add each address the app is opened from (your
+      domain, Firebase's `web.app` and `firebaseapp.com` ones, and `http://localhost:4200` for development) to
+      **Authorised JavaScript origins**, and the same addresses with a `/` on the end, such as
+      `https://yearly.your-domain.com/`, to **Authorised redirect URIs**: sign-in comes back there.
+   4. Copy the client's **secret** into the `GOOGLE_CLIENT_SECRET` secret on GitHub (see [Secrets](#secrets)). It
+      lets the Yearly server keep you signed in; without it, each sign-in lasts an hour.
+   5. Under **Audience**, publish the app. While it's in **Testing**, Google ends sign-ins after 7 days.
 2. In `src/app/app.config.ts`, set `googleClientId` to your client ID.
 3. Set up [deploying from GitHub](#deploying).
 
@@ -178,6 +185,7 @@ stay out of the repository and are hidden in the public logs.
 | `VPS_USER` | The server | The user GitHub logs in as: `root`, or a user allowed to run `sudo` without a password. Defaults to `root` |
 | `VPS_SSH_KEY` | The server | The private SSH key GitHub logs in with (see below) |
 | `LETSENCRYPT_EMAIL` | The server's first deploy | Your email address, for the free HTTPS certificate. Setting it means you accept the [Let's Encrypt terms](https://letsencrypt.org/repository/) |
+| `GOOGLE_CLIENT_SECRET` | Staying signed in | The OAuth client's secret, from Google Auth Platform → Clients (see [setup](#set-up-your-own-copy)) |
 
 Without the server secrets, the app still deploys, with the features that need the server switched off.
 

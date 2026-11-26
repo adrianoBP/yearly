@@ -23,6 +23,16 @@ export class AuthService {
     return this.authService.isLoggedIn || false;
   }
 
+  get signInError(): string {
+    return this.authService.signInError;
+  }
+
+  /** Finishes a sign-in coming back from Google, then loads the account; runs before the first page (app.config.ts) */
+  async init(): Promise<void> {
+    await this.authService.completeSignIn();
+    if (this.isLoggedIn) this.userService.loadUserInfo().catch(console.warn);
+  }
+
   async getAccessTokenAsync(): Promise<void> {
     if (this.authService.isLoggedIn) return;
 

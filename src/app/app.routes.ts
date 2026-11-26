@@ -3,14 +3,12 @@ import { inject } from '@angular/core';
 import { AuthService } from './services/api/auth.service';
 import { LandingComponent } from './pages/landing/landing.component';
 
-const isLoggedIn: CanActivateFn = () => {
-  const authService = inject(AuthService);
-  if (!authService.isLoggedIn) inject(Router).navigate(['/']);
-  return true;
-};
+// Redirects happen before anything renders, so a signed-in start never shows the landing page first
+const isLoggedIn: CanActivateFn = () => inject(AuthService).isLoggedIn || inject(Router).createUrlTree(['/']);
+const isLoggedOut: CanActivateFn = () => !inject(AuthService).isLoggedIn || inject(Router).createUrlTree(['/home']);
 
 export const routes: Routes = [
-  { path: '', component: LandingComponent },
+  { path: '', component: LandingComponent, canActivate: [isLoggedOut] },
   {
     path: 'home',
     loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),

@@ -4,14 +4,15 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { cleanAlerts, createServer, encrypt, upstreamUrl, validSubscription, vapidAuthorization } from './yearly-server.mjs';
+import { cleanAlerts, createServer, encrypt, openToken, sealToken, upstreamUrl, validSubscription, vapidAuthorization } from './yearly-server.mjs';
 
 const tempDir = () => fs.mkdtempSync(path.join(os.tmpdir(), 'yearly-'));
 const ORIGIN = 'http://localhost:4200';
 
 /** A server on a free port, with a fake clock and a sender that records instead of posting */
-async function start() {
+async function start({ google = { clientId: 'id', clientSecret: 'secret' } } = {}) {
   const sent = [];
+  const googleCalls = [];
   const clock = { now: Date.UTC(2026, 10, 25, 9) };
   const app = createServer({
     dataDir: tempDir(),
@@ -20,6 +21,19 @@ async function start() {
     send: async (subscription, payload) => {
       sent.push({ endpoint: subscription.endpoint, payload });
       return subscription.endpoint.endsWith('gone') ? 410 : 201;
+    },
+    google,
+    // A fake Google: codes "good" and "noRefresh" succeed, refresh token "revoked" is refused
+    googleRequest: async (url, params) => {
+      googleCalls.push({ url, params });
+      if (url.endsWith('/revoke')) return { status: 200, body: {} };
+      if (params.grant_type === 'authorization_code') {
+        if (params.code === 'good') return { status: 200, body: { access_token: 'a1', expires_in: 3599, refresh_token: 'r1' } };
+        if (params.code === 'noRefresh') return { status: 200, body: { access_token: 'a1', expires_in: 3599 } };
+        return { status: 400, body: { error: 'invalid_grant' } };
+      }
+      if (params.refresh_token === 'revoked') return { status: 400, body: { error: 'invalid_grant' } };
+      return { status: 200, body: { access_token: 'a2', expires_in: 3599 } };
     },
   });
   await new Promise((resolve) => app.server.listen(0, resolve));
@@ -30,7 +44,7 @@ async function start() {
       headers: { Origin: origin, ...headers, ...(token && { Authorization: `Bearer ${token}` }), ...(body && { 'Content-Type': 'application/json' }) },
       body: body && JSON.stringify(body),
     });
-  return { app, sent, clock, call, close: () => app.server.close() };
+  return { app, sent, googleCalls, clock, call, close: () => app.server.close() };
 }
 
 const subscription = (endpoint = 'https://fcm.googleapis.com/fcm/send/abc') => ({
@@ -157,6 +171,87 @@ test('behind Apache, each visitor gets their own rate limit', async () => {
     for (let i = 0; i < 60; i++) await key('203.0.113.1');
     assert.equal((await key('203.0.113.1')).status, 429);
     assert.equal((await key('203.0.113.2')).status, 200);
+  } finally {
+    close();
+  }
+});
+
+const VERIFIER = 'v'.repeat(43);
+
+test('refresh tokens are sealed with the session secret', () => {
+  const session = crypto.randomBytes(32).toString('base64url');
+  const sealed = sealToken('r1', session);
+  assert.equal(openToken(sealed, session), 'r1');
+  assert.equal(openToken(sealed, crypto.randomBytes(32).toString('base64url')), null);
+  assert.ok(!sealed.includes('r1'));
+});
+
+test('signs in once, then hands out fresh access tokens until logged out', async () => {
+  const { app, googleCalls, call, close } = await start();
+  try {
+    const signIn = await call('POST', '/auth/token', { body: { code: 'good', redirectUri: `${ORIGIN}/`, codeVerifier: VERIFIER } });
+    assert.equal(signIn.status, 200);
+    const { session, accessToken, expiresIn } = await signIn.json();
+    assert.deepEqual([accessToken, expiresIn], ['a1', 3599]);
+    assert.equal(googleCalls[0].params.client_secret, 'secret');
+    assert.equal(googleCalls[0].params.code_verifier, VERIFIER);
+    // Only the hash of the secret and the sealed token are kept
+    const [[key, stored]] = Object.entries(app.sessions());
+    assert.notEqual(key, session);
+    assert.ok(!JSON.stringify(stored).includes('r1'));
+
+    const refresh = await call('POST', '/auth/refresh', { token: session });
+    assert.equal(refresh.status, 200);
+    assert.equal((await refresh.json()).accessToken, 'a2');
+    assert.equal(googleCalls[1].params.refresh_token, 'r1');
+
+    assert.equal((await call('POST', '/auth/refresh', { token: 'x'.repeat(43) })).status, 401);
+    assert.equal((await call('POST', '/auth/logout', { token: session })).status, 204);
+    assert.equal(googleCalls[2].params.token, 'r1');
+    assert.equal((await call('POST', '/auth/refresh', { token: session })).status, 401);
+  } finally {
+    close();
+  }
+});
+
+test('refuses bad sign-ins and forgets sessions Google revoked', async () => {
+  const { app, call, close } = await start();
+  try {
+    const signIn = (body) => call('POST', '/auth/token', { body: { code: 'good', redirectUri: `${ORIGIN}/`, codeVerifier: VERIFIER, ...body } });
+    assert.equal((await signIn({ redirectUri: 'https://evil.example/' })).status, 400);
+    assert.equal((await signIn({ codeVerifier: 'short' })).status, 400);
+    assert.equal((await signIn({ code: 'wrong' })).status, 400);
+    const noRefresh = await signIn({ code: 'noRefresh' });
+    assert.deepEqual([noRefresh.status, await noRefresh.json()], [400, { error: 'no_refresh_token' }]);
+    assert.equal((await call('POST', '/auth/token', { origin: 'https://evil.example', body: {} })).status, 403);
+
+    const session = crypto.randomBytes(32).toString('base64url');
+    const key = crypto.createHash('sha256').update(session).digest('hex');
+    app.sessions()[key] = { sealed: sealToken('revoked', session), usedAt: Date.now() };
+    assert.equal((await call('POST', '/auth/refresh', { token: session })).status, 401);
+    assert.equal(app.sessions()[key], undefined);
+  } finally {
+    close();
+  }
+});
+
+test('sign-in answers 503 without the client secret', async () => {
+  const { call, close } = await start({ google: {} });
+  try {
+    const response = await call('POST', '/auth/token', { body: {} });
+    assert.deepEqual([response.status, await response.json()], [503, { error: 'not_configured' }]);
+  } finally {
+    close();
+  }
+});
+
+test('unused sessions expire', async () => {
+  const { app, clock, close } = await start();
+  try {
+    app.sessions().old = { sealed: '', usedAt: clock.now - 181 * 24 * 3600 * 1000 };
+    app.sessions().recent = { sealed: '', usedAt: clock.now - 24 * 3600 * 1000 };
+    await app.tick();
+    assert.deepEqual(Object.keys(app.sessions()), ['recent']);
   } finally {
     close();
   }

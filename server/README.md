@@ -1,12 +1,15 @@
 # Yearly server
 
-One small Node file with no dependencies, for two jobs the browser can't do alone:
+One small Node file with no dependencies, for three jobs the browser can't do alone:
 
 - **Pass-through:** a few free APIs (football-data.org, sometimes Ticketmaster) don't allow calls from a browser.
   The server forwards those requests unchanged. It stores nothing and logs no keys.
 - **Notifications:** when Yearly opens on a device with notifications on, it works out the alerts for the next
   few days (leave early, weather, not enough time between events) and sends them here. The server sends each
-  one as a push notification when it's due, then deletes it. It never sees Google sign-ins or API keys.
+  one as a push notification when it's due, then deletes it. It never sees API keys.
+- **Staying signed in:** Google's browser sign-in lasts an hour, and renewing it needs the client secret, which can't
+  live in a browser. The server keeps Google's long-lived sign-in token, encrypted with a key only the signed-in
+  device has, and hands that device a fresh hour-long token when it asks.
 
 It always runs at `api.` followed by the app's own domain: for an app at `https://yearly.your-domain.com`, the server is
 `https://api.yearly.your-domain.com`. The app stays on Firebase; only the `api` name points at your VPS. (Firebase
@@ -52,7 +55,11 @@ updates the server over SSH, from the first install (Apache, Node.js, HTTPS cert
 3. **App:** add `https://api.yearly.your-domain.com` as the `SERVER_URL` secret in GitHub and deploy again
    (see [Deploying](../README.md#deploying)). The address never goes in the repository.
 
-Nothing else to configure: the notification keys are made on first start.
+The notification keys are made on first start. To keep users signed in, the server also needs the Google client
+secret: the GitHub deploy sends it from the `GOOGLE_CLIENT_SECRET` secret. By hand, put a `google.env` file next to
+`install.sh` before running it, with the lines `GOOGLE_CLIENT_ID=<the app's client ID>` and
+`GOOGLE_CLIENT_SECRET=<its secret>`. The script moves it to `/etc/yearly/google.env`, readable by root only.
+Without it, sign-ins last an hour.
 
 To update by hand: `git pull && sudo bash server/install.sh https://yearly.your-domain.com`. Later runs leave the
 Apache site and certificate alone and update the server and its allowed addresses.
@@ -69,6 +76,9 @@ Apache site and certificate alone and update the server and its allowed addresse
 - `vapid.json`: the server's notification keys. Deleting it stops notifications on every device until each opens Yearly again.
 - `devices.json`: each device's push address, a hash of its secret, and its upcoming alerts (title, time, short text).
   Alerts are deleted once sent, and a device that hasn't opened Yearly for 60 days is forgotten.
+- `sessions.json`: for each signed-in device, a hash of its session secret and Google's refresh token, encrypted with
+  a key made from that secret. The server never stores the secret, so this file alone can't reach anyone's calendar.
+  Logging out revokes the token at Google and deletes it; a session unused for 180 days is forgotten.
 
 ## Uninstall
 
@@ -76,7 +86,7 @@ Apache site and certificate alone and update the server and its allowed addresse
 sudo a2dissite yearly-api yearly-api-le-ssl && sudo systemctl reload apache2
 sudo certbot delete --cert-name api.yearly.your-domain.com
 sudo systemctl disable --now yearly
-sudo rm -r /etc/systemd/system/yearly.service /etc/apache2/sites-available/yearly-api*.conf /opt/yearly /var/lib/private/yearly
+sudo rm -r /etc/yearly /etc/systemd/system/yearly.service /etc/apache2/sites-available/yearly-api*.conf /opt/yearly /var/lib/private/yearly
 ```
 
 ## Run it on your computer
@@ -84,6 +94,8 @@ sudo rm -r /etc/systemd/system/yearly.service /etc/apache2/sites-available/yearl
 ```powershell
 $env:ALLOWED_ORIGINS = 'http://localhost:4200'; node server/yearly-server.mjs
 ```
+
+Sign-ins last an hour unless you also set `$env:GOOGLE_CLIENT_ID` and `$env:GOOGLE_CLIENT_SECRET` first.
 
 It listens on `http://localhost:8787`, where the app looks for it when opened on `localhost`, and keeps its data in
 `./data` (ignored by git). Notifications also need the app's service worker, so run the app with

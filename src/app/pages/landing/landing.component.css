@@ -54,6 +54,11 @@ h1 {
   color: var(--text-muted);
 }
 
+.sign-in-error {
+  max-width: 34rem;
+  color: var(--danger);
+}
+
 .btn-lg {
   height: 2.9rem;
   padding: 0 1.4rem;

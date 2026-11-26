@@ -1,4 +1,4 @@
-import { ApplicationConfig, isDevMode } from '@angular/core';
+import { ApplicationConfig, inject, isDevMode, provideAppInitializer } from '@angular/core';
 import {
   PreloadAllModules,
   provideRouter,
@@ -55,6 +55,8 @@ export const appConfig: ApplicationConfig = {
         'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/drive.appdata',
     },
     provideRouter(routes, withPreloading(PreloadAllModules), withViewTransitions()),
+    // A sign-in coming back from Google finishes before the first page is picked, so it opens on the calendar
+    provideAppInitializer(() => inject(AuthService).init()),
     provideHttpClient(),
     AuthService,
     UserService,

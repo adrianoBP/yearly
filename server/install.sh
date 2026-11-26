@@ -40,8 +40,14 @@ if [ "$("$NODE" -p 'process.versions.node.split(".")[0]')" -lt 18 ]; then
   exit 1
 fi
 
-# 1. The server, as a service; its keys and devices live in /var/lib/yearly
+# 1. The server, as a service; its keys, devices and sign-in sessions live in /var/lib/yearly
 install -D -m 644 "$(dirname "$0")/yearly-server.mjs" /opt/yearly/yearly-server.mjs
+# Google's client ID and secret, for keeping users signed in: a google.env next to this script (GOOGLE_CLIENT_ID=...
+# and GOOGLE_CLIENT_SECRET=... lines) replaces the saved one, readable by root only; without either, sign-ins last an hour
+if [ -f "$(dirname "$0")/google.env" ]; then
+  install -D -m 600 "$(dirname "$0")/google.env" /etc/yearly/google.env
+  rm -f "$(dirname "$0")/google.env"
+fi
 systemctl disable --now yearly-proxy.service 2>/dev/null || true # the older pass-through-only service, if set up
 cat > /etc/systemd/system/yearly.service <<EOF
 [Unit]
@@ -51,6 +57,7 @@ After=network-online.target
 [Service]
 Environment=PORT=$PORT
 Environment=ALLOWED_ORIGINS=$ORIGINS
+EnvironmentFile=-/etc/yearly/google.env
 ExecStart=$NODE /opt/yearly/yearly-server.mjs
 StateDirectory=yearly
 DynamicUser=yes

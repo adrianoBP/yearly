@@ -75,6 +75,7 @@ jobs:
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           SERVER_URL: ${{ secrets.SERVER_URL }}
           LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: |
           if [ -z "$VPS_HOST" ]; then echo "No VPS_HOST secret, so the server isn't deployed."; exit 0; fi
           case "$SERVER_URL" in
@@ -88,11 +89,19 @@ jobs:
           mkdir -p ~/.ssh
           printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/vps
           chmod 600 ~/.ssh/vps
-          # shortcut: trusts the VPS's host key as first seen on each run; only public files and the email are sent
+          # shortcut: trusts the VPS's host key as first seen on each run, so a hijacked connection could read the email and the
+          # Google client secret (useless without a user's sign-in code); pin the key in a secret if that's not acceptable
           ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2> /dev/null
 
           ssh -i ~/.ssh/vps "$TARGET" 'mkdir -p yearly-server'
           scp -i ~/.ssh/vps server/yearly-server.mjs server/install.sh "$TARGET:yearly-server/"
+          # Keeps users signed in. The secret goes over SSH's input into a file only the deploy user can read
+          # (install.sh moves it to /etc/yearly), never on a command line; the client ID is the app's own
+          if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
+            CLIENT_ID="$(grep -o '[0-9a-z-]*\.apps\.googleusercontent\.com' src/app/app.config.ts)"
+            printf 'GOOGLE_CLIENT_ID=%s\nGOOGLE_CLIENT_SECRET=%s\n' "$CLIENT_ID" "$GOOGLE_CLIENT_SECRET" |
+              ssh -i ~/.ssh/vps "$TARGET" 'umask 077 && cat > yearly-server/google.env'
+          fi
           ssh -i ~/.ssh/vps "$TARGET" bash -s <<EOF
           set -e
           if [ "\$(id -u)" = 0 ]; then SUDO=; else SUDO="sudo -n"; fi

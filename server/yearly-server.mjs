@@ -5,12 +5,21 @@
 //      GET /<host>/<path>?<query>   e.g. /api.football-data.org/v4/matches?dateFrom=2026-11-28&dateTo=2026-11-28
 //
 // 2. Notifications: each device sends the alerts the app worked out for the next few days; each one goes out
-//    as a Web Push notification when due, then is deleted. No Google sign-ins or API keys reach this server.
+//    as a Web Push notification when due, then is deleted. No API keys reach this server.
 //      GET    /push/key                 this server's public key, which the app subscribes with
 //      PUT    /push/devices/<id>        { subscription, alerts: [{ id, at, title, body, url? }] } replaces the device's alerts
 //      POST   /push/devices/<id>/test   sends a test notification now
 //      DELETE /push/devices/<id>        forgets the device
 //    A device's first PUT sets its secret (Authorization: Bearer <token>); later calls must send the same one.
+//
+// 3. Staying signed in: Google's browser sign-in lasts an hour, and renewing it needs the app's client secret,
+//    which can't live in a browser. The server swaps a sign-in code for Google's long-lived refresh token and gives
+//    the device a session secret instead. The refresh token is kept encrypted with a key made from that secret,
+//    which only the device has, so the data folder alone can't be used to reach anyone's calendar.
+//      POST /auth/token     { code, redirectUri, codeVerifier } → { session, accessToken, expiresIn }
+//      POST /auth/refresh   Authorization: Bearer <session> → { accessToken, expiresIn }
+//      POST /auth/logout    Authorization: Bearer <session>; revokes the refresh token at Google and forgets it
+//    Needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET; without them these answer 503 and the app signs in for an hour.
 //
 // Run: PORT=8787 ALLOWED_ORIGINS=https://your-yearly-domain DATA_DIR=/var/lib/yearly node yearly-server.mjs
 import http from 'node:http';
@@ -39,6 +48,11 @@ const MAX_AHEAD = 8 * DAY;
 /** A device that hasn't sent its alerts for this long is forgotten */
 const DEVICE_EXPIRY = 60 * DAY;
 const MAX_BODY = 64 * 1024;
+const MAX_SESSIONS = 1000;
+/** A session unused this long is forgotten; Google drops refresh tokens unused for six months anyway */
+const SESSION_EXPIRY = 180 * DAY;
+const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+const GOOGLE_REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 
 /** Notifications only go to the browsers' own push services, so this server can't be used to post anywhere else */
 const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /\.push\.services\.mozilla\.com$/, /\.notify\.windows\.com$/, /(^|\.)push\.apple\.com$/];
@@ -180,6 +194,35 @@ export function cleanAlerts(alerts, now) {
   return clean.sort((a, b) => a.at - b.at);
 }
 
+// ---- Sessions: refresh tokens encrypted with a key only the device's session secret gives ----
+
+const sessionKey = (session) => Buffer.from(crypto.hkdfSync('sha256', unb64url(session), Buffer.alloc(0), 'yearly session', 32));
+
+export function sealToken(refreshToken, session) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', sessionKey(session), iv);
+  const sealed = Buffer.concat([cipher.update(refreshToken, 'utf8'), cipher.final()]);
+  return b64url(Buffer.concat([iv, cipher.getAuthTag(), sealed]));
+}
+
+/** null when the secret doesn't match */
+export function openToken(sealed, session) {
+  try {
+    const data = unb64url(sealed);
+    const decipher = crypto.createDecipheriv('aes-256-gcm', sessionKey(session), data.subarray(0, 12));
+    decipher.setAuthTag(data.subarray(12, 28));
+    return Buffer.concat([decipher.update(data.subarray(28)), decipher.final()]).toString('utf8');
+  } catch {
+    return null;
+  }
+}
+
+/** Posts a form to Google's token endpoint; resolves to { status, body } */
+async function googleTokenRequest(url, params) {
+  const response = await fetch(url, { method: 'POST', body: new URLSearchParams(params), signal: AbortSignal.timeout(15_000) });
+  return { status: response.status, body: await response.json().catch(() => ({})) };
+}
+
 function writeJson(file, data) {
   // Write then rename, so a crash never leaves half a file
   fs.writeFileSync(`${file}.tmp`, JSON.stringify(data), { mode: 0o600 });
@@ -210,17 +253,25 @@ export function createServer({
   subject = process.env.VAPID_SUBJECT ?? origins.find((o) => o.startsWith('https://')) ?? 'mailto:yearly@localhost',
   send = sendPush,
   now = Date.now,
+  google = { clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET },
+  googleRequest = googleTokenRequest,
 } = {}) {
   fs.mkdirSync(dataDir, { recursive: true });
   const vapid = loadVapid(dataDir);
+  const readJson = (file) => {
+    try {
+      return JSON.parse(fs.readFileSync(file, 'utf8'));
+    } catch {
+      return {}; // First start
+    }
+  };
   const devicesFile = path.join(dataDir, 'devices.json');
-  let devices = {};
-  try {
-    devices = JSON.parse(fs.readFileSync(devicesFile, 'utf8'));
-  } catch {
-    // First start
-  }
+  const devices = readJson(devicesFile);
   const save = () => writeJson(devicesFile, devices);
+  /** sha256(session secret) → { sealed refresh token, usedAt } */
+  const sessionsFile = path.join(dataDir, 'sessions.json');
+  const sessions = readJson(sessionsFile);
+  const saveSessions = () => writeJson(sessionsFile, sessions);
 
   const hits = new Map();
   setInterval(() => hits.clear(), MINUTE).unref();
@@ -264,6 +315,9 @@ export function createServer({
         }
       }
       if (changed) save();
+      const stale = Object.keys(sessions).filter((key) => time - sessions[key].usedAt > SESSION_EXPIRY);
+      for (const key of stale) delete sessions[key];
+      if (stale.length) saveSessions();
     } finally {
       ticking = false;
     }
@@ -328,6 +382,81 @@ export function createServer({
     return end(res, 405);
   }
 
+  async function auth(req, res, pathname, origin) {
+    if (req.method !== 'POST') return end(res, 405);
+    if (!google.clientId || !google.clientSecret) return end(res, 503, { error: 'not_configured' });
+    const client = { client_id: google.clientId, client_secret: google.clientSecret };
+
+    if (pathname === '/auth/token') {
+      let body;
+      try {
+        body = await readBody(req);
+      } catch (status) {
+        return end(res, status);
+      }
+      const { code, redirectUri, codeVerifier } = body ?? {};
+      // Only the app's own pages may finish a sign-in, and Google checks the same address against its list
+      if (typeof code !== 'string' || code.length > 1000 || redirectUri !== `${origin}/`) return end(res, 400);
+      if (typeof codeVerifier !== 'string' || !/^[A-Za-z0-9._~-]{43,128}$/.test(codeVerifier)) return end(res, 400);
+      if (Object.keys(sessions).length >= MAX_SESSIONS) return end(res, 507);
+      let answer;
+      try {
+        answer = await googleRequest(GOOGLE_TOKEN_URL, {
+          ...client,
+          code,
+          code_verifier: codeVerifier,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code',
+        });
+      } catch {
+        return end(res, 502);
+      }
+      if (answer.status !== 200) return end(res, 400, { error: answer.body.error ?? 'google_refused' });
+      // Google only sends one with consent asked (prompt=consent), which the app always does
+      if (!answer.body.refresh_token) return end(res, 400, { error: 'no_refresh_token' });
+      const session = b64url(crypto.randomBytes(32));
+      sessions[sha256(session).toString('hex')] = { sealed: sealToken(answer.body.refresh_token, session), usedAt: now() };
+      saveSessions();
+      return end(res, 200, { session, accessToken: answer.body.access_token, expiresIn: answer.body.expires_in });
+    }
+
+    const session = (req.headers.authorization ?? '').replace(/^Bearer /, '');
+    if (!/^[A-Za-z0-9_-]{43}$/.test(session)) return end(res, 401);
+    const key = sha256(session).toString('hex');
+    const refreshToken = sessions[key] && openToken(sessions[key].sealed, session);
+
+    if (pathname === '/auth/refresh') {
+      if (!refreshToken) return end(res, 401);
+      let answer;
+      try {
+        answer = await googleRequest(GOOGLE_TOKEN_URL, { ...client, refresh_token: refreshToken, grant_type: 'refresh_token' });
+      } catch {
+        return end(res, 502);
+      }
+      // Revoked at Google or expired: the device has to sign in again
+      if (answer.body.error === 'invalid_grant') {
+        delete sessions[key];
+        saveSessions();
+        return end(res, 401);
+      }
+      if (answer.status !== 200) return end(res, 502);
+      sessions[key].usedAt = now();
+      saveSessions();
+      return end(res, 200, { accessToken: answer.body.access_token, expiresIn: answer.body.expires_in });
+    }
+
+    if (pathname === '/auth/logout') {
+      if (refreshToken) {
+        await googleRequest(GOOGLE_REVOKE_URL, { token: refreshToken }).catch(() => {});
+        delete sessions[key];
+        saveSessions();
+      }
+      return end(res, 204);
+    }
+
+    return end(res, 404);
+  }
+
   const server = http.createServer(async (req, res) => {
     const origin = req.headers.origin ?? '';
     if (origins.includes(origin)) {
@@ -342,7 +471,8 @@ export function createServer({
     }
     const pathname = (req.url ?? '').split('?')[0];
     const isPush = pathname.startsWith('/push/');
-    if (!isPush && req.method !== 'GET') return end(res, 405);
+    const isAuth = pathname.startsWith('/auth/');
+    if (!isPush && !isAuth && req.method !== 'GET') return end(res, 405);
     if (!origins.includes(origin)) return end(res, 403);
 
     // Behind Apache every request comes from this machine; Apache adds the visitor's address last in X-Forwarded-For
@@ -351,10 +481,11 @@ export function createServer({
     hits.set(ip, (hits.get(ip) ?? 0) + 1);
     if (hits.get(ip) > RATE_LIMIT) return end(res, 429);
 
+    if (isAuth) return auth(req, res, pathname, origin);
     return isPush ? push(req, res, pathname) : passThrough(req, res);
   });
 
-  return { server, tick, vapid, devices: () => devices };
+  return { server, tick, vapid, devices: () => devices, sessions: () => sessions };
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop())) {

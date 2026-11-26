@@ -13,8 +13,7 @@ export class UserService {
     this.userService = utilService.mockData
       ? this.injector.get(MockUserService)
       : this.injector.get(GoogleUserService);
-
-    this.loadUserInfo();
+    // Loaded by AuthService once signed in: asking while signed out would start a sign-in by itself
   }
 
   private userService: GoogleUserService | MockUserService;
