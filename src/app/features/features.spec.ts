@@ -4,7 +4,7 @@ import { mergeSync } from '../services/sync';
 import { findFlight } from './flight';
 import { findBridges, holidaysFor } from './leave-planner';
 import { parseEventText } from './text-event';
-import { weatherWarnings } from './weather';
+import { upcomingLocations, weatherWarnings } from './weather';
 import { isTrip, tripNights, yearStats } from './year-review';
 import { parseAviationstack } from './flight-status';
 import { bufferVerdict, distanceKm, geohash, neighbours, routeSummary } from './travel';
@@ -431,5 +431,21 @@ describe('buildAlerts', () => {
   it('leaves out alerts whose time has passed', () => {
     const late = new Date(2026, 10, 25, 20);
     expect(buildAlerts([{ ...theatre, weather: ['Snow'] }], late)).toEqual([]);
+  });
+});
+
+describe('upcomingLocations', () => {
+  it('lists distinct places of events not yet over within the window, soonest first', () => {
+    const now = moment('2026-11-26T12:00:00');
+    const events = [
+      event('Later', '2026-12-05T10:00', '2026-12-05T11:00', { location: 'Rome' }),
+      event('Over', '2026-11-26T08:00', '2026-11-26T09:00', { location: 'Paris' }),
+      event('Ongoing', '2026-11-26T11:00', '2026-11-26T13:00', { location: ' London ' }),
+      event('Again', '2026-11-28T10:00', '2026-11-28T11:00', { location: 'London' }),
+      event('Too far', '2026-12-20T10:00', '2026-12-20T11:00', { location: 'Oslo' }),
+      event('Nowhere', '2026-11-27T10:00', '2026-11-27T11:00', { location: '  ' }),
+    ];
+    expect(upcomingLocations(events, now, 16, 20)).toEqual(['London', 'Rome']);
+    expect(upcomingLocations(events, now, 16, 1)).toEqual(['London']);
   });
 });

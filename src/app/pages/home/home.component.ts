@@ -42,6 +42,7 @@ import { CountdownsService } from '../../services/countdowns.service';
 import { Pin, countdown } from '../../features/countdowns';
 import { canEditEvent } from '../../services/util.service';
 import { NotificationsService } from '../../services/notifications.service';
+import { WeatherService } from '../../services/weather.service';
 
 const TEMP_EVENT_ID = 'temp-id';
 // Per browser tab: a reload (or coming back from settings) keeps the year, a new tab starts at today
@@ -111,7 +112,8 @@ export class HomeComponent {
     public features: FeaturesService,
     public countdowns: CountdownsService,
     private router: Router,
-    private notifications: NotificationsService
+    private notifications: NotificationsService,
+    private weatherService: WeatherService
   ) {
     this.buildMonths();
   }
@@ -121,7 +123,17 @@ export class HomeComponent {
     this.settings = this.settingsService.getSettings();
     this.countdowns.reload();
 
-    this.calendars = await this.calendarService.getCalendars();
+    const live = this.calendarService.getCalendars();
+    // Last visit's copy (service worker cache) while Google answers; loadEventsIntoCalendars then refreshes it
+    const cached = await this.calendarService.getCachedCalendars();
+    if (cached) {
+      const year = this.year;
+      this.calendars = cached;
+      const events = await this.fetchYear(year, true);
+      if (events.length && year === this.year) this.setEvents(events);
+    }
+
+    this.calendars = await live;
     this.loadEventsIntoCalendars();
   }
 
@@ -294,16 +306,22 @@ export class HomeComponent {
 
   private notifyTimer = 0;
 
-  /** Once the calendar settles, sends this device's alerts for the next few days to the Yearly server */
+  /**
+   * Once the calendar settles, sends this device's alerts for the next few days to the Yearly server,
+   * and saves the weather of upcoming events so it can be shown offline
+   */
   private scheduleNotifications() {
-    if (this.notifications.state !== 'on') return;
+    const notify = this.notifications.state === 'on';
+    const weather = this.features.isOn('weather');
+    if (!notify && !weather) return;
     clearTimeout(this.notifyTimer);
     this.notifyTimer = window.setTimeout(() => {
       if (!this.yearCache.has(this.currentYear)) return;
       const events = [this.currentYear, this.currentYear + 1]
         .flatMap((year) => this.yearCache.get(year) ?? [])
         .filter((e) => e.id !== TEMP_EVENT_ID);
-      this.notifications.update(events);
+      if (notify) this.notifications.update(events);
+      if (weather) this.weatherService.prefetch(events);
     }, 5000);
   }
 
@@ -340,19 +358,19 @@ export class HomeComponent {
   }
 
   /** Fetches every enabled calendar's events for a year, in parallel */
-  private fetchYear(year: number): Promise<Event[]> {
-    return this.fetchRange(new Date(year, 0, 1), new Date(year, 11, 31, 23, 59, 59));
+  private fetchYear(year: number, cacheOnly = false): Promise<Event[]> {
+    return this.fetchRange(new Date(year, 0, 1), new Date(year, 11, 31, 23, 59, 59), cacheOnly);
   }
 
   /** Fetches every enabled calendar's events in a date range, in parallel, with the same filters as the calendar */
-  private async fetchRange(start: Date, end: Date): Promise<Event[]> {
+  private async fetchRange(start: Date, end: Date, cacheOnly = false): Promise<Event[]> {
     const perCalendar = await Promise.all(
       this.calendars
         .filter(
           (calendar) =>
             this.settings.calendars.find((cal) => cal.id === calendar.id)?.allowed ?? false
         )
-        .map((calendar) => this.fetchCalendarEvents(calendar, start, end))
+        .map((calendar) => this.fetchCalendarEvents(calendar, start, end, cacheOnly))
     );
     return perCalendar.flat();
   }
@@ -360,15 +378,19 @@ export class HomeComponent {
   private async fetchCalendarEvents(
     calendar: GoogleCalendar,
     start: Date,
-    end: Date
+    end: Date,
+    /** The service worker's copy from the last visit instead of the network (see CalendarService.getCachedEvents) */
+    cacheOnly = false
   ): Promise<Event[]> {
     try {
       const calendarSettings = this.settings.calendars.find((cal) => cal.id === calendar.id);
 
       // The colour palette is cached and shared, so it loads alongside the events
       const [googleEvents, eventColours] = await Promise.all([
-        this.calendarService.getEvents(start, end, calendar.id),
-        this.calendarService.getEventColours(),
+        cacheOnly
+          ? this.calendarService.getCachedEvents(start, end, calendar.id)
+          : this.calendarService.getEvents(start, end, calendar.id),
+        cacheOnly ? this.calendarService.getCachedEventColours() : this.calendarService.getEventColours(),
       ]);
 
       return googleEvents
@@ -396,13 +418,21 @@ export class HomeComponent {
   /** Shows the year from cache straight away, then refreshes it and prefetches its neighbours */
   async loadEventsIntoCalendars() {
     const year = this.year;
+    const known = this.yearCache.has(year);
     this.setEvents(this.yearCache.get(year) ?? []);
     this.isLoading = true;
+    let landed = false;
+    // Not loaded this session: the last visit's copy (service worker cache) until the live one lands
+    if (!known)
+      this.fetchYear(year, true).then((events) => {
+        if (!landed && events.length && year === this.year) this.setEvents(events);
+      });
     try {
       const events = await this.fetchYear(year);
       this.yearCache.set(year, events);
       if (year === this.year) this.setEvents(events);
     } finally {
+      landed = true;
       if (year === this.year) this.isLoading = false;
     }
 

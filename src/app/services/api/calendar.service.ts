@@ -42,6 +42,24 @@ export class CalendarService {
     return this.eventColours;
   }
 
+  /** The service worker's copies from the last visit, shown while Google answers: null (or []) when there are none */
+  private get cache(): GoogleCalendarService | null {
+    return this.calendarAPIService instanceof GoogleCalendarService ? this.calendarAPIService : null;
+  }
+
+  async getCachedCalendars(): Promise<GoogleCalendar[] | null> {
+    const calendars = await this.cache?.getCalendars(true).catch(() => null);
+    return calendars?.sort((a, b) => this.getCalendarName(a).localeCompare(this.getCalendarName(b))) ?? null;
+  }
+
+  async getCachedEvents(start: Date, end: Date, calendarId: string): Promise<GoogleCalendarEvent[]> {
+    return (await this.cache?.getEvents(start, end, calendarId, true).catch(() => null)) ?? [];
+  }
+
+  async getCachedEventColours(): Promise<Record<string, string>> {
+    return (await this.cache?.getEventColours(true).catch(() => null)) ?? {};
+  }
+
   async getCalendars(): Promise<GoogleCalendar[]> {
     if (this.calendars.length == 0) {
       const calendars = await this.calendarAPIService.getCalendars();

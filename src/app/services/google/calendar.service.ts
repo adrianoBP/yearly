@@ -75,6 +75,18 @@ export class GoogleCalendarService {
 
   private baseUrl = 'https://www.googleapis.com/calendar/v3';
 
+  /**
+   * cacheOnly: the service worker's copy from the last time this loaded (ngsw-config.json dataGroup "google"),
+   * without touching the network; throws when there is none
+   */
+  private async get<T>(url: string, cacheOnly: boolean): Promise<T> {
+    if (!cacheOnly) return this.googleAuthService.makeRequest<T>(url, 'get');
+    // ignoreVary: Google varies on Origin, which a bare URL lookup doesn't send
+    const saved = await globalThis.caches?.match(url, { ignoreVary: true });
+    if (!saved?.ok) throw `Not cached: ${url}`;
+    return saved.json();
+  }
+
   async getSettings() {
     const url = `${this.baseUrl}/users/me/settings`;
     const response = await this.googleAuthService.makeRequest<
@@ -83,24 +95,21 @@ export class GoogleCalendarService {
   }
 
   /** Google's event colour palette: colorId -> background colour */
-  async getEventColours(): Promise<Record<string, string>> {
+  async getEventColours(cacheOnly = false): Promise<Record<string, string>> {
     const url = `${this.baseUrl}/colors`;
-    const response = await this.googleAuthService.makeRequest<GoogleCalendarColorsResponse>(url, 'get');
+    const response = await this.get<GoogleCalendarColorsResponse>(url, cacheOnly);
     return Object.fromEntries(
       Object.entries(response.event).map(([id, colour]) => [id, colour.background])
     );
   }
 
-  async getCalendars(): Promise<GoogleCalendar[]> {
+  async getCalendars(cacheOnly = false): Promise<GoogleCalendar[]> {
     const url = `${this.baseUrl}/users/me/calendarList`;
-    const response = await this.googleAuthService.makeRequest<GoogleCalendarListResponse>(
-      url,
-      'get'
-    );
+    const response = await this.get<GoogleCalendarListResponse>(url, cacheOnly);
     return response.items;
   }
 
-  async getEvents(start: Date, end: Date, calendarId: string): Promise<GoogleCalendarEvent[]> {
+  async getEvents(start: Date, end: Date, calendarId: string, cacheOnly = false): Promise<GoogleCalendarEvent[]> {
     const queryParameters: { [key: string]: string } = {
       timeMin: moment(start).toISOString(),
       timeMax: moment(end).toISOString(),
@@ -122,9 +131,7 @@ export class GoogleCalendarService {
 
       const url = `${this.baseUrl}/calendars/${calendarId}/events?${query}`;
 
-      const response = await this.googleAuthService.makeRequest<
-        GenericGoogleItemsResponse<GoogleCalendarEvent>
-      >(url, 'get');
+      const response = await this.get<GenericGoogleItemsResponse<GoogleCalendarEvent>>(url, cacheOnly);
       results.push(...response.items);
 
       queryParameters['pageToken'] = response.nextPageToken || '';

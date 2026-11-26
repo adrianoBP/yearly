@@ -1,3 +1,6 @@
+import moment from 'moment';
+import { Event } from '../interfaces/event.interface';
+
 export interface DailyForecast {
   /** YYYY-MM-DD */
   date: string;
@@ -53,4 +56,13 @@ export function weatherWarnings(day: DailyForecast): string[] {
   if (day.max >= 30) warnings.push(`Hot (${day.max}°)`);
   if (day.min <= -5) warnings.push(`Freezing (${day.min}°)`);
   return warnings;
+}
+
+/** Distinct places of events not yet over and starting within the next `days` days, soonest first, at most `max` */
+export function upcomingLocations(events: Event[], now: moment.Moment, days: number, max: number): string[] {
+  const until = now.clone().startOf('day').add(days, 'days');
+  const upcoming = events
+    .filter((e) => e.location?.trim() && e.endMoment.isAfter(now) && e.startMoment.isBefore(until))
+    .sort((a, b) => a.startMoment.valueOf() - b.startMoment.valueOf());
+  return [...new Set(upcoming.map((e) => e.location!.trim()))].slice(0, max);
 }
