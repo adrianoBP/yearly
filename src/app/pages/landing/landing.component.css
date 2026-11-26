@@ -94,6 +94,22 @@ h1 {
   color: var(--text-muted);
 }
 
+.data-use {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 40rem;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.data-use h2 {
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
 .footer {
   padding: 1rem 1.5rem;
   text-align: right;
