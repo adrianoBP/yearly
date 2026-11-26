@@ -48,8 +48,10 @@ export class GoogleAuthService {
       this.tokenDetails = null;
     }
 
-    // No valid token: stay logged out, the landing page asks the user to sign in
-    if (this.tokenDetails == null || new Date(this.tokenDetails.expiryDate) < new Date()) return;
+    // No valid token: stay logged out, the landing page asks the user to sign in.
+    // Offline an expired token is kept: requests are answered from the service worker's cache, and the first 401 back online re-authorises.
+    const expired = this.tokenDetails != null && new Date(this.tokenDetails.expiryDate) < new Date();
+    if (this.tokenDetails == null || (expired && navigator.onLine)) return;
 
     // Login
     this.isLoggedIn = true;
@@ -100,6 +102,21 @@ export class GoogleAuthService {
     // The chat holds calendar details, so it doesn't outlive the account
     localStorage.removeItem(ASK_THREAD_KEY);
     localStorage.removeItem(PINS_KEY);
+    // The offline copy of the calendar (ngsw-config.json dataGroup "google") doesn't outlive the account either.
+    // Entries are emptied rather than the caches deleted: the running worker keeps its open handles to them.
+    globalThis.caches
+      ?.keys()
+      .then((names) =>
+        Promise.all(
+          names
+            .filter((name) => name.includes(':data:google:'))
+            .map(async (name) => {
+              const cache = await caches.open(name);
+              await Promise.all((await cache.keys()).map((request) => cache.delete(request)));
+            })
+        )
+      )
+      .catch(() => {});
     navigator.clearAppBadge?.().catch(() => {});
   }
 

@@ -26,5 +26,20 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "google",
+      "urls": [
+        "https://www.googleapis.com/calendar/v3/**",
+        "https://www.googleapis.com/oauth2/v2/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "timeout": "5s",
+        "maxAge": "30d",
+        "maxSize": 500
+      }
+    }
   ]
 }
