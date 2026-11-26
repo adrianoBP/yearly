@@ -207,10 +207,16 @@ export class HomeComponent {
       removeEventListener('resize', onScroll);
     };
     this.checkToday();
+
+    // Events that end drop off the badge; outside Angular, as nothing on the page changes
+    this.ngZone.runOutsideAngular(() => (this.badgeTimer = window.setInterval(() => this.updateBadge(), 60_000)));
   }
+
+  private badgeTimer = 0;
 
   ngOnDestroy() {
     clearTimeout(this.notifyTimer);
+    clearInterval(this.badgeTimer);
     this.stopWatchingToday?.();
   }
 
@@ -307,19 +313,22 @@ export class HomeComponent {
     this.authService.logOut();
   }
 
-  /** Today's number of events on the installed app's icon */
-  // shortcut: only updates while Yearly is open, so the count can be a day old; a custom service worker could refresh it on push
+  /** How many of today's events are still on or to come, on the installed app's icon */
+  // shortcut: only updates while Yearly is open (every minute), so a closed app keeps its last count; a custom service worker could refresh it on push
   private updateBadge() {
     if (!('setAppBadge' in navigator)) return;
     if (!this.features.isOn('app-badge')) {
       navigator.clearAppBadge().catch(() => {});
       return;
     }
-    if (this.year !== this.currentYear) return;
-    const today = (this.eventsByDay.get(dayKey(new Date())) ?? []).filter(
-      (e) => e.id !== TEMP_EVENT_ID && e.eventType !== 'workingLocation'
+    const events = this.yearCache.get(this.currentYear);
+    if (!events) return;
+    const now = moment();
+    const tonight = now.clone().endOf('day');
+    const left = events.filter(
+      (e) => e.id !== TEMP_EVENT_ID && e.eventType !== 'workingLocation' && e.endMoment.isAfter(now) && e.startMoment.isBefore(tonight)
     ).length;
-    (today ? navigator.setAppBadge(today) : navigator.clearAppBadge()).catch(() => {});
+    (left ? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(() => {});
   }
 
   addEventsToCalendar(events: Event[]) {
