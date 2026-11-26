@@ -6,6 +6,7 @@ import {
   faAlignLeft,
   faArrowUpRightFromSquare,
   faLocationDot,
+  faMapLocationDot,
   faLock,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
@@ -49,6 +50,7 @@ export class EventEditComponent {
   calendarIcon = faCalendar;
   lockIcon = faLock;
   locationIcon = faLocationDot;
+  mapIcon = faMapLocationDot;
   descriptionIcon = faAlignLeft;
   externalIcon = faArrowUpRightFromSquare;
 
@@ -101,8 +103,8 @@ export class EventEditComponent {
       ? this.calendars.find((calendar) => calendar.primary) || this.calendars[0]
       : this.calendars.find((calendar) => calendar.id === this.parameters.event.calendarId) || null;
 
-    // Focus on the title input
-    document.getElementById(this.parameters.focusQuickAdd ? 'quick-add' : 'event-title')?.focus();
+    // A new event starts with typing its title; an existing one is mostly read, so no field (and no phone keyboard) jumps up
+    if (this.parameters.isNewEvent) document.getElementById(this.parameters.focusQuickAdd ? 'quick-add' : 'event-title')?.focus();
   }
 
   async getCalendars(): Promise<GoogleCalendar[]> {
@@ -235,6 +237,11 @@ export class EventEditComponent {
   }
 
   /** Who organised the event, when it was someone else (group calendars only have an id) */
+  /** Google Maps' universal link: the Maps app on phones, the website elsewhere */
+  mapsUrl(location: string): string {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.trim())}`;
+  }
+
   get organiser(): string | null {
     const organizer = this.parameters.event.organizer;
     if (!organizer?.email || organizer.self || organizer.email.endsWith('calendar.google.com')) return null;

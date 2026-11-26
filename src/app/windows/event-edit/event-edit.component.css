@@ -73,6 +73,17 @@
   min-width: 0;
 }
 
+/* The location and its Maps button side by side */
+.group-body.location {
+  flex-direction: row;
+  align-items: center;
+}
+
+.location input {
+  flex: 1;
+  min-width: 0;
+}
+
 .toggle-row {
   display: flex;
   align-items: center;
@@ -92,6 +103,12 @@
 
 .when.all-day {
   grid-template-columns: 3.25rem minmax(0, 1fr);
+}
+
+/* Phones draw time fields at their own (wider) size unless told to fit the column */
+.when input[type='time'] {
+  width: 100%;
+  min-width: 0;
 }
 
 .when-label {

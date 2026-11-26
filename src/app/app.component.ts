@@ -52,7 +52,13 @@ export class AppComponent {
     });
   }
 
-  constructor(swUpdate: SwUpdate, windowsService: WindowsService) {
+  /** Phones keep the app in the background instead of restarting it, so look for a new deploy whenever it's back on screen */
+  @HostListener('document:visibilitychange')
+  checkForUpdate() {
+    if (document.visibilityState === 'visible' && this.swUpdate.isEnabled) this.swUpdate.checkForUpdate().catch(() => {});
+  }
+
+  constructor(private swUpdate: SwUpdate, windowsService: WindowsService) {
     this.trackKeyboard();
     // Apply a freshly downloaded deploy now instead of on the next visit.
     swUpdate.versionUpdates.pipe(filter((e) => e.type === 'VERSION_READY')).subscribe(() => {

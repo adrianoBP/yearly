@@ -47,8 +47,13 @@ Click it to jump to the event. Pins stay on this device and go once the event en
 
 ### Today badge
 
-When Yearly is installed as an app (Chrome or Edge), its icon shows how many events you have today. It updates while
-the app is open.
+When Yearly is installed as an app, its icon shows how many of today's events are still on or to come. It updates
+while the app is open (every minute), and keeps its last count once it's closed.
+
+- **Computers:** Chrome or Edge.
+- **iPhone and iPad** (iOS 16.4 or newer): Yearly on the Home Screen, once its notifications are on
+  ([Notifications](#notifications)), as iOS only shows badges for apps allowed to notify.
+- **Android:** not available. Chrome on Android doesn't support icon badges for web apps.
 
 ### Event details
 

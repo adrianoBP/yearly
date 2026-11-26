@@ -115,7 +115,7 @@
   <section class="group">
     <fa-icon class="group-icon"
              [icon]="locationIcon" />
-    <div class="group-body">
+    <div class="group-body location">
       <input type="text"
              name="location"
              placeholder="Add location"
@@ -123,6 +123,17 @@
              autocomplete="off"
              [(ngModel)]="parameters.event.location"
              [disabled]="!parameters.event.canEdit">
+      @if (parameters.event.location?.trim()) {
+        <a class="icon-btn"
+           [href]="mapsUrl(parameters.event.location!)"
+           target="_blank"
+           rel="noopener noreferrer"
+           title="Open in Maps"
+           aria-label="Open in Maps">
+          <fa-icon class="i-jelly"
+                   [icon]="mapIcon" />
+        </a>
+      }
     </div>
   </section>
 

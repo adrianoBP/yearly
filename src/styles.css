@@ -86,8 +86,8 @@ a:hover {
   text-decoration-color: currentColor;
 }
 
-/* Text links that leave the app carry an arrow (inline-block keeps the underline off it) */
-a[target='_blank']:not(.ext-link)::after {
+/* Text links that leave the app carry an arrow (inline-block keeps the underline off it); icon buttons don't need it */
+a[target='_blank']:not(.ext-link, .icon-btn)::after {
   content: '↗';
   display: inline-block;
   margin-left: 0.15em;
@@ -303,6 +303,8 @@ input[type='checkbox'].switch:checked::before {
 .sheet-body {
   flex: 1;
   overflow-y: auto;
+  /* Panels only scroll up and down; anything too wide is cut rather than scrolling the panel sideways */
+  overflow-x: hidden;
 }
 
 .sheet-footer {
