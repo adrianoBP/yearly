@@ -3,7 +3,7 @@ import moment from 'moment';
 import { AskTurn, GeminiModel, GeminiResponse, FALLBACK_MODEL, answerText, buildRequest, pickModel } from '../features/ask';
 import { CROWD_RADIUS_KM, FootballResponse, NearbyEvent, TicketmasterResponse, footballCandidates, ticketmasterNearby } from '../features/crowd';
 import { AviationstackResponse, FlightStatus, parseAviationstack } from '../features/flight-status';
-import { TomTomRoute, distanceKm, geohash, routeSummary } from '../features/travel';
+import { TomTomRoute, distanceKm, geohash, routeSummary, routeTtlMs } from '../features/travel';
 import { CalendarInfo } from '../features/year-review';
 import { Event } from '../interfaces/event.interface';
 import { IntegrationsService } from './integrations.service';
@@ -52,8 +52,11 @@ export class LiveService {
       'tomtom',
       `https://api.tomtom.com/routing/1/calculateRoute/${points}/json?traffic=true&travelMode=car` +
         `&departAt=${encodeURIComponent(depart.format('YYYY-MM-DDTHH:mm:ssZ'))}&key=${key}`,
-      // Same trip within a quarter of an hour reuses the answer
-      { cacheKey: `route:${points}:${depart.format('YYYY-MM-DDTHH')}:${Math.floor(depart.minute() / 15)}`, ttlMs: 30 * MINUTE }
+      // Same trip within a quarter of an hour reuses the answer, for longer the further off it is
+      {
+        cacheKey: `route:${points}:${depart.format('YYYY-MM-DDTHH')}:${Math.floor(depart.minute() / 15)}`,
+        ttlMs: routeTtlMs(depart.diff(moment())),
+      }
     );
     return routeSummary(response);
   }

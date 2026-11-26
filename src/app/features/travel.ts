@@ -81,3 +81,13 @@ export function routeSummary(response: TomTomRoute) {
     km: Math.round(summary.lengthInMeters / 100) / 10,
   };
 }
+
+const MINUTE = 60 * 1000;
+
+/**
+ * How long a driving time stays good, from how far off the departure is: days ahead TomTom only has the usual
+ * traffic for that hour, which barely changes; close to leaving it's live traffic. A quarter of the wait, 5 min to 12 h.
+ */
+export function routeTtlMs(msUntilDeparture: number): number {
+  return Math.min(12 * 60 * MINUTE, Math.max(5 * MINUTE, msUntilDeparture / 4));
+}

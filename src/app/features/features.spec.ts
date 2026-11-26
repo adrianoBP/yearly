@@ -7,7 +7,7 @@ import { parseEventText } from './text-event';
 import { upcomingLocations, weatherWarnings } from './weather';
 import { isTrip, tripNights, yearStats } from './year-review';
 import { parseAviationstack } from './flight-status';
-import { bufferVerdict, distanceKm, geohash, neighbours, routeSummary } from './travel';
+import { bufferVerdict, distanceKm, geohash, neighbours, routeSummary, routeTtlMs } from './travel';
 import { footballCandidates, leaveBy, ticketmasterNearby } from './crowd';
 import { dateQuery, searchEvents } from './search';
 import { activePins, countdown } from './countdowns';
@@ -447,5 +447,14 @@ describe('upcomingLocations', () => {
     ];
     expect(upcomingLocations(events, now, 16, 20)).toEqual(['London', 'Rome']);
     expect(upcomingLocations(events, now, 16, 1)).toEqual(['London']);
+  });
+});
+
+describe('routeTtlMs', () => {
+  const MIN = 60 * 1000;
+  it('reuses a driving time for a quarter of the wait, between 5 minutes and 12 hours', () => {
+    expect(routeTtlMs(2 * 60 * MIN)).toBe(30 * MIN);
+    expect(routeTtlMs(10 * MIN)).toBe(5 * MIN);
+    expect(routeTtlMs(3 * 24 * 60 * MIN)).toBe(12 * 60 * MIN);
   });
 });
