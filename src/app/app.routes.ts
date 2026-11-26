@@ -20,11 +20,6 @@ export const routes: Routes = [
       import('./pages/settings/settings.component').then((m) => m.SettingsComponent),
     canActivate: [isLoggedIn],
   },
-  {
-    path: 'privacy-policy',
-    loadComponent: () =>
-      import('./pages/additional/policy/policy.component').then((m) => m.PolicyComponent),
-  },
 
   // Redirect all other paths to the home page
   { path: '**', redirectTo: '/' },

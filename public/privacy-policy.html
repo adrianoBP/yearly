@@ -1,7 +1,146 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Privacy Policy · Yearly</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How Yearly, a year-at-a-glance view of your Google Calendar, collects, uses and protects your data.">
+  <link rel="icon" type="image/svg+xml" href="/yearly-icon.svg">
+  <!-- Plain HTML (not part of the Angular app) so it reads without JavaScript, as Google's OAuth verification requires -->
+  <style>
+:root {
+  color-scheme: light;
+
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --surface-subtle: #f8f9fb;
+  --border-subtle: #eceef2;
+  --border: #e4e7ec;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --text-faint: #a3a9b4;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-soft: #e8f0fe;
+  --danger: #dc2626;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow-lg: 0 16px 40px rgb(16 24 40 / 0.14), 0 2px 6px rgb(16 24 40 / 0.06);
+  /* Slight overshoot for things that move */
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); font-size: 15px; line-height: 1.4; color: var(--text); -webkit-font-smoothing: antialiased; }
+a { color: var(--primary); text-decoration-color: color-mix(in srgb, currentColor 30%, transparent); text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+body {
+  display: block;
+  min-height: 100dvh;
+  background: var(--surface);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.policy {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--text) 85%, transparent);
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.meta {
+  margin: 0.4rem 0 1.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+section {
+  margin-top: 2rem;
+}
+
+h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+h3 {
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+p + p,
+ul + p,
+p + ul {
+  margin-top: 0.75rem;
+}
+
+ul {
+  padding-left: 1.25rem;
+}
+
+li + li {
+  margin-top: 0.25rem;
+}
+
+.scopes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.scopes > div {
+  padding: 0.9rem 1rem;
+  font-size: 0.9rem;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+}
+  </style>
+</head>
+
+<body>
 <header class="topbar">
   <a class="brand"
-     routerLink="/">
-    <img src="yearly-icon.svg"
+     href="/">
+    <img src="/yearly-icon.svg"
          alt=""
          width="22"
          height="22">
@@ -91,6 +230,14 @@
       <a href="https://myaccount.google.com/permissions"
          target="_blank"
          rel="noopener noreferrer">Google Account</a>.</p>
+    <p>Google user data is used only to show your calendars and events in the year view, to create, edit and delete
+      events you ask for, and to sync your Yearly settings. It is not sold, not used for advertising, and not shared
+      with anyone except as described in this policy.</p>
+    <p>Yearly's use and transfer of information received from Google APIs will adhere to the
+      <a href="https://developers.google.com/terms/api-services-user-data-policy"
+         target="_blank"
+         rel="noopener noreferrer">Google API Services User Data Policy</a>, including the Limited Use
+      requirements.</p>
   </section>
 
   <section>
@@ -147,7 +294,7 @@
     <h2>6. Data retention policy</h2>
     <p>The Service Provider will retain User Provided data for as long as you use the Application and for a reasonable
       time thereafter. If you'd like them to delete User Provided Data that you have provided via the Application, please
-      contact them at <a [href]="'mailto:' + emailAddress">{{ emailAddress }}</a> and they will respond in a reasonable
+      contact them at <a href="mailto:adriano.boccardo@gmail.com">adriano.boccardo@gmail.com</a> and they will respond in a reasonable
       time.</p>
   </section>
 
@@ -159,7 +306,7 @@
       personally identifiable information from children under 13 years of age. In the case the Service Provider discover
       that a child under 13 has provided personal information, the Service Provider will immediately delete this from
       their servers. If you are a parent or guardian and you are aware that your child has provided us with personal
-      information, please contact the Service Provider (<a [href]="'mailto:' + emailAddress">{{ emailAddress }}</a>) so
+      information, please contact the Service Provider (<a href="mailto:adriano.boccardo@gmail.com">adriano.boccardo@gmail.com</a>) so
       that they will be able to take the necessary actions.</p>
   </section>
 
@@ -187,6 +334,9 @@
     <h2>11. Contact us</h2>
     <p>If you have any questions regarding privacy while using the Application, or have questions about the practices,
       please contact the Service Provider via email at
-      <a [href]="'mailto:' + emailAddress">{{ emailAddress }}</a>.</p>
+      <a href="mailto:adriano.boccardo@gmail.com">adriano.boccardo@gmail.com</a>.</p>
   </section>
 </article>
+</body>
+
+</html>
