@@ -130,6 +130,42 @@
                  (change)="toggleFeature(feature)">
         </li>
       }
+      @let push = notifications.state;
+      <li>
+        <div class="text">
+          <label for="notifications">Notifications on this device</label>
+          <span class="muted">Tells you when to leave early for an event, warns about bad weather the evening before, and when
+            there isn't enough time between events. Each time Yearly opens here, it checks the next 3 days.</span>
+          @if (push === 'unsupported') {
+            @if (devMode) {
+              <span class="muted">Notifications need the service worker, which only runs in the production configuration: <code>ng serve --configuration production</code>.</span>
+            } @else {
+              <span class="muted">This browser can't receive notifications. On iPhone and iPad, add Yearly to the Home Screen first.</span>
+            }
+          }
+          @if (push === 'blocked') {
+            <span class="muted">Notifications are blocked for Yearly in this browser's site settings.</span>
+          }
+          @if (pushMessage) {
+            <span class="result"
+                  role="status"
+                  [class.error]="pushError">{{ pushMessage }}</span>
+          }
+          @if (push === 'on') {
+            <button class="btn test-push"
+                    [disabled]="pushBusy"
+                    (click)="testPush()">Send a test</button>
+          }
+        </div>
+        <span class="badge"
+              [attr.data-status]="push === 'on' ? 'ready' : null">{{ pushLabel(push) }}</span>
+        <input type="checkbox"
+               class="switch"
+               id="notifications"
+               [checked]="push === 'on'"
+               [disabled]="pushBusy || push === 'no-server' || push === 'unsupported' || push === 'blocked'"
+               (change)="togglePush($any($event.target))">
+      </li>
       <li class="home">
         <div class="text">
           <label for="home-address">Home address</label>

@@ -44,3 +44,6 @@ Thumbs.db
 .firebase
 *-debug.log
 .runtimeconfig.json
+
+# Yearly server data when run locally (holds its private notification key)
+/data

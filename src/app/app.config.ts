@@ -15,6 +15,7 @@ import { FeaturesService } from './services/features.service';
 import { WeatherService } from './services/weather.service';
 import { LiveService } from './services/live.service';
 import { CountdownsService } from './services/countdowns.service';
+import { NotificationsService } from './services/notifications.service';
 import { WindowsService } from './windows/windows.service';
 
 import { UtilService } from './services/util.service';
@@ -23,20 +24,26 @@ import { UserService } from './services/api/user.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideServiceWorker } from '@angular/service-worker';
 
+// Set when building for release (ng build --define, see .github/workflows/deploy.yml), so neither lives in the repository
+declare const YEARLY_VERSION: string | undefined;
+declare const YEARLY_SERVER_URL: string | undefined;
+
 export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: 'version',
-      useValue: '1.3.0',
+      useValue: typeof YEARLY_VERSION !== 'undefined' ? YEARLY_VERSION : '0.0.0-dev',
     },
     {
       provide: 'mockData',
       useValue: false,
     },
     {
-      // Yearly pass-through on your VPS (server/proxy.mjs), e.g. 'https://yearly-api.example.com'; empty turns off the features that need it
-      provide: 'proxyUrl',
-      useValue: '',
+      // Yearly server at https://api.<your app's domain> (server/README.md); empty turns off the features that need it.
+      // Without a release build, the app looks for one running on this computer.
+      provide: 'serverUrl',
+      useValue:
+        typeof YEARLY_SERVER_URL !== 'undefined' ? YEARLY_SERVER_URL : location.hostname === 'localhost' ? 'http://localhost:8787' : '',
     },
     {
       provide: 'googleClientId',
@@ -59,6 +66,7 @@ export const appConfig: ApplicationConfig = {
     WeatherService,
     LiveService,
     CountdownsService,
+    NotificationsService,
     WindowsService,
     UtilService,
     provideServiceWorker('ngsw-worker.js', {

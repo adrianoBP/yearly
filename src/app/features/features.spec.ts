@@ -11,6 +11,7 @@ import { bufferVerdict, distanceKm, geohash, neighbours, routeSummary } from './
 import { footballCandidates, leaveBy, ticketmasterNearby } from './crowd';
 import { dateQuery, searchEvents } from './search';
 import { activePins, countdown } from './countdowns';
+import { buildAlerts } from './alerts';
 import { FALLBACK_MODEL, answerLocally, answerText, buildRequest, describeEvents, keywords, nearestEvents, pickEvents, pickModel } from './ask';
 
 const ref = new Date(2026, 10, 25, 10); // Wed 25 Nov 2026
@@ -394,5 +395,41 @@ describe('countdowns', () => {
   it('drops ended pins and sorts the rest soonest first', () => {
     const pins = [pin('2026-12-18T09:00', '2026-12-20T00:00'), pin('2026-11-01T00:00', '2026-11-02T00:00'), pin('2026-11-30T00:00', '2026-12-01T00:00')];
     expect(activePins(pins, now).map((p) => p.start)).toEqual(['2026-11-30T00:00', '2026-12-18T09:00']);
+  });
+});
+
+describe('buildAlerts', () => {
+  const now = new Date(2026, 10, 25, 10); // Wed 25 Nov, 10:00
+  const theatre = { id: 't', title: 'Theatre', start: new Date(2026, 10, 26, 19, 30) };
+  const match = { name: 'Rangers v Celtic', venue: 'Ibrox', start: new Date(2026, 10, 26, 19, 45), kind: 'Football', distanceKm: 1.2 };
+
+  it('warns only when something is wrong', () => {
+    expect(buildAlerts([{ ...theatre, home: { minutes: 25, trafficMinutes: 2, leaveBy: new Date(2026, 10, 26, 18, 55) } }], now)).toEqual([]);
+    expect(buildAlerts([{ ...theatre, weather: [] }], now)).toEqual([]);
+  });
+
+  it('says when to leave, why, and sends it 15 minutes earlier', () => {
+    const [alert] = buildAlerts([{ ...theatre, crowds: [match], home: { minutes: 25, trafficMinutes: 2, leaveBy: new Date(2026, 10, 26, 18, 35) } }], now);
+    expect(alert.title).toBe('Leave by 18:35 for Theatre');
+    expect(alert.body).toBe('25 min drive; Rangers v Celtic is on nearby at 19:45.');
+    expect(alert.at).toBe(new Date(2026, 10, 26, 18, 20).getTime());
+  });
+
+  it('falls back to a crowd warning without a home address, and warns about weather and gaps', () => {
+    const alerts = buildAlerts(
+      [{ ...theatre, crowds: [match], weather: ['Rain likely (80%)'], next: { title: 'Drinks', minutes: 30, gap: 20, verdict: 'late' } }],
+      now
+    );
+    expect(alerts.map((a) => [a.id, moment(a.at).format('ddd HH:mm')])).toEqual([
+      ['weather:t', 'Wed 19:00'],
+      ['buffer:t', 'Thu 08:00'],
+      ['crowd:t', 'Thu 17:30'],
+    ]);
+    expect(alerts[1].title).toBe('Not enough time to get to Drinks');
+  });
+
+  it('leaves out alerts whose time has passed', () => {
+    const late = new Date(2026, 10, 25, 20);
+    expect(buildAlerts([{ ...theatre, weather: ['Snow'] }], late)).toEqual([]);
   });
 });

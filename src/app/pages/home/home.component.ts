@@ -41,6 +41,7 @@ import { SearchCommand, SearchComponent } from './search/search.component';
 import { CountdownsService } from '../../services/countdowns.service';
 import { Pin, countdown } from '../../features/countdowns';
 import { canEditEvent } from '../../services/util.service';
+import { NotificationsService } from '../../services/notifications.service';
 
 const TEMP_EVENT_ID = 'temp-id';
 // Per browser tab: a reload (or coming back from settings) keeps the year, a new tab starts at today
@@ -109,7 +110,8 @@ export class HomeComponent {
     private sync: SyncService,
     public features: FeaturesService,
     public countdowns: CountdownsService,
-    private router: Router
+    private router: Router,
+    private notifications: NotificationsService
   ) {
     this.buildMonths();
   }
@@ -208,6 +210,7 @@ export class HomeComponent {
   }
 
   ngOnDestroy() {
+    clearTimeout(this.notifyTimer);
     this.stopWatchingToday?.();
   }
 
@@ -280,10 +283,32 @@ export class HomeComponent {
     this.eventsByDay = bucketEventsByDay(events, this.year);
     if (!this.drag) this.countdowns.refresh(events);
     this.updateBadge();
+    this.scheduleNotifications();
+  }
+
+  private notifyTimer = 0;
+
+  /** Once the calendar settles, sends this device's alerts for the next few days to the Yearly server */
+  private scheduleNotifications() {
+    if (this.notifications.state !== 'on') return;
+    clearTimeout(this.notifyTimer);
+    this.notifyTimer = window.setTimeout(() => {
+      if (!this.yearCache.has(this.currentYear)) return;
+      const events = [this.currentYear, this.currentYear + 1]
+        .flatMap((year) => this.yearCache.get(year) ?? [])
+        .filter((e) => e.id !== TEMP_EVENT_ID);
+      this.notifications.update(events);
+    }, 5000);
+  }
+
+  /** Notifications stop on this device too: the next person to sign in here may be someone else */
+  async logOut() {
+    await this.notifications.disable();
+    this.authService.logOut();
   }
 
   /** Today's number of events on the installed app's icon */
-  // shortcut: only updates while Yearly is open, so the count can be a day old; phase 5 push could refresh it
+  // shortcut: only updates while Yearly is open, so the count can be a day old; a custom service worker could refresh it on push
   private updateBadge() {
     if (!('setAppBadge' in navigator)) return;
     if (!this.features.isOn('app-badge')) {
@@ -375,7 +400,9 @@ export class HomeComponent {
     for (const neighbour of [year - 1, year + 1]) {
       if (!this.yearCache.has(neighbour))
         this.fetchYear(neighbour).then((events) => {
-          if (!this.yearCache.has(neighbour)) this.yearCache.set(neighbour, events);
+          if (this.yearCache.has(neighbour)) return;
+          this.yearCache.set(neighbour, events);
+          this.scheduleNotifications();
         });
     }
   }

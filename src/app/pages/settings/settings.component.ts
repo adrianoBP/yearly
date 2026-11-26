@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, isDevMode } from '@angular/core';
 import { CalendarService } from '../../services/api/calendar.service';
 
 import { GoogleCalendar } from '../../services/google/calendar.service';
@@ -17,6 +17,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { IntegrationsService } from '../../services/integrations.service';
 import { SyncService } from '../../services/sync.service';
+import { NotificationsService, PushState } from '../../services/notifications.service';
 import {
   FEATURES,
   Feature,
@@ -50,8 +51,58 @@ export class SettingsComponent {
     public utilService: UtilService,
     public userService: UserService,
     public integrations: IntegrationsService,
-    public sync: SyncService
+    public sync: SyncService,
+    public notifications: NotificationsService
   ) {}
+
+  // ---- Notifications on this device ----
+
+  pushBusy = false;
+  pushMessage = '';
+  pushError = false;
+
+  pushLabel(state: PushState): string {
+    return { 'no-server': 'Needs the Yearly server', unsupported: 'Not available here', blocked: 'Blocked', off: 'Off', on: 'Ready' }[state];
+  }
+
+  async togglePush(input: HTMLInputElement) {
+    this.pushBusy = true;
+    this.pushMessage = '';
+    this.pushError = false;
+    try {
+      if (this.notifications.state === 'on') await this.notifications.disable();
+      else {
+        await this.notifications.enable();
+        this.pushMessage = 'On. Alerts are worked out each time Yearly opens on this device.';
+      }
+    } catch (e) {
+      this.pushError = true;
+      this.pushMessage =
+        typeof e === 'string' ? e : this.notifications.state === 'blocked' ? 'Notifications are blocked for Yearly.' : "Couldn't turn notifications on.";
+    } finally {
+      this.pushBusy = false;
+      // A refused permission leaves the state as it was, so put the switch back
+      input.checked = this.notifications.state === 'on';
+    }
+  }
+
+  async testPush() {
+    this.pushBusy = true;
+    this.pushError = false;
+    try {
+      await this.notifications.test();
+      this.pushMessage =
+        "Test sent. It should appear in a few seconds. If it doesn't, check that notifications are on for this browser in your device's settings, and that Do not disturb is off.";
+    } catch (e) {
+      this.pushError = true;
+      this.pushMessage = String(e);
+    } finally {
+      this.pushBusy = false;
+    }
+  }
+
+  /** ng serve without the production configuration: no service worker, so no notifications */
+  devMode = isDevMode();
 
   features = FEATURES;
   canToggle = canToggle;

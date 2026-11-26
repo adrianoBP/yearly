@@ -1,0 +1,100 @@
+# On every push to main: test, work out the next version, build with the version and server address, deploy to
+# Firebase Hosting, then tag the release with its version. Setup: README.md, "Deploying".
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+
+# One deploy at a time, in push order
+concurrency: deploy
+
+permissions:
+  contents: write # to push the release tag
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # every commit and tag, to work out the version
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Test
+        run: |
+          npx ng test --watch=false --browsers=ChromeHeadless --no-progress
+          node --test server/yearly-server.test.mjs .github/scripts/next-version.test.mjs
+
+      - name: Work out the version
+        id: version
+        run: node .github/scripts/next-version.mjs >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          # A secret, so the address stays out of the repository and the public logs
+          SERVER_URL: ${{ secrets.SERVER_URL }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: npx ng build --define "YEARLY_VERSION='$VERSION'" --define "YEARLY_SERVER_URL='$SERVER_URL'"
+
+      - name: Deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEARLY_2024 }}
+          projectId: yearly-2024
+          target: yearly
+          channelId: live
+
+      - name: Tag the release
+        if: steps.version.outputs.new == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
+  # Installs or updates the Yearly server on the VPS over SSH (server/install.sh); skipped without VPS_HOST
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy the server
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          SERVER_URL: ${{ secrets.SERVER_URL }}
+          LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+        run: |
+          if [ -z "$VPS_HOST" ]; then echo "No VPS_HOST secret, so the server isn't deployed."; exit 0; fi
+          case "$SERVER_URL" in
+            https://api.*) ;;
+            *) echo "SERVER_URL must be https://api.<your app's domain>" >&2; exit 1 ;;
+          esac
+          # The app is the server's domain without "api.", plus Firebase's own addresses for this site (.firebaserc)
+          ORIGINS="https://${SERVER_URL#https://api.},https://yearly-adrianobp.web.app,https://yearly-adrianobp.firebaseapp.com"
+          TARGET="${VPS_USER:-root}@$VPS_HOST"
+
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/vps
+          chmod 600 ~/.ssh/vps
+          # shortcut: trusts the VPS's host key as first seen on each run; only public files and the email are sent
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2> /dev/null
+
+          ssh -i ~/.ssh/vps "$TARGET" 'mkdir -p yearly-server'
+          scp -i ~/.ssh/vps server/yearly-server.mjs server/install.sh "$TARGET:yearly-server/"
+          ssh -i ~/.ssh/vps "$TARGET" bash -s <<EOF
+          set -e
+          if [ "\$(id -u)" = 0 ]; then SUDO=; else SUDO="sudo -n"; fi
+          \$SUDO env LETSENCRYPT_EMAIL='$LETSENCRYPT_EMAIL' bash yearly-server/install.sh '$ORIGINS'
+          EOF

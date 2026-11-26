@@ -83,8 +83,10 @@ export class GoogleAuthService {
             resolve(res);
           }),
         onError: (err) => this.ngZone.run(() => reject(err)),
-        // e.g. the popup was closed or blocked
-        onNonOAuthError: (err) => this.ngZone.run(() => reject(err)),
+        // e.g. the popup was closed or blocked. A self-closing popup can report 'popup_closed' just before
+        // its success message lands, so give onSuccess a moment to win (a settled promise ignores the late reject).
+        onNonOAuthError: (err) =>
+          setTimeout(() => this.ngZone.run(() => reject(err)), err.type === 'popup_closed' ? 1500 : 0),
       })();
     });
   }

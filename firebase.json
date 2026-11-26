@@ -2,8 +2,27 @@
   "hosting": [
     {
       "target": "yearly",
-      "source": ".",
-      "frameworksBackend": {}
+      "public": "dist/yearly/browser",
+      "ignore": [
+        "**/.*"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "/@(index.html|ngsw-worker.js|ngsw.json)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

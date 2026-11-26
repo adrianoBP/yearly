@@ -64,17 +64,17 @@ describe('IntegrationsService', () => {
   let http: HttpTestingController;
   let now: Date;
 
-  let proxyUrl = '';
+  let serverUrl = '';
 
   beforeEach(() => {
     localStorage.clear();
-    proxyUrl = '';
+    serverUrl = '';
     TestBed.configureTestingModule({
       providers: [
         IntegrationsService,
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: UtilService, useValue: { get proxyUrl() { return proxyUrl; } } },
+        { provide: UtilService, useValue: { get serverUrl() { return serverUrl; } } },
       ],
     });
     service = TestBed.inject(IntegrationsService);
@@ -169,7 +169,7 @@ describe('IntegrationsService', () => {
       jasmine.stringContaining('Yearly server')
     );
 
-    proxyUrl = 'https://proxy.example';
+    serverUrl = 'https://proxy.example';
     expect(service.canUse('footballdata')).toBeTrue();
     const viaServer = service.request('footballdata', 'https://api.football-data.org/v4/matches', { headers: { 'X-Auth-Token': 't' } });
     const req = http.expectOne('https://proxy.example/api.football-data.org/v4/matches');
@@ -179,7 +179,7 @@ describe('IntegrationsService', () => {
   });
 
   it('retries blocked fallback services through the pass-through, and POSTs bodies', async () => {
-    proxyUrl = 'https://proxy.example';
+    serverUrl = 'https://proxy.example';
     const tm = service.request('ticketmaster', 'https://app.ticketmaster.com/discovery/v2/events.json?apikey=k');
     http.expectOne('https://app.ticketmaster.com/discovery/v2/events.json?apikey=k').error(new ProgressEvent('error'), { status: 0 });
     await new Promise((resolve) => setTimeout(resolve));

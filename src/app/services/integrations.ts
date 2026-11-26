@@ -14,7 +14,7 @@ export interface Provider {
   test?: (key: string) => { url: string; headers?: Record<string, string> };
   /**
    * Browsers can't call some APIs directly (no CORS). 'always' goes through the Yearly server
-   * (see server/proxy.mjs); 'fallback' tries the browser first.
+   * (see server/yearly-server.mjs); 'fallback' tries the browser first.
    */
   server?: 'always' | 'fallback';
 }

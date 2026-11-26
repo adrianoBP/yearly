@@ -10,16 +10,21 @@ export class UtilService {
   private _mockData: boolean;
   private _googleClientId: string;
   private _googleLoginScopes: string;
-  private _proxyUrl: string;
+  private _serverUrl: string;
 
   constructor(
     @Inject('version') version: string,
     @Inject('mockData') mockData: boolean,
     @Inject('googleClientId') googleClientId: string,
     @Inject('googleLoginScopes') googleLoginScopes: string,
-    @Inject('proxyUrl') proxyUrl: string
+    @Inject('serverUrl') serverUrl: string
   ) {
-    this._proxyUrl = proxyUrl.replace(/\/$/, '');
+    this._serverUrl = serverUrl.replace(/\/$/, '');
+    // The docs' example address left in place would send requests nowhere: treat it as not set up
+    if (/example\.com|your-domain/.test(this._serverUrl)) {
+      console.warn(`serverUrl is still the example (${serverUrl}): set it to https://api.<your app's domain>`);
+      this._serverUrl = '';
+    }
     this._version = version;
     this._mockData = mockData;
     this._googleClientId = googleClientId;
@@ -42,9 +47,9 @@ export class UtilService {
     return this._googleLoginScopes;
   }
 
-  /** Yearly pass-through server (server/proxy.mjs), without a trailing slash; empty when not set up */
-  get proxyUrl() {
-    return this._proxyUrl;
+  /** Yearly pass-through server (server/yearly-server.mjs), without a trailing slash; empty when not set up */
+  get serverUrl() {
+    return this._serverUrl;
   }
 
   getFormattedDate(date: Date, format: string = 'ddd, Do MMMM YYYY'): string {

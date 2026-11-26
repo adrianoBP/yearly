@@ -88,11 +88,11 @@ export class IntegrationsService {
   hasKey = (id: ProviderId) => this.getKey(id) != null;
 
   /** Key set, and the service is reachable: some need the Yearly pass-through server */
-  canUse = (id: ProviderId) => this.hasKey(id) && (this.provider(id).server !== 'always' || !!this.utilService.proxyUrl);
+  canUse = (id: ProviderId) => this.hasKey(id) && (this.provider(id).server !== 'always' || !!this.utilService.serverUrl);
 
   /** Why a provider with a key still can't be used, if so */
   serverMissing(id: ProviderId) {
-    return this.provider(id).server === 'always' && !this.utilService.proxyUrl;
+    return this.provider(id).server === 'always' && !this.utilService.serverUrl;
   }
 
   setKey(id: ProviderId, key: string) {
@@ -153,17 +153,17 @@ export class IntegrationsService {
           ? this.http.get<T>(target, { headers: options.headers })
           : this.http.post<T>(target, options.body, { headers: options.headers })
       );
-    const viaServer = () => request(`${this.utilService.proxyUrl}/${url.replace(/^https:\/\//, '')}`);
+    const viaServer = () => request(`${this.utilService.serverUrl}/${url.replace(/^https:\/\//, '')}`);
     const server = this.provider(id).server;
     if (server === 'always') {
-      if (!this.utilService.proxyUrl) throw "Needs the Yearly server, which isn't set up.";
+      if (!this.utilService.serverUrl) throw "Needs the Yearly server, which isn't set up.";
       return viaServer();
     }
     try {
       return await request(url);
     } catch (err) {
       // status 0: the browser refused (CORS) or the network failed
-      if (server === 'fallback' && this.utilService.proxyUrl && err instanceof HttpErrorResponse && err.status === 0) return viaServer();
+      if (server === 'fallback' && this.utilService.serverUrl && err instanceof HttpErrorResponse && err.status === 0) return viaServer();
       throw err;
     }
   }
