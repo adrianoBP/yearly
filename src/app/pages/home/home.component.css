@@ -22,17 +22,20 @@
   }
 }
 
+/* Three columns: the outer two share the spare width equally, so the pinned countdowns stay centred
+   on the bar however wide the actions get (the hint and "Type it" come and go) */
 .topbar {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(max-content, 1fr) minmax(0, auto) minmax(max-content, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
   padding: 0.45rem 1rem;
   border-bottom: 1px solid var(--border);
 }
 
 .date-nav {
+  grid-column: 1;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -81,6 +84,8 @@
 }
 
 .actions {
+  grid-column: 3;
+  justify-self: end;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -89,6 +94,65 @@
 
 .actions .btn {
   margin-right: 0.25rem;
+}
+
+/* Picking days: the hint and "Type it" slide in beside the New event button (whose label fades across),
+   and slide back out when done or cancelled */
+.hint.shown {
+  transition:
+    opacity 0.2s,
+    translate 0.35s var(--spring),
+    display 0.35s allow-discrete;
+}
+
+.type-it.shown {
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.2s,
+    transform 0.2s var(--spring),
+    opacity 0.2s 60ms,
+    translate 0.35s var(--spring) 60ms,
+    display 0.35s allow-discrete;
+}
+
+.hint:not(.shown),
+.type-it:not(.shown) {
+  display: none;
+  opacity: 0;
+  translate: 0.75rem 0;
+  transition:
+    opacity 0.15s ease-in,
+    translate 0.2s ease-in,
+    display 0.2s allow-discrete;
+}
+
+@starting-style {
+  .hint.shown,
+  .type-it.shown {
+    opacity: 0;
+    translate: 0.75rem 0;
+  }
+}
+
+/* Both labels share one spot, so the button keeps its width and they fade across */
+.labels {
+  display: inline-grid;
+  justify-items: center;
+}
+
+.labels > * {
+  grid-area: 1 / 1;
+  opacity: 0;
+  translate: 0 3px;
+  transition:
+    opacity 0.2s,
+    translate 0.25s var(--spring);
+}
+
+.labels > .on {
+  opacity: 1;
+  translate: none;
 }
 
 .hint {
@@ -317,6 +381,7 @@
 
 /* Pinned countdowns: chips between the year and the actions */
 .countdowns {
+  grid-column: 2;
   flex: 1 1 0;
   min-width: 0;
   display: flex;
@@ -395,7 +460,9 @@
 /* Phones: the countdowns get their own row under the navigation */
 @media (max-width: 768px), (max-height: 500px) {
   .topbar {
+    display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
   }
 
   .countdowns {

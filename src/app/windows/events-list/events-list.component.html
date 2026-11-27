@@ -6,7 +6,7 @@
   <button class="icon-btn"
           aria-label="Close"
           (click)="windowsService.back()">
-    <fa-icon class="i-jelly" [icon]="closeIcon" />
+    <svg class="i-jelly" [appIcon]="closeIcon" />
   </button>
 </header>
 
@@ -38,8 +38,8 @@
                 aria-label="Pin a countdown"
                 [title]="countdowns.isPinned(event.id) ? 'Unpin countdown' : 'Pin a countdown'"
                 (click)="$event.stopPropagation(); countdowns.toggle(event)">
-          <fa-icon class="i-jelly" [icon]="pinIcon"
-                   size="sm" />
+          <svg class="i-pin" [appIcon]="pinIcon"
+               size="0.875em" />
         </button>
       }
       @if (event.canEdit) {
@@ -47,14 +47,14 @@
                 aria-label="Delete event"
                 title="Delete"
                 (click)="$event.stopPropagation(); removeEvent(event)">
-          <fa-icon class="i-shake" [icon]="faTrash"
-                   size="sm" />
+          <svg class="i-lid" [appIcon]="trashIcon"
+               size="0.875em" />
         </button>
       } @else {
         <span class="icon-btn locked"
               title="Read only">
-          <fa-icon [icon]="faLock"
-                   size="sm" />
+          <svg [appIcon]="lockIcon"
+               size="0.875em" />
         </span>
       }
     </li>

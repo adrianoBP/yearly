@@ -15,13 +15,11 @@ import { WindowsService } from './windows/windows.service';
 export class AppComponent {
   title = 'yearly';
 
-  private readonly reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
-
   /** A ripple spreads from where any button is pressed (styles in styles.css) */
   @HostListener('document:pointerdown', ['$event'])
   ripple(event: PointerEvent) {
     const target = (event.target as Element)?.closest?.<HTMLElement>('.btn, .icon-btn, .chip, .ext-link, .menu button');
-    if (target == null || target.matches(':disabled') || this.reduceMotion.matches) return;
+    if (target == null || target.matches(':disabled')) return;
     const rect = target.getBoundingClientRect();
     const size = Math.max(rect.width, rect.height) * 2;
     const ripple = document.createElement('span');

@@ -92,10 +92,18 @@ sudo rm -r /etc/yearly /etc/systemd/system/yearly.service /etc/apache2/sites-ava
 ## Run it on your computer
 
 ```powershell
-$env:ALLOWED_ORIGINS = 'http://localhost:4200'; node server/yearly-server.mjs
+npm run server
 ```
 
-Sign-ins last an hour unless you also set `$env:GOOGLE_CLIENT_ID` and `$env:GOOGLE_CLIENT_SECRET` first.
+Sign-ins last an hour unless the server has the Google client ID and secret: put them once in `server/google.env`
+(ignored by git), the same file `install.sh` takes:
+
+```
+GOOGLE_CLIENT_ID=<the app's client ID>
+GOOGLE_CLIENT_SECRET=<its secret>
+```
+
+It allows requests from `http://localhost:4200`; for another address, set `$env:ALLOWED_ORIGINS` first.
 
 It listens on `http://localhost:8787`, where the app looks for it when opened on `localhost`, and keeps its data in
 `./data` (ignored by git). Notifications also need the app's service worker, so run the app with

@@ -3,8 +3,8 @@ import { WindowParameters, WindowsService } from '../windows.service';
 
 
 import { Event, EventDisplayDetails } from '../../interfaces/event.interface';
-import { faTrash, faLock, faXmark, faThumbtack } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import * as lucide from 'lucide';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { CalendarService } from '../../services/api/calendar.service';
 import { UtilService, canEditEvent } from '../../services/util.service';
 import { CountdownsService } from '../../services/countdowns.service';
@@ -22,16 +22,15 @@ export interface EventsListParameters extends WindowParameters {
 
 @Component({
   selector: 'app-events-list',
-  imports: [FontAwesomeModule],
+  imports: [IconComponent],
   templateUrl: './events-list.component.html',
   styleUrl: './events-list.component.css',
 })
 export class EventsListComponent {
-  // FontAwesome icons
-  faTrash = faTrash;
-  closeIcon = faXmark;
-  faLock = faLock;
-  pinIcon = faThumbtack;
+  trashIcon = lucide.Trash2;
+  closeIcon = lucide.X;
+  lockIcon = lucide.Lock;
+  pinIcon = lucide.Pin;
 
   // Properties
   parameters: EventsListParameters;

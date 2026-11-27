@@ -1,16 +1,8 @@
 
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import {
-  faAlignLeft,
-  faArrowUpRightFromSquare,
-  faLocationDot,
-  faMapLocationDot,
-  faLock,
-  faXmark,
-} from '@fortawesome/free-solid-svg-icons';
-import { faCalendar, faClock } from '@fortawesome/free-regular-svg-icons';
+import * as lucide from 'lucide';
+import { IconComponent } from '../../shared/icon/icon.component';
 import moment from 'moment';
 import { Event, EventDisplayDetails } from '../../interfaces/event.interface';
 import { CalendarService } from '../../services/api/calendar.service';
@@ -39,20 +31,20 @@ export interface EditEventParameters extends WindowParameters {
 
 @Component({
   selector: 'app-event-edit',
-  imports: [FormsModule, FontAwesomeModule, DatePickerComponent, EventExtrasComponent],
+  imports: [FormsModule, IconComponent, DatePickerComponent, EventExtrasComponent],
   templateUrl: './event-edit.component.html',
   styleUrl: './event-edit.component.css',
 })
 export class EventEditComponent {
   // Font awesome icons
-  closeIcon = faXmark;
-  clockIcon = faClock;
-  calendarIcon = faCalendar;
-  lockIcon = faLock;
-  locationIcon = faLocationDot;
-  mapIcon = faMapLocationDot;
-  descriptionIcon = faAlignLeft;
-  externalIcon = faArrowUpRightFromSquare;
+  closeIcon = lucide.X;
+  clockIcon = lucide.Clock;
+  calendarIcon = lucide.Calendar;
+  lockIcon = lucide.Lock;
+  locationIcon = lucide.MapPin;
+  mapIcon = lucide.MapPinned;
+  descriptionIcon = lucide.TextAlignStart;
+  externalIcon = lucide.ExternalLink;
 
   parameters: EditEventParameters;
 

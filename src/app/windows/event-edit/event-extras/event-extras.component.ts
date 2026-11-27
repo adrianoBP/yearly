@@ -1,13 +1,6 @@
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import {
-  faArrowUpRightFromSquare,
-  faCar,
-  faCloudSun,
-  faPeopleGroup,
-  faPlane,
-  faRotateRight,
-} from '@fortawesome/free-solid-svg-icons';
+import * as lucide from 'lucide';
+import { IconComponent } from '../../../shared/icon/icon.component';
 import moment from 'moment';
 import { NearbyEvent, leaveBy } from '../../../features/crowd';
 import { FlightInfo, findFlight } from '../../../features/flight';
@@ -34,7 +27,7 @@ interface Leg {
 /** Flight details, weather, travel time between events and crowds near the venue, under an event's fields */
 @Component({
   selector: 'app-event-extras',
-  imports: [FontAwesomeModule],
+  imports: [IconComponent],
   templateUrl: './event-extras.component.html',
   styleUrl: './event-extras.component.css',
 })
@@ -56,12 +49,12 @@ export class EventExtrasComponent implements OnChanges, OnDestroy {
     private settingsService: SettingsService
   ) {}
 
-  flightIcon = faPlane;
-  weatherIcon = faCloudSun;
-  externalIcon = faArrowUpRightFromSquare;
-  travelIcon = faCar;
-  crowdIcon = faPeopleGroup;
-  refreshIcon = faRotateRight;
+  flightIcon = lucide.Plane;
+  weatherIcon = lucide.CloudSun;
+  externalIcon = lucide.ExternalLink;
+  travelIcon = lucide.Car;
+  crowdIcon = lucide.Users;
+  refreshIcon = lucide.RotateCw;
 
   flight: FlightInfo | null = null;
   flightStatus: { status: FlightStatus; at: number } | null = null;

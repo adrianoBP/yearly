@@ -47,3 +47,6 @@ Thumbs.db
 
 # Yearly server data when run locally (holds its private notification key)
 /data
+
+# Google client ID and secret for the Yearly server (npm run server locally, install.sh on the VPS)
+server/google.env

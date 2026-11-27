@@ -427,14 +427,9 @@ input[type='checkbox'].switch:checked::before {
   }
 }
 
+/* Reduced motion turns off the big moves: the year sliding sideways here, panels sliding in (they fade
+   instead, see WindowContainerComponent). Small fades and nudges, like button feedback, stay. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
@@ -487,58 +482,73 @@ input[type='checkbox'].switch:checked::before {
 }
 
 /* -- ICON MOTION --
-   Icons move the way their meaning suggests, once per hover: arrows nudge their way,
-   "log out" slides out of the door, trash shakes, links pop out, charts grow.
-   Mark an icon with one i-* class; unmarked icons in buttons get a small wiggle. */
-fa-icon {
-  display: inline-block;
+   Lucide icons are drawn from separate strokes, so on hover an icon moves its parts the way its
+   meaning suggests: the trash lid lifts, chart bars rise one by one, the log-out arrow leaves
+   through the door, the dots hop, palm fronds sway. Mark an icon with one i-* class; unmarked
+   icons in buttons get a small wiggle. Part rules live here because IconComponent adds the strokes
+   at runtime, out of reach of encapsulated component styles.
+   Transform origins and distances inside an icon are in its 24x24 grid: at text size one unit is
+   barely half a pixel, so part moves are large in grid units to be seen. */
+svg.lucide {
+  flex-shrink: 0;
+  overflow: visible; /* moving parts may leave the box */
+  vertical-align: -0.125em;
 }
 
-:is(button, a, label):hover:not(:disabled) fa-icon:not([class*='i-']) {
-  animation: icon-wiggle 0.5s ease-in-out;
+/* Staggered parts set --d (delay); nudges set --dx / --dy */
+:is(button, a, label):hover:not(:disabled) {
+  /* Whole icon */
+  & svg.lucide:not([class*='i-']) { animation: icon-wiggle 0.5s ease-in-out; }
+  & svg.i-left { --dx: -4px; animation: icon-nudge 0.45s var(--spring); }
+  & svg.i-right { --dx: 4px; animation: icon-nudge 0.45s var(--spring); }
+  & svg.i-jelly { animation: icon-jelly 0.55s ease-in-out; }
+  & svg.i-gear { animation: icon-gear 0.6s var(--spring); }
+  & svg.i-search { animation: icon-scan 0.7s ease-in-out; }
+
+  /* Parts */
+  & svg.i-out > :nth-child(-n + 2) { animation: icon-out 0.6s ease-in-out; }
+  & svg.i-pop > :nth-child(-n + 2) { --dx: 6px; --dy: -6px; animation: icon-nudge 0.5s var(--spring); }
+  & svg.i-lid > :nth-child(n + 4) { transform-origin: 3px 6px; animation: icon-lid 0.6s var(--spring); }
+  & svg.i-grow > :nth-child(n + 2) { transform-origin: 0 17px; animation: icon-grow 0.6s var(--spring) var(--d, 0s) backwards; }
+  & svg.i-press > :not(rect) { --dy: 4px; animation: icon-nudge 0.35s ease-in-out var(--d, 0s); }
+  & svg.i-dots > * { --dy: -8px; animation: icon-nudge 0.45s ease-in-out var(--d, 0s); }
+  & svg.i-chat > * { --dy: -5px; animation: icon-nudge 0.45s ease-in-out var(--d, 0s); }
+  & svg.i-plus > :is(:nth-child(1), :nth-child(3)) { stroke-dasharray: 6; animation: icon-draw 0.3s ease-out var(--d, 0s) backwards; }
+  & svg.i-swing > :nth-child(-n + 3) { transform-origin: 12px 9px; animation: icon-swing 0.7s ease-in-out; }
+  & svg.i-drop > :is(:nth-child(1), :nth-child(3)) { animation: icon-drop 0.6s ease-out; }
+  & svg.i-pin > :nth-child(2) { --dy: 4px; animation: icon-nudge 0.35s ease-in-out; }
+  & svg.i-days > :nth-child(n + 5) { animation: icon-blink 0.5s ease-in-out var(--d, 0s); }
 }
 
-:is(button, a, label):hover:not(:disabled) fa-icon.i-left {
-  animation: icon-left 0.45s var(--spring);
-}
+/* Chart bars, shortest first */
+svg.i-grow > :nth-child(3) { --d: 70ms; }
+svg.i-grow > :nth-child(2) { --d: 140ms; }
 
-:is(button, a, label):hover:not(:disabled) fa-icon.i-right {
-  animation: icon-right 0.45s var(--spring);
-}
+/* Keys pressed like typing, not all at once */
+svg.i-press > :nth-child(1) { --d: 40ms; }
+svg.i-press > :nth-child(2) { --d: 100ms; }
+svg.i-press > :nth-child(3) { --d: 80ms; }
+svg.i-press > :nth-child(4) { --d: 140ms; }
+svg.i-press > :nth-child(5) { --d: 120ms; }
+svg.i-press > :nth-child(7) { --d: 180ms; }
+svg.i-press > :nth-child(8) { --d: 60ms; }
 
-:is(button, a, label):hover:not(:disabled) fa-icon.i-out {
-  animation: icon-out 0.5s ease-in-out;
-}
+/* Dots left to right (Lucide draws the middle one first) */
+svg.i-dots > :nth-child(1) { --d: 80ms; }
+svg.i-dots > :nth-child(2) { --d: 160ms; }
 
-:is(button, a, label):hover:not(:disabled) fa-icon.i-pop {
-  animation: icon-pop 0.45s var(--spring);
-}
+/* The plus is redrawn across, then down */
+svg.i-plus > :nth-child(3) { --d: 150ms; }
 
-:is(button, a, label):hover:not(:disabled) fa-icon.i-jelly {
-  animation: icon-jelly 0.55s ease-in-out;
-}
+/* The back bubble answers the front one */
+svg.i-chat > :nth-child(2) { --d: 120ms; }
 
-:is(button, a, label):hover:not(:disabled) fa-icon.i-shake {
-  animation: icon-shake 0.45s ease-in-out;
-}
-
-:is(button, a, label):hover:not(:disabled) fa-icon.i-press {
-  animation: icon-press 0.35s ease-in-out;
-}
-
-:is(button, a, label):hover:not(:disabled) fa-icon.i-grow {
-  transform-origin: bottom;
-  animation: icon-grow 0.5s var(--spring);
-}
-
-:is(button, a, label):hover:not(:disabled) fa-icon.i-swing {
-  transform-origin: top center;
-  animation: icon-swing 0.7s ease-in-out;
-}
-
-:is(button, a, label):hover:not(:disabled) fa-icon.i-gear {
-  animation: icon-gear 0.6s var(--spring);
-}
+/* Calendar days ticking by in reading order */
+svg.i-days > :nth-child(6) { --d: 50ms; }
+svg.i-days > :nth-child(7) { --d: 100ms; }
+svg.i-days > :nth-child(8) { --d: 150ms; }
+svg.i-days > :nth-child(9) { --d: 200ms; }
+svg.i-days > :nth-child(10) { --d: 250ms; }
 
 @keyframes icon-wiggle {
   25% { transform: rotate(-12deg); }
@@ -546,23 +556,8 @@ fa-icon {
   75% { transform: rotate(-4deg); }
 }
 
-@keyframes icon-left {
-  40% { transform: translateX(-4px); }
-}
-
-@keyframes icon-right {
-  40% { transform: translateX(4px); }
-}
-
-/* Slides out to the right, reappears from the left */
-@keyframes icon-out {
-  45% { opacity: 0; transform: translateX(8px); }
-  46% { opacity: 0; transform: translateX(-8px); }
-}
-
-/* Up and out, like the arrow it draws */
-@keyframes icon-pop {
-  40% { transform: translate(3px, -3px); }
+@keyframes icon-nudge {
+  40% { transform: translate(var(--dx, 0), var(--dy, 0)); }
 }
 
 /* Squash and stretch */
@@ -572,29 +567,52 @@ fa-icon {
   70% { transform: scale(1.06, 0.94); }
 }
 
-@keyframes icon-shake {
-  20%, 60% { transform: translateX(-2px) rotate(-6deg); }
-  40%, 80% { transform: translateX(2px) rotate(6deg); }
-}
-
-/* A key being pressed */
-@keyframes icon-press {
-  40% { transform: translateY(2px); }
-}
-
-/* Chart bars rising */
-@keyframes icon-grow {
-  0% { transform: scaleY(0.4); }
-}
-
-/* Swaying from its handle */
-@keyframes icon-swing {
-  20% { transform: rotate(14deg); }
-  45% { transform: rotate(-10deg); }
-  70% { transform: rotate(5deg); }
-}
-
 /* A notch forward, then settles back: a gear catching, not a spinner */
 @keyframes icon-gear {
   50% { transform: rotate(45deg); }
+}
+
+/* The arrow leaves through the door and comes back in */
+@keyframes icon-out {
+  45% { opacity: 0; transform: translateX(10px); }
+  46% { opacity: 0; transform: translateX(-8px); }
+}
+
+/* Lid lifts off its left edge */
+@keyframes icon-lid {
+  40% { transform: translateY(-5px) rotate(-24deg); }
+}
+
+@keyframes icon-grow {
+  from { transform: scaleY(0); }
+}
+
+/* Strokes drawn in from their start (the stroke is 6 units long) */
+@keyframes icon-draw {
+  from { stroke-dashoffset: 6; }
+}
+
+/* Fronds swaying on the trunk */
+@keyframes icon-swing {
+  20% { transform: rotate(20deg); }
+  45% { transform: rotate(-15deg); }
+  70% { transform: rotate(7deg); }
+}
+
+/* A magnifier sweeping over the page in a small loop */
+@keyframes icon-scan {
+  25% { transform: translate(-2px, -1.5px); }
+  50% { transform: translate(1.5px, -2px); }
+  75% { transform: translate(1px, 1px); }
+}
+
+/* The pin lifts off the map and lands with a small bounce */
+@keyframes icon-drop {
+  30% { transform: translateY(-8px); }
+  60% { transform: translateY(0); }
+  75% { transform: translateY(-3px); }
+}
+
+@keyframes icon-blink {
+  40% { opacity: 0; }
 }

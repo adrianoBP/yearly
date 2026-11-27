@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import * as lucide from 'lucide';
+import { IconComponent } from '../../shared/icon/icon.component';
 import moment from 'moment';
 import { Event } from '../../interfaces/event.interface';
 import { CalendarInfo, YearStats, yearStats } from '../../features/year-review';
@@ -18,12 +18,12 @@ export interface YearReviewParameters extends WindowParameters {
 
 @Component({
   selector: 'app-year-review',
-  imports: [FontAwesomeModule, BarChartComponent, YearHeatmapComponent],
+  imports: [IconComponent, BarChartComponent, YearHeatmapComponent],
   templateUrl: './year-review.component.html',
   styleUrl: './year-review.component.css',
 })
 export class YearReviewComponent {
-  closeIcon = faXmark;
+  closeIcon = lucide.X;
   year: number;
   stats: YearStats;
 

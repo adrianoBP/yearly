@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import * as lucide from 'lucide';
+import { IconComponent } from '../../shared/icon/icon.component';
 import moment from 'moment';
 import { Bridge, Holiday, NagerHoliday, findBridges, holidaysFor } from '../../features/leave-planner';
 import { IntegrationsService } from '../../services/integrations.service';
@@ -22,12 +22,12 @@ const REGION_NAMES: Record<string, string> = {
 
 @Component({
   selector: 'app-leave-planner',
-  imports: [FormsModule, FontAwesomeModule],
+  imports: [FormsModule, IconComponent],
   templateUrl: './leave-planner.component.html',
   styleUrl: './leave-planner.component.css',
 })
 export class LeavePlannerComponent {
-  closeIcon = faXmark;
+  closeIcon = lucide.X;
 
   year: number;
   settings: Settings;

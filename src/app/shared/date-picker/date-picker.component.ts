@@ -7,13 +7,8 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import {
-  faCalendarDay,
-  faChevronDown,
-  faChevronLeft,
-  faChevronRight,
-} from '@fortawesome/free-solid-svg-icons';
+import * as lucide from 'lucide';
+import { IconComponent } from '../icon/icon.component';
 
 /** Dates travel as 'YYYY-MM-DD' strings, like <input type="date"> */
 export const toDateKey = (d: Date) =>
@@ -51,7 +46,7 @@ const KEY_STEPS: Record<string, [months: number, days: number]> = {
 
 @Component({
   selector: 'app-date-picker',
-  imports: [FontAwesomeModule],
+  imports: [IconComponent],
   templateUrl: './date-picker.component.html',
   styleUrl: './date-picker.component.css',
   host: { '[class.field]': "variant === 'field'" },
@@ -70,10 +65,10 @@ export class DatePickerComponent {
   @ViewChild('trigger', { static: true }) trigger!: ElementRef<HTMLButtonElement>;
   @ViewChild('popover', { static: true }) popover!: ElementRef<HTMLElement>;
 
-  calendarIcon = faCalendarDay;
-  chevronDownIcon = faChevronDown;
-  prevIcon = faChevronLeft;
-  nextIcon = faChevronRight;
+  calendarIcon = lucide.CalendarDays;
+  chevronDownIcon = lucide.ChevronDown;
+  prevIcon = lucide.ChevronLeft;
+  nextIcon = lucide.ChevronRight;
 
   readonly weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   readonly monthNames = Array.from({ length: 12 }, (_, i) => shortMonth.format(new Date(2000, i, 1)));

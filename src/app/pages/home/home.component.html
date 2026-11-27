@@ -17,13 +17,13 @@
               aria-label="Previous year"
               title="Previous year"
               (click)="changeYear(year - 1)">
-        <fa-icon class="i-left" [icon]="chevronLeftIcon" />
+        <svg class="i-left" [appIcon]="chevronLeftIcon" />
       </button>
       <button class="icon-btn"
               aria-label="Next year"
               title="Next year"
               (click)="changeYear(year + 1)">
-        <fa-icon class="i-right" [icon]="chevronRightIcon" />
+        <svg class="i-right" [appIcon]="chevronRightIcon" />
       </button>
     </div>
     <h1 class="year"
@@ -40,8 +40,8 @@
       @for (pin of countdowns.active(); track pin.id) {
         <li class="countdown">
           <button class="countdown-jump"
-                  [title]="'Go to ' + pin.title"
-                  (click)="jumpToPin(pin)">
+                  [title]="'Open ' + pin.title"
+                  (click)="openPin(pin)">
             <span class="dot"
                   [style.background-color]="pin.colour"></span>
             <span class="countdown-title">{{ pin.title }}</span>
@@ -51,7 +51,7 @@
                   [attr.aria-label]="'Unpin ' + pin.title"
                   title="Unpin"
                   (click)="countdowns.unpin(pin.id)">
-            <fa-icon [icon]="closeIcon" />
+            <svg [appIcon]="closeIcon" />
           </button>
         </li>
       }
@@ -59,17 +59,20 @@
   }
 
   <div class="actions">
-    @if (calendarService.isAddingEvent) {
-      <span class="hint"
-            role="status">{{ newEventStart ? 'Now pick the end day' : 'Pick the start day' }}</span>
-      @if (!newEventStart && features.isOn('text-events')) {
-        <button class="btn"
-                title="Describe the event in words instead"
-                (click)="typeNewEvent()">
-          <fa-icon class="i-press" [icon]="typeIcon" />
-          <span class="label">Type it</span>
-        </button>
-      }
+    <!-- Always in the page, so they can slide out as well as in (see .shown) -->
+    <span class="hint"
+          role="status"
+          [class.shown]="calendarService.isAddingEvent"
+          [inert]="!calendarService.isAddingEvent">{{ newEventStart ? 'Now pick the end day' : 'Pick the start day' }}</span>
+    @if (features.isOn('text-events')) {
+      <button class="btn type-it"
+              title="Describe the event in words instead"
+              [class.shown]="calendarService.isAddingEvent && !newEventStart"
+              [inert]="!calendarService.isAddingEvent || !!newEventStart"
+              (click)="typeNewEvent()">
+        <svg class="i-press" [appIcon]="typeIcon" />
+        <span class="label">Type it</span>
+      </button>
     }
     @if (features.isOn('search')) {
       <button class="icon-btn"
@@ -77,21 +80,26 @@
               title="Search (Ctrl+K)"
               aria-keyshortcuts="Control+K /"
               (click)="openSearch()">
-        <fa-icon class="i-grow" [icon]="searchIcon" />
+        <svg class="i-search" [appIcon]="searchIcon" />
       </button>
     }
     <button class="btn"
             [class.btn-primary]="calendarService.isAddingEvent"
             [attr.aria-pressed]="calendarService.isAddingEvent"
             (click)="toggleAddEvent()">
-      <fa-icon class="i-jelly" [icon]="addEventIcon" />
-      <span class="label">{{ calendarService.isAddingEvent ? 'Cancel' : 'New event' }}</span>
+      <svg class="i-plus" [appIcon]="addEventIcon" />
+      <span class="label labels">
+        <span [class.on]="!calendarService.isAddingEvent"
+              [attr.aria-hidden]="calendarService.isAddingEvent">New event</span>
+        <span [class.on]="calendarService.isAddingEvent"
+              [attr.aria-hidden]="!calendarService.isAddingEvent">Cancel</span>
+      </span>
     </button>
     <button class="icon-btn"
             popovertarget="more-menu"
             aria-label="More"
             title="More">
-      <fa-icon class="i-jelly" [icon]="moreIcon" />
+      <svg class="i-dots" [appIcon]="moreIcon" />
     </button>
     <div #moreMenu
          id="more-menu"
@@ -101,25 +109,22 @@
       @if (features.isOn('ask-calendar')) {
         <button role="menuitem"
                 (click)="moreMenu.hidePopover(); openAskCalendar()">
-          <fa-icon class="i-jelly"
-                   [icon]="askIcon"
-                   [fixedWidth]="true" />
+          <svg class="i-chat"
+               [appIcon]="askIcon" />
           Ask your calendar
         </button>
       }
       @if (features.isOn('leave-planner')) {
         <button role="menuitem"
                 (click)="moreMenu.hidePopover(); openLeavePlanner()">
-          <fa-icon class="i-swing" [icon]="leaveIcon"
-                   [fixedWidth]="true" />
+          <svg class="i-swing" [appIcon]="leaveIcon" />
           Leave planner
         </button>
       }
       @if (features.isOn('year-review')) {
         <button role="menuitem"
                 (click)="moreMenu.hidePopover(); openYearReview()">
-          <fa-icon class="i-grow" [icon]="reviewIcon"
-                   [fixedWidth]="true" />
+          <svg class="i-grow" [appIcon]="reviewIcon" />
           Year in review
         </button>
       }
@@ -127,16 +132,14 @@
       <a class="small-only"
          role="menuitem"
          routerLink="/settings">
-        <fa-icon class="i-gear"
-                 [icon]="cogIcon"
-                 [fixedWidth]="true" />
+        <svg class="i-gear"
+             [appIcon]="cogIcon" />
         Settings
       </a>
       <button role="menuitem"
               (click)="moreMenu.hidePopover(); logOut()">
-        <fa-icon class="i-out"
-                 [icon]="exitIcon"
-                 [fixedWidth]="true" />
+        <svg class="i-out"
+             [appIcon]="exitIcon" />
         Log out
       </button>
       </div>
@@ -144,7 +147,7 @@
        routerLink="/settings"
        aria-label="Settings"
        title="Settings">
-      <fa-icon class="i-gear" [icon]="cogIcon" />
+      <svg class="i-gear" [appIcon]="cogIcon" />
     </a>
   </div>
 

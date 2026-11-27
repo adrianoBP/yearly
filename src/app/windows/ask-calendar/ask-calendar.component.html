@@ -9,15 +9,15 @@
             title="Clear chat"
             [disabled]="isAsking"
             (click)="clear()">
-      <fa-icon class="i-shake"
-               [icon]="clearIcon" />
+      <svg class="i-lid"
+           [appIcon]="clearIcon" />
     </button>
   }
   <button class="icon-btn"
           aria-label="Close"
           (click)="windowsService.back()">
-    <fa-icon class="i-jelly"
-             [icon]="closeIcon" />
+    <svg class="i-jelly"
+         [appIcon]="closeIcon" />
   </button>
 </header>
 
@@ -78,7 +78,7 @@
           type="submit"
           aria-label="Ask"
           [disabled]="limitReached || isAsking || !events || !question.trim()">
-    <fa-icon class="i-send"
-             [icon]="sendIcon" />
+    <svg class="i-send"
+         [appIcon]="sendIcon" />
   </button>
 </form>

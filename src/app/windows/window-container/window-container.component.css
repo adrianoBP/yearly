@@ -105,6 +105,15 @@
   }
 }
 
+/* Reduced motion: panels fade in rather than slide */
+@media (prefers-reduced-motion: reduce) {
+  .window,
+  .from-left .window,
+  .from-right .window {
+    animation-name: fade-in;
+  }
+}
+
 /* The year review holds charts; give them room */
 .window.wide {
   width: min(46rem, calc(100% - 2rem));

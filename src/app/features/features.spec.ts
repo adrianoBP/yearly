@@ -388,7 +388,10 @@ describe('countdowns', () => {
   it('counts calendar days to the start', () => {
     expect(countdown(pin('2026-12-18T09:00', '2026-12-20T00:00'), now)).toBe('in 23 days');
     expect(countdown(pin('2026-11-26T08:00', '2026-11-26T09:00'), now)).toBe('tomorrow');
-    expect(countdown(pin('2026-11-25T18:00', '2026-11-25T19:00'), now)).toBe('today');
+    expect(countdown(pin('2026-11-25T18:00', '2026-11-25T19:00'), now)).toBe('in 8h');
+    expect(countdown(pin('2026-11-25T13:20', '2026-11-25T14:00'), now)).toBe('in 3h 20m');
+    expect(countdown(pin('2026-11-25T10:45', '2026-11-25T11:00'), now)).toBe('in 45m');
+    expect(countdown(pin('2026-11-25T10:00:30', '2026-11-25T11:00'), now)).toBe('in 1m');
     expect(countdown(pin('2026-11-24T00:00', '2026-11-27T00:00'), now)).toBe('now');
   });
 

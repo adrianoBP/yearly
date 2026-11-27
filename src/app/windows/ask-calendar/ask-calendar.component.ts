@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPaperPlane, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons';
+import * as lucide from 'lucide';
+import { IconComponent } from '../../shared/icon/icon.component';
 import moment from 'moment';
 import { ASK_EVENT_LIMIT, ASK_THREAD_KEY, AskTurn, answerLocally, nearestEvents, pickEvents } from '../../features/ask';
 import { IntegrationsService } from '../../services/integrations.service';
@@ -20,14 +20,14 @@ export interface AskCalendarParameters extends WindowParameters {
 
 @Component({
   selector: 'app-ask-calendar',
-  imports: [FormsModule, FontAwesomeModule],
+  imports: [FormsModule, IconComponent],
   templateUrl: './ask-calendar.component.html',
   styleUrl: './ask-calendar.component.css',
 })
 export class AskCalendarComponent {
-  closeIcon = faXmark;
-  sendIcon = faPaperPlane;
-  clearIcon = faTrashCan;
+  closeIcon = lucide.X;
+  sendIcon = lucide.Send;
+  clearIcon = lucide.Trash2;
 
   parameters: AskCalendarParameters;
   /** What Gemini gets; null while loading */

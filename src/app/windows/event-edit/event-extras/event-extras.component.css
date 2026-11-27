@@ -113,11 +113,11 @@
 }
 
 /* Turning while it fetches, a quarter-turn nudge on hover */
-.refresh:hover:not(:disabled) fa-icon.i-turn {
+.refresh:hover:not(:disabled) svg.i-turn {
   animation: icon-turn 0.4s var(--spring);
 }
 
-fa-icon.spinning {
+svg.spinning {
   animation: spin 0.8s linear infinite;
 }
 

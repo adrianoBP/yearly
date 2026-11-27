@@ -3,7 +3,7 @@
   <button class="icon-btn"
           aria-label="Close"
           (click)="windowsService.back()">
-    <fa-icon class="i-jelly" [icon]="closeIcon" />
+    <svg class="i-jelly" [appIcon]="closeIcon" />
   </button>
 </header>
 
@@ -45,8 +45,8 @@
   </div>
 
   <section class="group">
-    <fa-icon class="group-icon"
-             [icon]="clockIcon" />
+    <svg class="group-icon"
+         [appIcon]="clockIcon" />
     <div class="group-body">
       <label class="toggle-row">
         <span>All day</span>
@@ -93,8 +93,8 @@
   </section>
 
   <section class="group">
-    <fa-icon class="group-icon"
-             [icon]="calendarIcon" />
+    <svg class="group-icon"
+         [appIcon]="calendarIcon" />
     <div class="group-body">
       <div class="calendar-select">
         <span class="dot"
@@ -113,8 +113,8 @@
   </section>
 
   <section class="group">
-    <fa-icon class="group-icon"
-             [icon]="locationIcon" />
+    <svg class="group-icon"
+         [appIcon]="locationIcon" />
     <div class="group-body location">
       <input type="text"
              name="location"
@@ -130,16 +130,16 @@
            rel="noopener noreferrer"
            title="Open in Maps"
            aria-label="Open in Maps">
-          <fa-icon class="i-jelly"
-                   [icon]="mapIcon" />
+          <svg class="i-drop"
+               [appIcon]="mapIcon" />
         </a>
       }
     </div>
   </section>
 
   <section class="group">
-    <fa-icon class="group-icon"
-             [icon]="descriptionIcon" />
+    <svg class="group-icon"
+         [appIcon]="descriptionIcon" />
     <div class="group-body">
       <textarea name="description"
                 rows="3"
@@ -168,16 +168,16 @@
            [href]="parameters.event.htmlLink"
            target="_blank"
            rel="noopener noreferrer">Open in Google Calendar
-          <fa-icon class="i-pop" [icon]="externalIcon"
-                   size="xs" /></a>
+          <svg class="i-pop" [appIcon]="externalIcon"
+               size="0.75em" /></a>
       }
     </div>
   }
 
   @if (!parameters.event.canEdit) {
     <p class="note">
-      <fa-icon [icon]="lockIcon"
-               size="sm" />
+      <svg [appIcon]="lockIcon"
+           size="0.875em" />
       You can't edit this event here.
     </p>
   }

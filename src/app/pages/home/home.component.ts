@@ -1,22 +1,8 @@
 import { ChangeDetectorRef, Component, HostListener, NgZone, ViewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import moment from 'moment';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import {
-  faCalendarDay,
-  faCalendarPlus,
-  faChevronLeft,
-  faChevronRight,
-  faChartSimple,
-  faComments,
-  faCog,
-  faEllipsis,
-  faKeyboard,
-  faMagnifyingGlass,
-  faSignOutAlt,
-  faUmbrellaBeach,
-  faXmark,
-} from '@fortawesome/free-solid-svg-icons';
+import * as lucide from 'lucide';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { Day, Month } from '../../interfaces/month.interface';
 import { DayHover, MonthComponent } from './month/month.component';
 import { GoogleCalendarEvent, GoogleCalendar } from '../../services/google/calendar.service';
@@ -55,25 +41,24 @@ function savedYear(): number | null {
 
 @Component({
   selector: 'app-home',
-  imports: [FontAwesomeModule, RouterLink, MonthComponent, WindowContainerComponent, DatePickerComponent, SearchComponent],
+  imports: [IconComponent, RouterLink, MonthComponent, WindowContainerComponent, DatePickerComponent, SearchComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
-  // FontAwesome icons
-  chevronLeftIcon = faChevronLeft;
-  chevronRightIcon = faChevronRight;
-  cogIcon = faCog;
-  exitIcon = faSignOutAlt;
-  addEventIcon = faCalendarPlus;
-  leaveIcon = faUmbrellaBeach;
-  reviewIcon = faChartSimple;
-  typeIcon = faKeyboard;
-  moreIcon = faEllipsis;
-  askIcon = faComments;
-  searchIcon = faMagnifyingGlass;
-  closeIcon = faXmark;
-  todayIcon = faCalendarDay;
+  chevronLeftIcon = lucide.ChevronLeft;
+  chevronRightIcon = lucide.ChevronRight;
+  cogIcon = lucide.Settings;
+  exitIcon = lucide.LogOut;
+  addEventIcon = lucide.CalendarPlus;
+  leaveIcon = lucide.TreePalm;
+  reviewIcon = lucide.ChartColumn;
+  typeIcon = lucide.Keyboard;
+  moreIcon = lucide.Ellipsis;
+  askIcon = lucide.MessagesSquare;
+  searchIcon = lucide.Search;
+  closeIcon = lucide.X;
+  todayIcon = lucide.CalendarDays;
 
   isLoading = true;
 
@@ -220,8 +205,15 @@ export class HomeComponent {
     };
     this.checkToday();
 
-    // Events that end drop off the badge; outside Angular, as nothing on the page changes
-    this.ngZone.runOutsideAngular(() => (this.badgeTimer = window.setInterval(() => this.updateBadge(), 60_000)));
+    // Events that end drop off the badge, and countdowns for later today tick down by the minute.
+    // Outside Angular, so only the countdowns redraw.
+    this.ngZone.runOutsideAngular(
+      () =>
+        (this.badgeTimer = window.setInterval(() => {
+          this.updateBadge();
+          if (this.countdowns.active().length) this.cdr.detectChanges();
+        }, 60_000))
+    );
   }
 
   private badgeTimer = 0;
@@ -630,8 +622,26 @@ export class HomeComponent {
     return countdown(pin);
   }
 
-  jumpToPin(pin: Pin) {
-    this.jumpTo(moment(pin.start).format('YYYY-MM-DD'));
+  /** Shows the pinned event's day and opens its details (once its year has loaded) */
+  openPin(pin: Pin) {
+    const date = moment(pin.start);
+    this.jumpTo(date.format('YYYY-MM-DD'));
+    const loaded = [...this.yearCache.values()].flat();
+    const event = loaded.find((e) => e.id === pin.id);
+    if (!event) return;
+    const details = { ...event, canEdit: canEditEvent(event, this.userService.emailAddress) } as EventDisplayDetails;
+    const neighbours = loaded.filter((e) => e.id !== event.id && e.startMoment.isSame(date, 'day'));
+    this.windowsService.openWindow(
+      'edit-event',
+      { date: date.toDate(), event: details, isNewEvent: false, neighbours } as EditEventParameters,
+      'right',
+      (updated?: EventDisplayDetails) => {
+        if (!updated) return;
+        // Follow the (possibly new) calendar's colour, unless the event has its own
+        if (!updated.colorId) updated.colour = this.utilService.getCalendarColour(updated.calendarId, this.calendars);
+        this.setEvents([...this.events.filter((e) => e.id !== updated.id), updated]);
+      }
+    );
   }
 
   // ---- Dragging on the grid (mouse and pen) ----

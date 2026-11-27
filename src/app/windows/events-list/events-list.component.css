@@ -90,7 +90,7 @@
   background: var(--primary-soft);
 }
 
-.pin.pinned fa-icon {
+.pin.pinned svg {
   display: inline-block;
   transform: rotate(-30deg);
   transition: transform 0.25s var(--spring);

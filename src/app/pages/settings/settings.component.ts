@@ -6,14 +6,8 @@ import { Settings, SettingsService } from '../../services/settings.service';
 import { UtilService } from '../../services/util.service';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../services/api/user.service';
-import {
-  faArrowLeft,
-  faArrowUpRightFromSquare,
-  faCake,
-  faInfinity,
-} from '@fortawesome/free-solid-svg-icons';
-import { faCalendarXmark } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import * as lucide from 'lucide';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { IntegrationsService } from '../../services/integrations.service';
 import { SyncService } from '../../services/sync.service';
@@ -40,7 +34,7 @@ type toggleSettingType = 'allowed' | 'recurring' | 'birthdays' | 'declined-event
 
 @Component({
   selector: 'app-settings',
-  imports: [FontAwesomeModule, RouterLink, DatePipe, DecimalPipe],
+  imports: [IconComponent, RouterLink, DatePipe, DecimalPipe],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -169,11 +163,11 @@ export class SettingsComponent {
     }
   }
 
-  declineEventIcon = faCalendarXmark;
-  infinityIcon = faInfinity;
-  cakeIcon = faCake;
-  backIcon = faArrowLeft;
-  externalIcon = faArrowUpRightFromSquare;
+  declineEventIcon = lucide.CalendarX;
+  infinityIcon = lucide.Infinity;
+  cakeIcon = lucide.Cake;
+  backIcon = lucide.ArrowLeft;
+  externalIcon = lucide.ExternalLink;
 
   calendars: GoogleCalendar[] = [];
   settings: Settings = {

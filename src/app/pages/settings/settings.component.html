@@ -4,7 +4,7 @@
        routerLink="/home"
        aria-label="Back to calendar"
        title="Back to calendar">
-      <fa-icon class="i-left" [icon]="backIcon" />
+      <svg class="i-left" [appIcon]="backIcon" />
     </a>
     <div>
       <h1>Settings</h1>
@@ -16,12 +16,12 @@
     <div class="card-header">
       <h2>Calendars</h2>
       <div class="legend muted">
-        <span><fa-icon [icon]="declineEventIcon"
-                   size="sm" /> Declined</span>
-        <span><fa-icon [icon]="infinityIcon"
-                   size="sm" /> Recurring</span>
-        <span><fa-icon [icon]="cakeIcon"
-                   size="sm" /> Birthdays</span>
+        <span><svg [appIcon]="declineEventIcon"
+               size="0.875em" /> Declined</span>
+        <span><svg [appIcon]="infinityIcon"
+               size="0.875em" /> Recurring</span>
+        <span><svg [appIcon]="cakeIcon"
+               size="0.875em" /> Birthdays</span>
       </div>
     </div>
 
@@ -48,8 +48,8 @@
                      [checked]="calendarSettings?.showDeclinedEvents"
                      [disabled]="!calendarSettings?.allowed"
                      (change)="toggleSetting(calendar.id, 'declined-events')">
-              <fa-icon [icon]="declineEventIcon"
-                       size="sm" />
+              <svg [appIcon]="declineEventIcon"
+                   size="0.875em" />
             </label>
             <label class="chip"
                    title="Show recurring events">
@@ -59,8 +59,8 @@
                      [checked]="calendarSettings?.allowRecurring"
                      [disabled]="!calendarSettings?.allowed"
                      (change)="toggleSetting(calendar.id, 'recurring')">
-              <fa-icon [icon]="infinityIcon"
-                       size="sm" />
+              <svg [appIcon]="infinityIcon"
+                   size="0.875em" />
             </label>
             <label class="chip"
                    title="Show birthdays">
@@ -70,8 +70,8 @@
                      [checked]="calendarSettings?.allowBirthdays"
                      [disabled]="!calendarSettings?.allowed || !calendarSettings?.allowRecurring"
                      (change)="toggleSetting(calendar.id, 'birthdays')">
-              <fa-icon [icon]="cakeIcon"
-                       size="sm" />
+              <svg [appIcon]="cakeIcon"
+                   size="0.875em" />
             </label>
           </div>
         </li>
@@ -209,8 +209,8 @@
                rel="noopener noreferrer"
                [attr.aria-label]="'Get a free ' + provider.name + ' key (opens in a new tab)'">
               Get free key
-              <fa-icon class="i-pop" [icon]="externalIcon"
-                       size="xs" />
+              <svg class="i-pop" [appIcon]="externalIcon"
+                   size="0.75em" />
             </a>
           </div>
           <span class="muted">Used for: {{ usedFor(provider.id) }}</span>
