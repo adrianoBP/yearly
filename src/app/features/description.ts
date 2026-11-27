@@ -10,8 +10,9 @@ const HTML_TAG =
 export function descriptionHtml(text: string | null | undefined): string {
   if (!text) return '';
   const isHtml = HTML_TAG.test(text);
+  // In HTML, newlines count too (Yearly's textarea adds them), except "<br>\n" (one break) and source formatting after block tags
   const lines = isHtml
-    ? text.split(/<br\s*\/?>/i)
+    ? text.split(/<br\s*\/?>(?:\r?\n)?|(?<!<\/?(?:ul|ol|li|p|div|h[1-6]|table|thead|tbody|tr|td|th|blockquote|hr)\b[^>]*>)\r?\n/i)
     : text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').split(/\r?\n/);
 
   let html = '';
