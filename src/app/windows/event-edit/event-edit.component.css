@@ -59,11 +59,13 @@
   border-top: 1px solid var(--border);
 }
 
+/* The svg is the grid item itself, so centre it with justify-self; margin centres it on the first 2.1rem row */
 .group-icon {
-  padding-top: 0.45rem;
-  font-size: 0.9rem;
+  justify-self: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.5rem;
   color: var(--text-muted);
-  text-align: center;
 }
 
 .group-body {
@@ -326,11 +328,12 @@
   transition: background-color 0.15s;
 }
 
-.description.editable {
+/* The whole section, icon included, opens the editor */
+.editable :is(.group-icon, .description) {
   cursor: text;
 }
 
-.description.editable:hover {
+.editable:hover .description {
   background: var(--surface-subtle);
 }
 
@@ -362,18 +365,49 @@
   color: var(--primary);
 }
 
-.description-edit {
-  align-self: flex-start;
-  padding: 0 0.6rem;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  background: none;
-  border: 0;
-  cursor: pointer;
+/* [ ] / [x] tasks: a rounded box drawn in front of the line, filled with a tick when done */
+.description ::ng-deep .task {
+  position: relative;
+  display: inline-block;
+  padding-left: 1.55em;
 }
 
-.description-edit:hover {
-  color: var(--text);
+.description ::ng-deep .task::before {
+  content: '';
+  position: absolute;
+  top: 0.225em; /* centred on the 1.45 line height */
+  left: 0;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  background: var(--surface) no-repeat center / 0.7em;
+  border: 1.5px solid var(--text-faint);
+  border-radius: 0.3em;
+}
+
+.description ::ng-deep .task.done {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-faint);
+}
+
+.description ::ng-deep .task.done::before {
+  background-color: var(--primary);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>");
+  border-color: var(--primary);
+  animation: task-pop 0.35s var(--spring);
+}
+
+@keyframes task-pop {
+  from {
+    scale: 0.6;
+  }
+}
+
+/* "- [ ] item": the box replaces the bullet */
+.description ::ng-deep li:has(> .task:only-child) {
+  margin-left: -1.2rem;
+  list-style: none;
 }
 
 .description-in {
