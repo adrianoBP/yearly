@@ -37,6 +37,16 @@ describe('descriptionHtml', () => {
     );
   });
 
+  it('reads Markdown added on new lines after Google HTML', () => {
+    expect(
+      descriptionHtml('Manage it: <a href=https://fresha.com/l/x>link</a><br/><br/>\n\n# Test\n[x] Test\n[ ] Other')
+    ).toBe('Manage it: <a href=https://fresha.com/l/x>link</a><br><br><h1>Test</h1>☑ Test<br>☐ Other');
+  });
+
+  it('ignores newlines that only format HTML source', () => {
+    expect(descriptionHtml('<ul>\n<li>a</li>\n<li>b</li>\n</ul>')).toBe('<ul>\n<li>a</li>\n<li>b</li>\n</ul>');
+  });
+
   it('keeps unquoted links and <br/> from Google', () => {
     const sanitizer = TestBed.inject(DomSanitizer);
     const safe = sanitizer.sanitize(SecurityContext.HTML, descriptionHtml('<a href=https://myurl>http://myurl</a><br/><br/>'));
