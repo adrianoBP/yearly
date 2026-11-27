@@ -315,3 +315,59 @@
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+
+/* Description: formatted until clicked, then the textarea */
+.description {
+  padding: 0.45rem 0.6rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+}
+
+.description.editable {
+  cursor: text;
+}
+
+.description.editable:hover {
+  background: var(--surface-subtle);
+}
+
+.description :is(ul, ol) {
+  margin: 0.2rem 0;
+  padding-left: 1.2rem;
+}
+
+.description :is(p, div) {
+  margin: 0;
+}
+
+.description a {
+  color: var(--primary);
+}
+
+.description-edit {
+  align-self: flex-start;
+  padding: 0 0.6rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.description-edit:hover {
+  color: var(--text);
+}
+
+.description-in {
+  animation: description-in 0.3s var(--spring);
+}
+
+@keyframes description-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}

@@ -23,6 +23,7 @@ import { DatePickerComponent } from '../../shared/date-picker/date-picker.compon
 import { EventExtrasComponent } from './event-extras/event-extras.component';
 import { FeaturesService } from '../../services/features.service';
 import { parseEventText } from '../../features/text-event';
+import { descriptionHtml } from '../../features/description';
 
 export interface EditEventParameters extends WindowParameters {
   isNewEvent: boolean;
@@ -174,6 +175,28 @@ export class EventEditComponent {
     }
     this.quickText = '';
     this.quickNote = 'Filled in below. Check it, then save.';
+  }
+
+  editingDescription = false;
+
+  get formattedDescription(): string {
+    return descriptionHtml(this.parameters.event.description);
+  }
+
+  editDescription() {
+    this.editingDescription = true;
+    setTimeout(() => document.getElementById('event-description')?.focus());
+  }
+
+  /** Links open in a new tab; a click anywhere else on the text starts editing */
+  onDescriptionClick(e: MouseEvent) {
+    const link = (e.target as HTMLElement).closest('a');
+    if (link) {
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    } else if (this.parameters.event.canEdit) {
+      this.editDescription();
+    }
   }
 
   /** For the extras section: plain strings so change detection sees no change until the dates do */
