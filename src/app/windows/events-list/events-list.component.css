@@ -1,3 +1,7 @@
+.sheet-header > div {
+  flex: 1;
+}
+
 .events {
   list-style: none;
   padding: 0.25rem 0.5rem 0.5rem;

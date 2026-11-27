@@ -422,3 +422,126 @@
     transform: translateY(-3px);
   }
 }
+
+/* Notifications: pills with their own remove button, and a dashed pill that opens the choices */
+.reminders {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.1rem;
+}
+
+.reminder,
+.reminder-add,
+.reminder-choices button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 1.85rem;
+  padding: 0 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-radius: 999px;
+}
+
+.reminder {
+  padding-right: 0.3rem;
+  color: var(--primary);
+  background: var(--primary-soft);
+  animation: reminder-in 0.25s var(--spring);
+}
+
+.reminder:not(:has(.reminder-x)) {
+  padding-right: 0.75rem;
+}
+
+.reminder-x {
+  display: grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  color: inherit;
+  border-radius: 999px;
+  opacity: 0.6;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+
+.reminder-x:hover,
+.reminder-x:focus-visible {
+  opacity: 1;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+.reminder-add {
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.reminder-add svg {
+  transition: transform 0.25s var(--spring);
+}
+
+.reminder-add:hover,
+.reminder-add.open {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.reminder-add.open svg {
+  transform: rotate(45deg);
+}
+
+.reminders-none {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.reminder-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  background: var(--surface-subtle);
+  border-radius: 12px;
+  animation: choices-in 0.18s ease-out;
+}
+
+.reminder-choices button {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  transition: color 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.reminder-choices button:hover,
+.reminder-choices button:focus-visible {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.reminder-choices button:active {
+  transform: scale(0.95);
+}
+
+@keyframes reminder-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes choices-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reminder,
+  .reminder-choices {
+    animation: none;
+  }
+}

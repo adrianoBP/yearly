@@ -1,5 +1,5 @@
 import { Moment } from 'moment';
-import { GoogleCalendarEventPerson } from '../services/google/calendar.service';
+import { GoogleCalendarEventPerson, GoogleReminder } from '../services/google/calendar.service';
 
 // Events displayed in the UI
 export interface Event {
@@ -19,6 +19,10 @@ export interface Event {
   endMoment: Moment;
 
   calendarId: string;
+  /** Minutes before the start of each of the event's own (or its calendar's default) popup reminders */
+  reminders?: number[];
+  /** Google's own reminders field, sent back on save so untouched events keep following their calendar's defaults */
+  googleReminders?: { useDefault: boolean; overrides?: GoogleReminder[] };
 
   // Custom properties
   isFirstDay: boolean;

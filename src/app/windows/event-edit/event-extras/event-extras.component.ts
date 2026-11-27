@@ -55,11 +55,14 @@ export class EventExtrasComponent implements OnChanges, OnDestroy {
   travelIcon = lucide.Car;
   crowdIcon = lucide.Users;
   refreshIcon = lucide.RotateCw;
+  loadingIcon = lucide.LoaderCircle;
 
   flight: FlightInfo | null = null;
   flightStatus: { status: FlightStatus; at: number } | null = null;
   flightError = '';
   isRefreshing = false;
+  /** Weather, travel or crowds (the place-based lookups) still on their way */
+  isLoading = false;
   forecast: DailyForecast[] | null = null;
   travel: { before?: Leg; after?: Leg } = {};
   crowds: NearbyEvent[] = [];
@@ -120,8 +123,11 @@ export class EventExtrasComponent implements OnChanges, OnDestroy {
     this.travel = {};
     this.crowds = [];
     this.home = null;
+    this.isLoading = false;
     if (!this.start || !this.end) return;
-    await Promise.all([this.loadWeather(id), this.loadFlight(id), this.loadTravel(id), this.loadCrowds(id)]);
+    const places = Promise.all([this.loadWeather(id), this.loadTravel(id), this.loadCrowds(id)]);
+    this.isLoading = true;
+    await Promise.all([places.finally(() => id === this.loadId && (this.isLoading = false)), this.loadFlight(id)]);
   }
 
   private get timed() {

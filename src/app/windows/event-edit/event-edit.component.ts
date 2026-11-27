@@ -9,7 +9,7 @@ import { CalendarService } from '../../services/api/calendar.service';
 import { GoogleCalendar } from '../../services/google/calendar.service';
 import { SettingsService } from '../../services/settings.service';
 import { UserService } from '../../services/api/user.service';
-import { UtilService } from '../../services/util.service';
+import { UtilService, popupMinutes } from '../../services/util.service';
 import { WindowParameters, WindowsService } from '../windows.service';
 import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
 import { EventExtrasComponent } from './event-extras/event-extras.component';
@@ -39,6 +39,10 @@ export interface EditEventParameters extends WindowParameters {
 export class EventEditComponent {
   // Font awesome icons
   closeIcon = lucide.X;
+  bellIcon = lucide.Bell;
+  plusIcon = lucide.Plus;
+  /** The add-notification choices are showing */
+  choosingReminder = false;
   clockIcon = lucide.Clock;
   calendarIcon = lucide.Calendar;
   lockIcon = lucide.Lock;
@@ -200,6 +204,61 @@ export class EventEditComponent {
   get rangeEnd(): string {
     const { start, end } = this.getRange();
     return start.isValid() && end.isValid() ? end.format() : '';
+  }
+
+  // ---- Notifications (Google's popup reminders) ----
+
+  /** The event's own, or for an untouched new event its calendar's defaults */
+  get reminders(): number[] {
+    return this.parameters.event.reminders ?? popupMinutes(this.selectedCalendar?.defaultReminders);
+  }
+
+  /** Google allows 5 reminders, email ones included */
+  get canAddReminder(): boolean {
+    return this.reminders.length + this.emailReminders().length < 5;
+  }
+
+  get reminderChoices(): number[] {
+    // All-day reminders count back from midnight: 900 is the day before at 09:00
+    const choices = this.isAllDay ? [0, 900, 2340, 9540] : [0, 5, 10, 15, 30, 60, 120, 180, 1440, 2880, 10080];
+    return choices.filter((minutes) => !this.reminders.includes(minutes));
+  }
+
+  reminderLabel(minutes: number): string {
+    if (this.isAllDay) {
+      const days = Math.ceil(minutes / 1440);
+      const time = moment().startOf('day').add(days * 1440 - minutes, 'minutes').format('HH:mm');
+      return `${days === 0 ? 'On the day' : days === 1 ? '1 day before' : `${days} days before`} at ${time}`;
+    }
+    if (minutes === 0) return 'At start';
+    const [n, unit] =
+      minutes % 10080 === 0 ? [minutes / 10080, 'week'] : minutes % 1440 === 0 ? [minutes / 1440, 'day'] : minutes % 60 === 0 ? [minutes / 60, 'hour'] : [minutes, 'minute'];
+    return `${n} ${unit}${n === 1 ? '' : 's'} before`;
+  }
+
+  addReminder(minutes: number) {
+    this.setReminders([...this.reminders, minutes]);
+    this.choosingReminder = false;
+  }
+
+  removeReminder(minutes: number) {
+    this.setReminders(this.reminders.filter((m) => m !== minutes));
+  }
+
+  /** Email reminders aren't shown, but are kept when the popup ones change */
+  private emailReminders() {
+    const raw = this.parameters.event.googleReminders;
+    const current = raw?.useDefault === false ? raw.overrides : this.selectedCalendar?.defaultReminders;
+    return (current ?? []).filter((r) => r.method === 'email');
+  }
+
+  private setReminders(minutes: number[]) {
+    const popups = [...new Set(minutes)].sort((a, b) => a - b);
+    this.parameters.event.reminders = popups;
+    this.parameters.event.googleReminders = {
+      useDefault: false,
+      overrides: [...popups.map((m) => ({ method: 'popup' as const, minutes: m })), ...this.emailReminders()],
+    };
   }
 
   async saveChanges(): Promise<void> {

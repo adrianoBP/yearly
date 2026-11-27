@@ -11,7 +11,7 @@ import { bufferVerdict, distanceKm, geohash, neighbours, routeSummary, routeTtlM
 import { footballCandidates, leaveBy, ticketmasterNearby } from './crowd';
 import { dateQuery, searchEvents } from './search';
 import { activePins, countdown } from './countdowns';
-import { buildAlerts } from './alerts';
+import { buildAlerts, reminderAlerts } from './alerts';
 import { FALLBACK_MODEL, answerLocally, answerText, buildRequest, describeEvents, keywords, nearestEvents, pickEvents, pickModel } from './ask';
 
 const ref = new Date(2026, 10, 25, 10); // Wed 25 Nov 2026
@@ -459,5 +459,22 @@ describe('routeTtlMs', () => {
     expect(routeTtlMs(2 * 60 * MIN)).toBe(30 * MIN);
     expect(routeTtlMs(10 * MIN)).toBe(5 * MIN);
     expect(routeTtlMs(3 * 24 * 60 * MIN)).toBe(12 * 60 * MIN);
+  });
+});
+
+describe('reminderAlerts', () => {
+  const event = (reminders: number[], start = moment(ref).add(1, 'day').hour(14).startOf('hour')) =>
+    ({ id: 'e1', title: 'Dentist', location: 'High St', startMoment: start, endMoment: start.clone().add(1, 'hour'), reminders }) as unknown as Event;
+
+  it('sends each reminder its own time before the start, once per event', () => {
+    const alerts = reminderAlerts([event([180, 10]), event([180])], ref);
+    expect(alerts.map((a) => a.id)).toEqual(['remind:e1:180', 'remind:e1:10']);
+    expect(alerts[0].at).toBe(new Date(2026, 10, 26, 11).getTime());
+    expect(alerts[0].body).toBe('Starts in 3 hours, at 14:00 · High St');
+  });
+
+  it('skips reminders already past or more than a week away', () => {
+    expect(reminderAlerts([event([60], moment(ref).add(30, 'minutes'))], ref)).toEqual([]);
+    expect(reminderAlerts([event([0], moment(ref).add(10, 'days'))], ref)).toEqual([]);
   });
 });

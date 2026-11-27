@@ -77,8 +77,12 @@
 }
 
 @media (hover: hover) {
-  .day.clickable:not(.adding):hover {
+  .day.clickable:not(.adding, .empty):hover {
     background: color-mix(in srgb, var(--hover-c, var(--text)) 12%, transparent);
+  }
+
+  .day.empty:not(.adding):hover {
+    box-shadow: inset 0 0 0 1px var(--border);
   }
 
   /* .grow is set by HomeComponent on every day of the hovered day's events */

@@ -398,7 +398,8 @@ export class HomeComponent {
           this.utilService.googleEventToEvent(
             event,
             (event.colorId && eventColours[event.colorId]) || calendar.backgroundColor,
-            calendar.id
+            calendar.id,
+            calendar.defaultReminders
           )
         );
     } catch (e) {
@@ -498,7 +499,7 @@ export class HomeComponent {
       return;
     }
 
-    if (events?.length > 0) {
+    {
       const parameters: EventsListParameters = {
         events,
         date,

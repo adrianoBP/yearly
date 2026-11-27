@@ -1,6 +1,9 @@
 import { Injectable, signal } from '@angular/core';
+import moment from 'moment';
 import { Event } from '../interfaces/event.interface';
 import { PINS_KEY, Pin, activePins } from '../features/countdowns';
+
+export const dayPinId = (date: Date) => 'day:' + moment(date).format('YYYY-MM-DD');
 
 const toPin = (event: Event): Pin => ({
   id: event.id,
@@ -32,6 +35,15 @@ export class CountdownsService {
   toggle(event: Event) {
     if (this.isPinned(event.id)) this.unpin(event.id);
     else this.save([...this.pins(), toPin(event)]);
+  }
+
+  /** A whole day, pinned whether or not it has events */
+  toggleDay(date: Date) {
+    const id = dayPinId(date);
+    if (this.isPinned(id)) return this.unpin(id);
+    const day = moment(date).startOf('day');
+    const title = day.format('ddd D MMM');
+    this.save([...this.pins(), { id, title, start: day.toISOString(), end: day.clone().add(1, 'day').toISOString(), colour: 'var(--primary)' }]);
   }
 
   unpin(...ids: string[]) {

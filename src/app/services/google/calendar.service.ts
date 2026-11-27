@@ -25,6 +25,13 @@ export interface GoogleCalendar {
   accessRole: 'freeBusyReader' | 'owner' | 'reader' | 'writer';
   selected?: boolean;
   primary?: boolean;
+  /** The user's reminders for this calendar's events that don't set their own */
+  defaultReminders?: GoogleReminder[];
+}
+
+export interface GoogleReminder {
+  method: 'email' | 'popup';
+  minutes: number;
 }
 
 export interface GoogleCalendarEvent {
@@ -42,6 +49,7 @@ export interface GoogleCalendarEvent {
   eventType: 'birthday' | 'default' | 'focusTime' | 'fromGmail' | 'outOfOffice' | 'workingLocation';
   /** Event's own colour (index into the /colors event palette); unset means the calendar colour */
   colorId?: string;
+  reminders?: { useDefault: boolean; overrides?: GoogleReminder[] };
 }
 
 export interface GoogleCalendarEventPerson {
@@ -129,7 +137,7 @@ export class GoogleCalendarService {
         })
         .join('&');
 
-      const url = `${this.baseUrl}/calendars/${calendarId}/events?${query}`;
+      const url = `${this.baseUrl}/calendars/${encodeURIComponent(calendarId)}/events?${query}`;
 
       const response = await this.get<GenericGoogleItemsResponse<GoogleCalendarEvent>>(url, cacheOnly);
       results.push(...response.items);
@@ -143,18 +151,19 @@ export class GoogleCalendarService {
   async createEvent(event: Event): Promise<GoogleCalendarEvent> {
     const { start: startDateTime, end: endDateTime } = this.#getEventTime(event);
 
-    const url = `${this.baseUrl}/calendars/${event.calendarId}/events`;
+    const url = `${this.baseUrl}/calendars/${encodeURIComponent(event.calendarId)}/events`;
     return await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
       summary: event.title,
       description: event.description,
       location: event.location,
       start: startDateTime,
       end: endDateTime,
+      reminders: event.googleReminders,
     });
   }
 
   async deleteEvent(event: Event): Promise<void> {
-    const url = `${this.baseUrl}/calendars/${event.calendarId}/events/${event.id}`;
+    const url = `${this.baseUrl}/calendars/${encodeURIComponent(event.calendarId)}/events/${event.id}`;
     await this.googleAuthService.makeRequest<void>(url, 'delete');
   }
 
@@ -167,13 +176,14 @@ export class GoogleCalendarService {
   async updateEvent(event: Event): Promise<GoogleCalendarEvent> {
     const { start: startDateTime, end: endDateTime } = this.#getEventTime(event);
 
-    const url = `${this.baseUrl}/calendars/${event.calendarId}/events/${event.id}`;
+    const url = `${this.baseUrl}/calendars/${encodeURIComponent(event.calendarId)}/events/${event.id}`;
     return await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'patch', {
       summary: event.title,
       description: event.description,
       location: event.location,
       start: startDateTime,
       end: endDateTime,
+      reminders: event.googleReminders,
     });
   }
 
@@ -184,7 +194,7 @@ export class GoogleCalendarService {
   }
 
   async moveEvent(event: Event, originalCalendarId: string): Promise<GoogleCalendarEvent> {
-    const url = `${this.baseUrl}/calendars/${originalCalendarId}/events/${event.id}/move`;
+    const url = `${this.baseUrl}/calendars/${encodeURIComponent(originalCalendarId)}/events/${event.id}/move`;
     return await this.googleAuthService.makeRequest<GoogleCalendarEvent>(url, 'post', {
       destination: event.calendarId,
     });

@@ -81,7 +81,8 @@ export class CalendarService {
 
   async createEvent(event: Event): Promise<Event> {
     const gcalEvent = await this.calendarAPIService.createEvent(event);
-    return this.utilService.googleEventToEvent(gcalEvent, event.colour, event.calendarId);
+    const defaults = this.calendars.find((c) => c.id === event.calendarId)?.defaultReminders;
+    return this.utilService.googleEventToEvent(gcalEvent, event.colour, event.calendarId, defaults);
   }
 
   async updateEvent(event: Event): Promise<void> {

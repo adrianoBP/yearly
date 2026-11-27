@@ -30,7 +30,7 @@ const STATUS_LABELS: Record<Exclude<FeatureStatus, 'needs-key'>, string> = {
   basic: 'Basic',
 };
 
-type toggleSettingType = 'allowed' | 'recurring' | 'birthdays' | 'declined-events';
+type toggleSettingType = 'allowed' | 'recurring' | 'birthdays' | 'declined-events' | 'notify';
 
 @Component({
   selector: 'app-settings',
@@ -166,6 +166,7 @@ export class SettingsComponent {
   declineEventIcon = lucide.CalendarX;
   infinityIcon = lucide.Infinity;
   cakeIcon = lucide.Cake;
+  bellIcon = lucide.Bell;
   backIcon = lucide.ArrowLeft;
   externalIcon = lucide.ExternalLink;
 
@@ -217,6 +218,9 @@ export class SettingsComponent {
         break;
       case 'declined-events':
         calendar.showDeclinedEvents = !calendar.showDeclinedEvents;
+        break;
+      case 'notify':
+        calendar.notify = !(calendar.notify ?? true);
         break;
     }
 

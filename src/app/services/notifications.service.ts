@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
 import { firstValueFrom } from 'rxjs';
 import moment from 'moment';
-import { ALERT_DAYS, EventFindings, buildAlerts } from '../features/alerts';
+import { ALERT_DAYS, EventFindings, buildAlerts, reminderAlerts } from '../features/alerts';
 import { leaveBy } from '../features/crowd';
 import { bufferVerdict, neighbours } from '../features/travel';
 import { weatherWarnings } from '../features/weather';
@@ -20,6 +20,8 @@ const PUSH_SENT_KEY = 'pushSent';
 /** Events looked at per update, soonest first */
 const MAX_EVENTS = 15;
 const DAY = 24 * 3600_000;
+/** The server refuses longer lists */
+const MAX_ALERTS = 50;
 
 interface Device {
   id: string;
@@ -89,7 +91,12 @@ export class NotificationsService {
         this.saveDevice(device);
       }
 
-      const alerts = buildAlerts(await this.findings(events));
+      const muted = new Set(this.settingsService.getSettings().calendars.filter((c) => c.notify === false).map((c) => c.id));
+      events = events.filter((e) => !muted.has(e.calendarId));
+      // Soonest first, so a full list drops the furthest ahead
+      const alerts = [...buildAlerts(await this.findings(events)), ...reminderAlerts(events)]
+        .sort((a, b) => a.at - b.at)
+        .slice(0, MAX_ALERTS);
       const hash = JSON.stringify([subscription.endpoint, alerts]);
       const sent = JSON.parse(localStorage.getItem(PUSH_SENT_KEY) ?? 'null');
       // Unchanged lists are still sent once a day, so the server knows the device is in use

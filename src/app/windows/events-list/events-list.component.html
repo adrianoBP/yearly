@@ -3,6 +3,17 @@
     <h2>{{ utilService.getFormattedDate(parameters.date, 'dddd, D MMMM') }}</h2>
     <p class="sheet-sub">{{ events.length }} {{ events.length === 1 ? 'event' : 'events' }} · {{ parameters.date.getFullYear() }}</p>
   </div>
+  @if (canPinDay()) {
+    <button class="icon-btn pin"
+            [class.pinned]="countdowns.isPinned(dayPinId)"
+            [attr.aria-pressed]="countdowns.isPinned(dayPinId)"
+            aria-label="Pin this day"
+            [title]="countdowns.isPinned(dayPinId) ? 'Unpin this day' : 'Pin this day'"
+            (click)="countdowns.toggleDay(parameters.date)">
+      <svg class="i-pin" [appIcon]="pinIcon"
+           size="0.875em" />
+    </button>
+  }
   <button class="icon-btn"
           aria-label="Close"
           (click)="windowsService.back()">
@@ -59,7 +70,7 @@
       }
     </li>
   } @empty {
-    <li class="empty">No events left on this day</li>
+    <li class="empty">{{ parameters.events.length ? 'No events left on this day' : 'No events on this day' }}</li>
   }
 </ul>
 

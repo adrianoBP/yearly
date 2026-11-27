@@ -57,6 +57,16 @@
   </section>
 }
 
+@if (isLoading) {
+  <p class="loading muted"
+     role="status">
+    <svg class="spinning"
+         [appIcon]="loadingIcon"
+         size="0.9rem" />
+    Checking weather and travel…
+  </p>
+}
+
 @if (travel.before || travel.after) {
   <section class="group">
     <svg class="group-icon"

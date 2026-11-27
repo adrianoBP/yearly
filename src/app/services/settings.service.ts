@@ -6,6 +6,8 @@ export interface CalendarSettings {
   allowRecurring: boolean;
   allowBirthdays: boolean;
   showDeclinedEvents: boolean;
+  /** Notifications for this calendar's events; missing means on */
+  notify?: boolean;
 }
 export interface Settings {
   calendars: CalendarSettings[];

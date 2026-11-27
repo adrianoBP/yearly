@@ -114,6 +114,53 @@
 
   <section class="group">
     <svg class="group-icon"
+         [appIcon]="bellIcon" />
+    <div class="group-body">
+      <div class="reminders">
+        @for (minutes of reminders; track minutes) {
+          <span class="reminder">
+            {{ reminderLabel(minutes) }}
+            @if (parameters.event.canEdit) {
+              <button type="button"
+                      class="reminder-x"
+                      title="Remove"
+                      [attr.aria-label]="'Remove notification ' + reminderLabel(minutes)"
+                      (click)="removeReminder(minutes)">
+                <svg [appIcon]="closeIcon"
+                     size="0.75em" />
+              </button>
+            }
+          </span>
+        }
+        @if (parameters.event.canEdit && canAddReminder) {
+          <button type="button"
+                  class="reminder-add"
+                  [class.open]="choosingReminder"
+                  [attr.aria-expanded]="choosingReminder"
+                  (click)="choosingReminder = !choosingReminder">
+            <svg [appIcon]="plusIcon"
+                 size="0.75em" />
+            {{ reminders.length ? 'Add' : 'Add notification' }}
+          </button>
+        } @else if (!reminders.length) {
+          <span class="reminders-none">No notifications</span>
+        }
+      </div>
+      @if (choosingReminder && canAddReminder) {
+        <div class="reminder-choices"
+             role="group"
+             aria-label="Notify me">
+          @for (minutes of reminderChoices; track minutes) {
+            <button type="button"
+                    (click)="addReminder(minutes)">{{ reminderLabel(minutes) }}</button>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="group">
+    <svg class="group-icon"
          [appIcon]="locationIcon" />
     <div class="group-body location">
       <input type="text"

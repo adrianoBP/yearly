@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { Feature, ProviderId, canToggle, featureStatus, missingKeys, periodKey, periodResetDate } from './integrations';
 import { IntegrationsService } from './integrations.service';
 import { UtilService } from './util.service';
+import { WeatherService } from './weather.service';
 
 const feature = (keys: ProviderId[][], extra: Partial<Feature> = {}): Feature => ({
   id: 'f',
@@ -192,5 +193,36 @@ describe('IntegrationsService', () => {
     expect(req.request.body).toEqual({ q: 1 });
     req.flush({});
     await post;
+  });
+});
+
+describe('WeatherService.geocode', () => {
+  it('falls back to Photon when Nominatim finds nothing', async () => {
+    const responses: Record<string, unknown> = {
+      place: [],
+      photon: { features: [{ geometry: { coordinates: [-1.35, 50.97] }, properties: { countrycode: 'gb' } }] },
+    };
+    const integrations = { fetchCached: async (_url: string, key: string) => responses[key.split(':')[0]] };
+    const service = new WeatherService(integrations as unknown as IntegrationsService);
+    expect(await service.geocode('Nandos eastligh')).toEqual({ lat: 50.97, lon: -1.35, country: 'GB' });
+    responses['photon'] = { features: [] };
+    expect(await service.geocode('nowhere at all')).toBeNull();
+  });
+
+  it('falls back to a UK postcode when the street is not on the map', async () => {
+    const asked: string[] = [];
+    const integrations = {
+      fetchCached: async (_url: string, key: string) => {
+        asked.push(key);
+        if (key === 'place:so14 2as, uk') return [{ lat: '50.898', lon: '-1.407', address: { country_code: 'gb' } }];
+        return key.startsWith('photon:') ? { features: [] } : [];
+      },
+    };
+    const service = new WeatherService(integrations as unknown as IntegrationsService);
+    expect(await service.geocode('6 Merchants Walk, Southampton so14 2as, UK')).toEqual({ lat: 50.898, lon: -1.407, country: 'GB' });
+    expect(asked).toContain('place:so14 2as, uk');
+    asked.length = 0;
+    expect(await service.geocode('SO14 2ZZ, UK')).toBeNull(); // already just a postcode: no endless retry
+    expect(asked.length).toBe(2);
   });
 });

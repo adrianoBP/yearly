@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import moment from 'moment';
 import { WindowParameters, WindowsService } from '../windows.service';
 
 
@@ -7,7 +8,7 @@ import * as lucide from 'lucide';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { CalendarService } from '../../services/api/calendar.service';
 import { UtilService, canEditEvent } from '../../services/util.service';
-import { CountdownsService } from '../../services/countdowns.service';
+import { CountdownsService, dayPinId } from '../../services/countdowns.service';
 import { FeaturesService } from '../../services/features.service';
 import { EditEventParameters } from '../event-edit/event-edit.component';
 import { GoogleCalendar } from '../../services/google/calendar.service';
@@ -31,6 +32,7 @@ export class EventsListComponent {
   closeIcon = lucide.X;
   lockIcon = lucide.Lock;
   pinIcon = lucide.Pin;
+  dayPinId = '';
 
   // Properties
   parameters: EventsListParameters;
@@ -50,6 +52,7 @@ export class EventsListComponent {
     public features: FeaturesService
   ) {
     this.parameters = this.windowsService.getOpenedWindow()?.parameters as EventsListParameters;
+    this.dayPinId = dayPinId(this.parameters.date);
   }
 
   async ngOnInit(): Promise<void> {
@@ -92,6 +95,11 @@ export class EventsListComponent {
   /** Countdowns are for what's still to come */
   canPin(event: Event): boolean {
     return this.features.isOn('countdowns') && event.endMoment.isAfter();
+  }
+
+  /** Today or later: a day that's over has nothing to count down to */
+  canPinDay(): boolean {
+    return this.features.isOn('countdowns') && !moment(this.parameters.date).isBefore(moment(), 'day');
   }
 
   getTime(event: EventDisplayDetails): string {

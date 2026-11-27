@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { NearbyEvent } from './crowd';
 import { Verdict } from './travel';
+import { Event } from '../interfaces/event.interface';
 
 /** A notification for the Yearly server to send at `at` (ms) */
 export interface Alert {
@@ -94,4 +95,34 @@ export function buildAlerts(findings: EventFindings[], now = new Date()): Alert[
   }
 
   return alerts.sort((a, b) => a.at - b.at);
+}
+
+/** Reminders are sent for this far ahead; the server keeps alerts up to 8 days out */
+const REMINDER_DAYS = 7;
+
+/** The events' own Google reminders, as notifications */
+export function reminderAlerts(events: Event[], now = new Date()): Alert[] {
+  const until = moment(now).add(REMINDER_DAYS, 'days').valueOf();
+  const alerts = new Map<string, Alert>();
+  for (const event of events) {
+    const allDay = event.startMoment.format('HH:mm') === '00:00' && event.endMoment.format('HH:mm') === '00:00';
+    for (const minutes of event.reminders ?? []) {
+      const at = event.startMoment.valueOf() - minutes * 60_000;
+      if (at <= now.getTime() || at > until) continue;
+      const when = allDay
+        ? event.startMoment.format('dddd D MMMM')
+        : minutes === 0
+          ? `Starting now, ${event.startMoment.format('HH:mm')}`
+          : `Starts ${event.startMoment.from(at)}, at ${event.startMoment.format('HH:mm')}`;
+      const id = `remind:${event.id}:${minutes}`;
+      alerts.set(id, {
+        id,
+        at,
+        title: event.title || '(No title)',
+        body: [when, event.location?.trim()].filter(Boolean).join(' · '),
+        url: '/home',
+      });
+    }
+  }
+  return [...alerts.values()].sort((a, b) => a.at - b.at);
 }

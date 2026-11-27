@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import moment from 'moment';
 import { GoogleCalendar } from './google/calendar.service';
-import { GoogleCalendarEvent } from './google/calendar.service';
+import { GoogleCalendarEvent, GoogleReminder } from './google/calendar.service';
 import { Event } from '../interfaces/event.interface';
 
 @Injectable()
@@ -59,7 +59,8 @@ export class UtilService {
   googleEventToEvent(
     event: GoogleCalendarEvent,
     backgroundColor: string,
-    calendarId: string
+    calendarId: string,
+    defaultReminders: GoogleReminder[] = []
   ): Event {
     // dateTime carries its UTC offset, so moment parses it straight into local time
     const startMoment = moment(event.start.date ?? event.start.dateTime);
@@ -78,6 +79,8 @@ export class UtilService {
       htmlLink: event.htmlLink,
 
       calendarId: calendarId,
+      reminders: popupMinutes(event.reminders?.useDefault === false ? event.reminders.overrides : defaultReminders),
+      googleReminders: event.reminders,
 
       startMoment,
       endMoment,
@@ -89,6 +92,10 @@ export class UtilService {
     return calendar ? calendar.backgroundColor : '';
   }
 }
+
+/** Minutes before the start of each popup reminder (email ones aren't notifications) */
+export const popupMinutes = (reminders: GoogleReminder[] = []) =>
+  reminders.filter((r) => r.method === 'popup').map((r) => r.minutes);
 
 /** Only the user's own normal events, or events on shared group calendars, can be changed */
 export const canEditEvent = (event: Event, email: string) =>

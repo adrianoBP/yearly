@@ -22,6 +22,8 @@
                size="0.875em" /> Recurring</span>
         <span><svg [appIcon]="cakeIcon"
                size="0.875em" /> Birthdays</span>
+        <span><svg [appIcon]="bellIcon"
+               size="0.875em" /> Notifications</span>
       </div>
     </div>
 
@@ -71,6 +73,17 @@
                      [disabled]="!calendarSettings?.allowed || !calendarSettings?.allowRecurring"
                      (change)="toggleSetting(calendar.id, 'birthdays')">
               <svg [appIcon]="cakeIcon"
+                   size="0.875em" />
+            </label>
+            <label class="chip"
+                   title="Notifications">
+              <input type="checkbox"
+                     class="visually-hidden"
+                     aria-label="Notifications"
+                     [checked]="calendarSettings?.notify ?? true"
+                     [disabled]="!calendarSettings?.allowed"
+                     (change)="toggleSetting(calendar.id, 'notify')">
+              <svg [appIcon]="bellIcon"
                    size="0.875em" />
             </label>
           </div>
@@ -281,7 +294,8 @@
   <!-- Required credits, moved here from the event panel: Open-Meteo data is CC BY 4.0, place search uses OpenStreetMap (ODbL) -->
   <p class="muted credits">
     Weather by <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a> ·
-    places © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors ·
+    places © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors,
+    search by <a href="https://photon.komoot.io" target="_blank" rel="noopener noreferrer">Photon</a> ·
     traffic by TomTom
   </p>
 </main>

@@ -31,8 +31,20 @@ export class WeatherService {
     const [result] = await this.integrations.fetchCached<
       { lat: string; lon: string; address?: { country_code?: string } }[]
     >(url, `place:${query.toLowerCase()}`, 30 * DAY);
-    if (!result) return null;
-    return { lat: +result.lat, lon: +result.lon, country: (result.address?.country_code ?? '').toUpperCase() };
+    if (result) return { lat: +result.lat, lon: +result.lon, country: (result.address?.country_code ?? '').toUpperCase() };
+    // Nominatim wants exact names ("Nando's"); Photon, on the same OpenStreetMap data, forgives typos
+    const photon = await this.integrations.fetchCached<{
+      features: { geometry: { coordinates: [number, number] }; properties: { countrycode?: string } }[];
+    }>('https://photon.komoot.io/api/?limit=1&q=' + encodeURIComponent(query), `photon:${query.toLowerCase()}`, 30 * DAY);
+    const [feature] = photon.features ?? [];
+    if (!feature) {
+      // Streets missing from the map ("6 Merchants Walk, …"): a UK postcode alone still pins the right street
+      const postcode = query.match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i)?.[0].toUpperCase();
+      const fallback = postcode && `${postcode}, UK`;
+      return fallback && fallback !== query ? this.geocode(fallback) : null;
+    }
+    const [lon, lat] = feature.geometry.coordinates;
+    return { lat, lon, country: (feature.properties.countrycode ?? '').toUpperCase() };
   }
 
   /** Daily forecast for the part of [start, end) that's within reach; null when none of it is */
