@@ -137,7 +137,9 @@
     </div>
   </section>
 
-  <section class="group">
+  <section class="group"
+           [class.editable]="parameters.event.canEdit"
+           (click)="onDescriptionClick($event)">
     <svg class="group-icon"
          [appIcon]="descriptionIcon" />
     <div class="group-body">
@@ -152,14 +154,10 @@
                   (blur)="editingDescription = false"></textarea>
       } @else {
         <div class="description description-in"
-             [class.editable]="parameters.event.canEdit"
+             [attr.tabindex]="parameters.event.canEdit ? 0 : null"
+             [attr.title]="parameters.event.canEdit ? 'Click to edit' : null"
              [innerHTML]="formattedDescription"
-             (click)="onDescriptionClick($event)"></div>
-        @if (parameters.event.canEdit) {
-          <button type="button"
-                  class="description-edit"
-                  (click)="editDescription()">Edit</button>
-        }
+             (keydown.enter)="$event.target === $event.currentTarget && editDescription()"></div>
       }
     </div>
   </section>

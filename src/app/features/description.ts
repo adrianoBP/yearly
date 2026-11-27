@@ -25,7 +25,11 @@ export function descriptionHtml(text: string | null | undefined): string {
     if (kind === 'li' && prev !== 'li') html += '<ul>';
     if (kind === 'text' && prev === 'text') html += '<br>';
 
-    const body = inline((heading?.[2] ?? item?.[1] ?? line).replace(/^\s*\[([ xX])\]\s+/, (_, c) => (c === ' ' ? '☐ ' : '☑ ')), !isHtml);
+    const content = heading?.[2] ?? item?.[1] ?? line;
+    const task = content.match(/^\s*\[([ xX])\]\s+(.*)/);
+    let body = inline(task ? task[2] : content, !isHtml);
+    // The box is drawn in CSS (.task::before in the event editor)
+    if (task) body = `<span class="task${task[1] === ' ' ? '' : ' done'}">${body}</span>`;
     html += heading ? `<h${heading[1].length}>${body}</h${heading[1].length}>` : item ? `<li>${body}</li>` : body;
     prev = kind;
   }
