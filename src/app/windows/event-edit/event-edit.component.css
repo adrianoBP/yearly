@@ -62,9 +62,9 @@
 /* The svg is the grid item itself, so centre it with justify-self; margin centres it on the first 2.1rem row */
 .group-icon {
   justify-self: center;
-  width: 1.1rem;
-  height: 1.1rem;
-  margin-top: 0.5rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-top: 0.6rem;
   color: var(--text-muted);
 }
 
@@ -365,7 +365,8 @@
   color: var(--primary);
 }
 
-/* [ ] / [x] tasks: a rounded box drawn in front of the line, filled with a tick when done */
+/* [ ] / [x] tasks: a softly rounded box with a blue border drawn in front of the line;
+   when done it fills light blue with a blue tick */
 .description ::ng-deep .task {
   position: relative;
   display: inline-block;
@@ -381,8 +382,8 @@
   width: 1em;
   height: 1em;
   background: var(--surface) no-repeat center / 0.7em;
-  border: 1.5px solid var(--text-faint);
-  border-radius: 0.3em;
+  border: 2px solid var(--primary);
+  border-radius: 0.25em;
 }
 
 .description ::ng-deep .task.done {
@@ -392,8 +393,9 @@
 }
 
 .description ::ng-deep .task.done::before {
-  background-color: var(--primary);
-  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>");
+  /* The tick is --primary, written out: a data URL can't read CSS variables */
+  background-color: var(--primary-soft);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>");
   border-color: var(--primary);
   animation: task-pop 0.35s var(--spring);
 }
