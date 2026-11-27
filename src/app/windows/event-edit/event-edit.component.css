@@ -334,16 +334,31 @@
   background: var(--surface-subtle);
 }
 
-.description :is(ul, ol) {
+/* ::ng-deep: the [innerHTML] elements don't carry this component's style scope */
+.description ::ng-deep :is(ul, ol) {
   margin: 0.2rem 0;
   padding-left: 1.2rem;
 }
 
-.description :is(p, div) {
+.description ::ng-deep :is(p, div) {
   margin: 0;
 }
 
-.description a {
+.description ::ng-deep :is(h1, h2, h3, h4, h5, h6) {
+  margin: 0.35rem 0 0.15rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.description ::ng-deep h1 {
+  font-size: 1.05rem;
+}
+
+.description ::ng-deep :first-child {
+  margin-top: 0;
+}
+
+.description ::ng-deep a {
   color: var(--primary);
 }
 

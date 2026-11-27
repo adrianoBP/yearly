@@ -25,6 +25,30 @@ describe('descriptionHtml', () => {
     );
   });
 
+  it('renders headings and checkboxes', () => {
+    expect(descriptionHtml('# Title\n[ ] Checkbox 1\n[x] Checkbox 2\n- [ ] in a list')).toBe(
+      '<h1>Title</h1>☐ Checkbox 1<br>☑ Checkbox 2<ul><li>☐ in a list</li></ul>'
+    );
+  });
+
+  it('reads Markdown typed into Google, which stores it as HTML lines', () => {
+    expect(descriptionHtml('## Plan<br>[x] <a href="https://x.com/_a_">book</a> **now**<br>- tea')).toBe(
+      '<h2>Plan</h2>☑ <a href="https://x.com/_a_">book</a> <b>now</b><ul><li>tea</li></ul>'
+    );
+  });
+
+  it('keeps unquoted links and <br/> from Google', () => {
+    const sanitizer = TestBed.inject(DomSanitizer);
+    const safe = sanitizer.sanitize(SecurityContext.HTML, descriptionHtml('<a href=https://myurl>http://myurl</a><br/><br/>'));
+    expect(safe).toBe('<a href="https://myurl">http://myurl</a><br><br>');
+  });
+
+  it('treats Teams-style <url> links as plain text', () => {
+    expect(descriptionHtml('Join<https://t.ms/a?x=1&y=2>\nby phone')).toBe(
+      'Join&lt;<a href="https://t.ms/a?x=1&amp;y=2">https://t.ms/a?x=1&amp;y=2</a>&gt;<br>by phone'
+    );
+  });
+
   it('only links web and mail addresses', () => {
     expect(descriptionHtml('[x](javascript:alert(1))')).not.toContain('<a');
   });
