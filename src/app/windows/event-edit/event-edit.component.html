@@ -141,12 +141,26 @@
     <svg class="group-icon"
          [appIcon]="descriptionIcon" />
     <div class="group-body">
-      <textarea name="description"
-                rows="3"
-                placeholder="Add description"
-                aria-label="Description"
-                [(ngModel)]="parameters.event.description"
-                [disabled]="!parameters.event.canEdit"></textarea>
+      @if (parameters.event.canEdit && (editingDescription || !parameters.event.description)) {
+        <textarea name="description"
+                  id="event-description"
+                  class="description-in"
+                  rows="3"
+                  placeholder="Add description"
+                  aria-label="Description"
+                  [(ngModel)]="parameters.event.description"
+                  (blur)="editingDescription = false"></textarea>
+      } @else {
+        <div class="description description-in"
+             [class.editable]="parameters.event.canEdit"
+             [innerHTML]="formattedDescription"
+             (click)="onDescriptionClick($event)"></div>
+        @if (parameters.event.canEdit) {
+          <button type="button"
+                  class="description-edit"
+                  (click)="editDescription()">Edit</button>
+        }
+      }
     </div>
   </section>
 
